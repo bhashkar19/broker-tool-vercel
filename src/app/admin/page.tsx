@@ -32,11 +32,6 @@ export default function AdminDashboard() {
   const [selectedBroker, setSelectedBroker] = useState<string>('');
   const [view, setView] = useState<'submissions' | 'analytics'>('analytics');
 
-  useEffect(() => {
-    fetchAnalytics();
-    fetchSubmissions();
-  }, [selectedBroker, fetchSubmissions]);
-
   const fetchAnalytics = async () => {
     try {
       const response = await fetch('/api/admin/submissions?analytics=true');
@@ -67,6 +62,11 @@ export default function AdminDashboard() {
       setLoading(false);
     }
   }, [selectedBroker]);
+
+  useEffect(() => {
+    fetchAnalytics();
+    fetchSubmissions();
+  }, [selectedBroker, fetchSubmissions]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
