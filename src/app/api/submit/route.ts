@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { saveUserSubmission, initializeDatabase } from '@/lib/database';
 
 interface SubmissionData {
   name: string;
@@ -44,28 +45,45 @@ export async function POST(request: NextRequest) {
                request.headers.get('x-real-ip') ||
                'unknown';
 
-    // Here you would typically save to a database
-    // For now, we'll just log the data and return success
-    console.log('User submission received:', {
-      ...data,
-      ip,
-      submittedAt: new Date().toISOString()
-    });
+    // Initialize database table if it doesn't exist
+    await initializeDatabase();
 
-    // In a real implementation, you would:
-    // 1. Connect to your database (MongoDB, PostgreSQL, etc.)
-    // 2. Store the user data
-    // 3. Potentially send to a CRM or email service
-    // 4. Store analytics data
+    // Save to database
+    const submissionData = {
+      name: data.name,
+      mobile: data.mobile,
+      current_broker: data.currentBroker,
+      execution_issues: data.executionIssues,
+      tools_satisfaction: data.toolsSatisfaction,
+      support_experience: data.supportExperience,
+      charges_concern: data.chargesConcern,
+      session_id: data.sessionId,
+      recommended_broker: data.recommended_broker,
+      user_agent: data.user_agent,
+      ip_address: ip,
+      fb_click_id: data.fb_click_id,
+      utm_source: data.utm_source,
+      utm_medium: data.utm_medium,
+      utm_campaign: data.utm_campaign
+    };
 
-    // Example database save (uncomment and modify for your database):
-    /*
-    const result = await saveToDatabase({
-      ...data,
-      ip,
-      submittedAt: new Date().toISOString()
-    });
-    */
+    const dbResult = await saveUserSubmission(submissionData);
+
+    if (!dbResult.success) {
+      console.error('Failed to save to database:', dbResult.error);
+      // Still log to console as backup
+      console.log('User submission received (database save failed):', {
+        ...data,
+        ip,
+        submittedAt: new Date().toISOString()
+      });
+    } else {
+      console.log('User submission saved to database successfully:', {
+        id: dbResult.data?.id,
+        sessionId: data.sessionId,
+        recommendedBroker: data.recommended_broker
+      });
+    }
 
     return NextResponse.json({
       success: true,
