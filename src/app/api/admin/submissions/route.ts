@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllSubmissions, getSubmissionsByBroker, getAnalyticsSummary } from '@/lib/database';
+import { getAllSubmissions, getSubmissionsByBroker, getAnalyticsSummary } from '@/lib/supabase-database';
 
 export async function GET(request: NextRequest) {
   try {

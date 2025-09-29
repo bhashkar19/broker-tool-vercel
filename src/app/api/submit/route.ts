@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { saveUserSubmission, initializeDatabase } from '@/lib/database';
+import { saveUserSubmission, initializeDatabase } from '@/lib/supabase-database';
 
 interface SubmissionData {
   name: string;
