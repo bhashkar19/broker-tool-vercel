@@ -401,7 +401,7 @@ export const validateQuestion = (question: Question, value: unknown, userData?: 
     return false;
   }
 
-  if (question.validation.customValidation && !question.validation.customValidation(userData || value)) {
+  if (question.validation.customValidation && !question.validation.customValidation(userData ?? value)) {
     return false;
   }
 

@@ -76,7 +76,15 @@ const ModularBrokerTool = () => {
   // Validate current question
   const isCurrentQuestionValid = () => {
     if (currentQuestion.type === 'custom') {
-      return validateQuestion(currentQuestion, userData, userData);
+      const isValid = validateQuestion(currentQuestion, userData, userData);
+      console.log('Contact validation:', {
+        name: userData.name,
+        mobile: userData.mobile,
+        nameLength: userData.name?.length,
+        mobileLength: userData.mobile?.length,
+        isValid
+      });
+      return isValid;
     }
     const value = userData[currentQuestion.field_name as keyof UserProfile];
     return validateQuestion(currentQuestion, value);
