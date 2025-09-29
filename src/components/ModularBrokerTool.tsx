@@ -76,7 +76,7 @@ const ModularBrokerTool = () => {
   // Validate current question
   const isCurrentQuestionValid = () => {
     if (currentQuestion.type === 'custom') {
-      return validateQuestion(currentQuestion, null, userData);
+      return validateQuestion(currentQuestion, userData, userData);
     }
     const value = userData[currentQuestion.field_name as keyof UserProfile];
     return validateQuestion(currentQuestion, value);
