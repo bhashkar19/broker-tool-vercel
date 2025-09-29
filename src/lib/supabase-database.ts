@@ -2,12 +2,17 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 if (!supabaseUrl || !supabaseKey) {
   console.error('Missing Supabase environment variables');
 }
 
+// Client for public operations (with anon key)
 export const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Admin client for database operations (with service role key)
+export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 export interface UserSubmission {
   id?: number;
@@ -55,7 +60,7 @@ export async function initializeDatabase() {
 // Save user submission to database
 export async function saveUserSubmission(data: UserSubmission) {
   try {
-    const { data: result, error } = await supabase
+    const { data: result, error } = await supabaseAdmin
       .from('user_submissions')
       .insert([{
         name: data.name,
@@ -92,7 +97,7 @@ export async function saveUserSubmission(data: UserSubmission) {
 // Get all submissions
 export async function getAllSubmissions(limit: number = 100, offset: number = 0) {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('user_submissions')
       .select('*')
       .order('created_at', { ascending: false })
@@ -113,7 +118,7 @@ export async function getAllSubmissions(limit: number = 100, offset: number = 0)
 // Get submissions by broker
 export async function getSubmissionsByBroker(broker: string) {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('user_submissions')
       .select('*')
       .eq('recommended_broker', broker)
