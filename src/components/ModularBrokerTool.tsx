@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, CheckCircle, AlertTriangle, TrendingUp, Star } from 'lucide-react';
+import { Target, CheckCircle, TrendingUp, Star } from 'lucide-react';
 
 // Import our modular configurations
 import {

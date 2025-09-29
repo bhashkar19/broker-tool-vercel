@@ -17,7 +17,7 @@ export interface Question {
     required?: boolean;
     minLength?: number;
     pattern?: string;
-    customValidation?: (value: any) => boolean;
+    customValidation?: (value: unknown) => boolean;
   };
   conditional?: {
     showIf: string; // field_name
@@ -47,8 +47,9 @@ export const QUESTION_FLOW_A: QuestionFlow = {
       field_name: "contact",
       validation: {
         required: true,
-        customValidation: (data: any) => {
-          return data.name?.length >= 2 && data.mobile?.length >= 10;
+        customValidation: (data: unknown) => {
+          const userData = data as { name?: string; mobile?: string };
+          return (userData.name?.length || 0) >= 2 && (userData.mobile?.length || 0) >= 10;
         }
       }
     },
@@ -158,8 +159,9 @@ export const QUESTION_FLOW_B: QuestionFlow = {
       field_name: "contact",
       validation: {
         required: true,
-        customValidation: (data: any) => {
-          return data.name?.length >= 2 && data.mobile?.length >= 10;
+        customValidation: (data: unknown) => {
+          const userData = data as { name?: string; mobile?: string };
+          return (userData.name?.length || 0) >= 2 && (userData.mobile?.length || 0) >= 10;
         }
       }
     },
@@ -229,8 +231,9 @@ export const QUESTION_FLOW_C: QuestionFlow = {
       field_name: "contact",
       validation: {
         required: true,
-        customValidation: (data: any) => {
-          return data.name?.length >= 2 && data.mobile?.length >= 10;
+        customValidation: (data: unknown) => {
+          const userData = data as { name?: string; mobile?: string };
+          return (userData.name?.length || 0) >= 2 && (userData.mobile?.length || 0) >= 10;
         }
       }
     },
@@ -378,23 +381,23 @@ export const getQuestionById = (id: string, version?: 'A' | 'B' | 'C') => {
   return config.questions.find(q => q.id === id);
 };
 
-export const shouldShowQuestion = (question: Question, userData: any) => {
+export const shouldShowQuestion = (question: Question, userData: Record<string, unknown>) => {
   if (!question.conditional) return true;
   return userData[question.conditional.showIf] === question.conditional.equals;
 };
 
-export const validateQuestion = (question: Question, value: any, userData?: any) => {
+export const validateQuestion = (question: Question, value: unknown, userData?: Record<string, unknown>) => {
   if (!question.validation) return true;
 
   if (question.validation.required && (!value || value === '')) {
     return false;
   }
 
-  if (question.validation.minLength && value.length < question.validation.minLength) {
+  if (question.validation.minLength && typeof value === 'string' && value.length < question.validation.minLength) {
     return false;
   }
 
-  if (question.validation.pattern && !new RegExp(question.validation.pattern).test(value)) {
+  if (question.validation.pattern && typeof value === 'string' && !new RegExp(question.validation.pattern).test(value)) {
     return false;
   }
 

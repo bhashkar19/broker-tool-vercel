@@ -2,7 +2,7 @@
 
 import { BROKER_CONFIGS, PRIORITY_SCORING, FREQUENCY_SCORING, EXPERIENCE_SCORING } from './brokerConfigs';
 
-export interface UserProfile {
+export interface UserProfile extends Record<string, unknown> {
   // Contact info
   name: string;
   mobile: string;
