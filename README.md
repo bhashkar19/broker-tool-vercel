@@ -2,6 +2,9 @@
 
 A modern, responsive web application that helps users find the perfect trading broker based on their needs and preferences. Built with Next.js, TypeScript, and deployed on Vercel.
 
+🔗 **Live Demo**: https://broker-tool-vercel-14pjz32xs-bhashkar19s-projects.vercel.app
+📂 **GitHub**: https://github.com/bhashkar19/broker-tool-vercel
+
 ## Features
 
 - **Interactive Assessment**: 6-question survey to understand user trading needs
