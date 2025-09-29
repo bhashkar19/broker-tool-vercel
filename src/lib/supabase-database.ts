@@ -200,8 +200,8 @@ export async function getAnalyticsSummary() {
       data: {
         totalSubmissions: totalSubmissions || 0,
         recentSubmissions: recentSubmissions || 0,
-        brokerRecommendations: brokerStats?.data || [],
-        topCurrentBrokers: currentBrokerStats?.data || []
+        brokerRecommendations: brokerStats || [],
+        topCurrentBrokers: currentBrokerStats || []
       }
     };
   } catch (error) {
