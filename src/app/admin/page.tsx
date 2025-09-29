@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface Submission {
   id: number;
@@ -35,7 +35,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchAnalytics();
     fetchSubmissions();
-  }, [selectedBroker]);
+  }, [selectedBroker, fetchSubmissions]);
 
   const fetchAnalytics = async () => {
     try {
@@ -49,7 +49,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const fetchSubmissions = async () => {
+  const fetchSubmissions = useCallback(async () => {
     try {
       setLoading(true);
       const url = selectedBroker
@@ -66,7 +66,7 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedBroker]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
@@ -148,7 +148,7 @@ export default function AdminDashboard() {
 
             <div className="bg-white rounded-lg shadow p-6 md:col-span-2">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Users' Current Brokers
+                Users&apos; Current Brokers
               </h3>
               <div className="space-y-2">
                 {analytics.topCurrentBrokers.map((broker, index) => (
