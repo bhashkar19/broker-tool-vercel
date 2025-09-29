@@ -29,23 +29,15 @@ export interface UserSubmission {
 export async function initializeDatabase() {
   try {
     // Create the user_submissions table if it doesn't exist
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('user_submissions')
       .select('id')
       .limit(1);
 
     if (error && error.code === 'PGRST116') {
-      // Table doesn't exist, let's create it
-      console.log('Creating user_submissions table...');
-
-      // Note: In production, you should create tables via Supabase dashboard or migrations
-      // This is a fallback for initial setup
-      const { error: createError } = await supabase.rpc('create_user_submissions_table');
-
-      if (createError) {
-        console.error('Error creating table:', createError);
-        return { success: false, error: createError };
-      }
+      // Table doesn't exist - it should be created via migrations
+      console.log('Table user_submissions not found. Please ensure migrations have been run.');
+      return { success: false, error: 'Table not found' };
     }
 
     console.log('Database initialized successfully');
@@ -162,14 +154,14 @@ export async function getAnalyticsSummary() {
     }
 
     // Broker recommendations stats
-    const { data: brokerStats, error: brokerError } = await supabase
+    const { data: brokerStats } = await supabase
       .from('user_submissions')
       .select('recommended_broker')
       .then(result => {
         if (result.error) return result;
 
         // Group by broker and count
-        const grouped = result.data?.reduce((acc: any, item: any) => {
+        const grouped = result.data?.reduce((acc: Record<string, number>, item: { recommended_broker: string }) => {
           acc[item.recommended_broker] = (acc[item.recommended_broker] || 0) + 1;
           return acc;
         }, {});
@@ -177,20 +169,20 @@ export async function getAnalyticsSummary() {
         const brokerRecommendations = Object.entries(grouped || {}).map(([broker, count]) => ({
           recommended_broker: broker,
           count
-        })).sort((a: any, b: any) => b.count - a.count);
+        })).sort((a: { count: number }, b: { count: number }) => b.count - a.count);
 
         return { data: brokerRecommendations, error: null };
       });
 
     // Top current brokers
-    const { data: currentBrokerStats, error: currentBrokerError } = await supabase
+    const { data: currentBrokerStats } = await supabase
       .from('user_submissions')
       .select('current_broker')
       .then(result => {
         if (result.error) return result;
 
         // Group by current broker and count
-        const grouped = result.data?.reduce((acc: any, item: any) => {
+        const grouped = result.data?.reduce((acc: Record<string, number>, item: { current_broker: string }) => {
           acc[item.current_broker] = (acc[item.current_broker] || 0) + 1;
           return acc;
         }, {});
@@ -198,7 +190,7 @@ export async function getAnalyticsSummary() {
         const topCurrentBrokers = Object.entries(grouped || {}).map(([broker, count]) => ({
           current_broker: broker,
           count
-        })).sort((a: any, b: any) => b.count - a.count).slice(0, 5);
+        })).sort((a: { count: number }, b: { count: number }) => b.count - a.count).slice(0, 5);
 
         return { data: topCurrentBrokers, error: null };
       });
