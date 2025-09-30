@@ -58,6 +58,8 @@ export interface RecommendationResult {
     priority: string;
     frequency: string;
     experience: string;
+    challenge: string;
+    brokerCount: string;
   };
 }
 
