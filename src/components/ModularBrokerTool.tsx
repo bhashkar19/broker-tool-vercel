@@ -60,6 +60,15 @@ const ModularBrokerTool = () => {
       }
     }
 
+    // Handle combined broker selection (stored as JSON string)
+    if (currentQuestion.type === 'custom' && currentQuestion.id === 'combined_broker_selection') {
+      try {
+        processedValue = JSON.parse(value);
+      } catch {
+        processedValue = { count: '', brokers: [] };
+      }
+    }
+
     setUserData(prev => ({
       ...prev,
       [currentQuestion.field_name]: processedValue
@@ -120,6 +129,32 @@ const ModularBrokerTool = () => {
         });
 
         return selectedBrokers.length === expectedCount;
+      }
+
+      if (currentQuestion.id === 'combined_broker_selection') {
+        // Flexible validation - just need at least one broker selected
+        let brokerData = userData.brokerInfo as { count?: string; brokers?: string[] } | undefined;
+
+        // Handle case where brokerInfo might still be a JSON string
+        if (typeof userData.brokerInfo === 'string') {
+          try {
+            brokerData = JSON.parse(userData.brokerInfo);
+          } catch {
+            brokerData = { count: '', brokers: [] };
+          }
+        }
+
+        const selectedBrokers = brokerData?.brokers || [];
+
+        console.log('Combined broker validation:', {
+          rawBrokerInfo: userData.brokerInfo,
+          brokerData,
+          selectedBrokers,
+          selectedLength: selectedBrokers.length,
+          isValid: selectedBrokers.length > 0
+        });
+
+        return selectedBrokers.length > 0;
       }
     }
     const value = userData[currentQuestion.field_name as keyof UserProfile];
@@ -283,6 +318,10 @@ const QuestionRenderer = ({
 
   if (question.type === 'custom' && question.id === 'current_brokers_smart') {
     return <SmartBrokerSelection userData={userData} onAnswerSelect={onAnswerSelect} />;
+  }
+
+  if (question.type === 'custom' && question.id === 'combined_broker_selection') {
+    return <CombinedBrokerSelection userData={userData} onAnswerSelect={onAnswerSelect} />;
   }
 
   if (question.type === 'radio') {
@@ -581,6 +620,233 @@ const SmartBrokerSelection = ({
             })}
           </div>
         </div>
+      )}
+    </div>
+  );
+};
+
+// 🚀 COMBINED BROKER SELECTION COMPONENT (NEW DROPDOWN-STYLE)
+const CombinedBrokerSelection = ({
+  userData,
+  onAnswerSelect
+}: {
+  userData: UserProfile;
+  onAnswerSelect: (value: string) => void;
+}) => {
+  // Initialize state from existing data
+  const initializeCombinedData = () => {
+    let existingData = userData.brokerInfo as { count?: string; brokers?: string[] } | undefined;
+
+    // Handle case where brokerInfo might be a JSON string
+    if (typeof userData.brokerInfo === 'string') {
+      try {
+        existingData = JSON.parse(userData.brokerInfo);
+      } catch {
+        existingData = { count: '', brokers: [] };
+      }
+    }
+
+    if (!existingData) {
+      existingData = { count: '', brokers: [] };
+    }
+
+    console.log('Initializing combined data:', {
+      rawBrokerInfo: userData.brokerInfo,
+      parsedData: existingData
+    });
+
+    return existingData;
+  };
+
+  const [brokerData, setBrokerData] = useState(initializeCombinedData);
+  const [otherBroker, setOtherBroker] = useState('');
+
+  // Update parent data whenever our state changes
+  useEffect(() => {
+    console.log('CombinedBrokerSelection updating parent with:', brokerData);
+    onAnswerSelect(JSON.stringify(brokerData));
+  }, [brokerData, onAnswerSelect]);
+
+  // Broker options with logos
+  const brokerOptions = [
+    { value: 'zerodha', label: 'Zerodha', logo: '🟢' },
+    { value: 'upstox', label: 'Upstox', logo: '🟠' },
+    { value: 'angel_one', label: 'Angel One', logo: '🔵' },
+    { value: 'groww', label: 'Groww', logo: '🟡' },
+    { value: 'fyers', label: 'Fyers', logo: '🟣' },
+    { value: '5paisa', label: '5paisa', logo: '🔴' }
+  ];
+
+  const countOptions = [
+    { value: '1', label: '1 broker' },
+    { value: '2', label: '2 brokers' },
+    { value: '3', label: '3 brokers' },
+    { value: '4+', label: '4 or more brokers' }
+  ];
+
+  const handleCountChange = (count: string) => {
+    setBrokerData(prev => ({
+      ...prev,
+      count,
+      // Keep existing brokers if count allows, otherwise trim
+      brokers: prev.brokers || []
+    }));
+  };
+
+  const handleBrokerToggle = (brokerId: string) => {
+    setBrokerData(prev => {
+      const currentBrokers = prev.brokers || [];
+      const newBrokers = currentBrokers.includes(brokerId)
+        ? currentBrokers.filter(id => id !== brokerId)
+        : [...currentBrokers, brokerId];
+
+      return {
+        ...prev,
+        brokers: newBrokers
+      };
+    });
+  };
+
+  const handleOtherBrokerAdd = () => {
+    if (otherBroker.trim()) {
+      const newBrokerId = `other_${otherBroker.toLowerCase().replace(/\s+/g, '_')}`;
+      setBrokerData(prev => ({
+        ...prev,
+        brokers: [...(prev.brokers || []), newBrokerId]
+      }));
+      setOtherBroker('');
+    }
+  };
+
+  const selectedBrokers = brokerData.brokers || [];
+  const showBrokerSelection = brokerData.count && brokerData.count !== '';
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center">
+        Tell us about your current brokers
+      </h2>
+
+      {/* Step 1: Broker Count Selection */}
+      <div className="mb-6">
+        <h3 className="text-lg font-medium text-gray-700 mb-4">How many brokers do you currently use?</h3>
+        <div className="grid grid-cols-2 gap-3">
+          {countOptions.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => handleCountChange(option.value)}
+              className={`p-4 border-2 rounded-xl text-center font-medium transition-all ${
+                brokerData.count === option.value
+                  ? 'border-blue-600 bg-blue-50 text-blue-900'
+                  : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50 text-gray-900'
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Step 2: Broker Selection (Auto-appears when count is selected) */}
+      {showBrokerSelection && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-4"
+        >
+          <h3 className="text-lg font-medium text-gray-700">Which brokers do you use?</h3>
+
+
+          {/* Progress indicator */}
+          {selectedBrokers.length > 0 && (
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <div className="flex justify-between text-sm text-blue-700 mb-2">
+                <span>{selectedBrokers.length} selected</span>
+                <span>{brokerData.count} total</span>
+              </div>
+              <div className="w-full bg-blue-200 rounded-full h-2">
+                <div
+                  className="h-2 rounded-full bg-blue-500 transition-all"
+                  style={{ width: `${Math.min((selectedBrokers.length / parseInt(brokerData.count || '1')) * 100, 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Broker selection grid */}
+          <div className="grid grid-cols-2 gap-3">
+            {brokerOptions.map((broker) => (
+              <button
+                key={broker.value}
+                onClick={() => handleBrokerToggle(broker.value)}
+                className={`p-4 border-2 rounded-xl font-medium transition-all flex items-center gap-3 ${
+                  selectedBrokers.includes(broker.value)
+                    ? 'border-blue-600 bg-blue-50 text-blue-900'
+                    : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50 text-gray-900'
+                }`}
+              >
+                <span className="text-2xl">{broker.logo}</span>
+                <span className="text-sm">{broker.label}</span>
+                {selectedBrokers.includes(broker.value) && (
+                  <CheckCircle className="w-4 h-4 text-blue-600 ml-auto" />
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Others option */}
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-2">
+              Other broker:
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={otherBroker}
+                onChange={(e) => setOtherBroker(e.target.value)}
+                placeholder="Enter broker name"
+                className="flex-1 p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-sm"
+              />
+              <button
+                onClick={handleOtherBrokerAdd}
+                disabled={!otherBroker.trim()}
+                className="px-4 py-3 bg-gray-600 text-white rounded-xl text-sm font-medium disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+
+          {/* Selected brokers list */}
+          {selectedBrokers.length > 0 && (
+            <div className="p-3 bg-green-50 rounded-lg">
+              <p className="text-sm text-green-700 font-medium mb-2">Selected:</p>
+              <div className="flex flex-wrap gap-2">
+                {selectedBrokers.map((brokerId) => {
+                  const broker = brokerOptions.find(b => b.value === brokerId);
+                  const isOther = brokerId.startsWith('other_');
+                  return (
+                    <span
+                      key={brokerId}
+                      className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium"
+                    >
+                      {broker?.logo || '📊'}
+                      {broker?.label || (isOther ? brokerId.replace('other_', '').replace(/_/g, ' ') : brokerId)}
+                      <button
+                        onClick={() => handleBrokerToggle(brokerId)}
+                        className="ml-1 text-green-600 hover:text-green-800"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </motion.div>
       )}
     </div>
   );

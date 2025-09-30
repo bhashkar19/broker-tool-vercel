@@ -1,6 +1,7 @@
 // 🧠 RECOMMENDATION ENGINE - Smart broker matching logic
 
 import { BROKER_CONFIGS, BROKER_ISSUES, BROKER_SOLUTIONS, BROKER_BUSINESS_PRIORITY } from './brokerConfigs';
+import { COMPREHENSIVE_BROKER_ISSUES, QUESTIONNAIRE_TO_ISSUES_MAP } from './comprehensiveBrokerIssues';
 
 export interface UserProfile extends Record<string, unknown> {
   // Contact info
@@ -9,12 +10,13 @@ export interface UserProfile extends Record<string, unknown> {
 
   // Core questions (ENHANCED TWO-PATH FLOW)
   hasAccount?: string;
-  brokerCount?: string; // NEW: How many brokers user has
-  currentBrokers?: string[]; // Handle multiple brokers selection
-  userType?: string; // NEW: investor/trader/learner/professional
-  mainChallenge?: string; // NEW: Biggest challenge with current broker
-  tradingFrequency?: string; // NEW: Enhanced trading frequency
-  whatMattersMost?: string; // NEW: Most important factor
+  brokerInfo?: { count?: string; brokers?: string[] }; // NEW: Combined broker count + selection
+  brokerCount?: string; // Legacy: How many brokers user has
+  currentBrokers?: string[]; // Legacy: Handle multiple brokers selection
+  userType?: string[] | string; // NEW: investor/trader/learner/professional (now multi-select)
+  mainChallenge?: string[] | string; // NEW: Challenges with current broker (now multi-select)
+  tradingFrequency?: string; // NEW: Enhanced trading frequency (kept single)
+  whatMattersMost?: string[] | string; // NEW: Important factors (now multi-select)
 
   // Legacy fields (keep for compatibility)
   investmentPurpose?: string;
@@ -85,7 +87,7 @@ export const generateRecommendation = (userProfile: UserProfile): Recommendation
   };
 
   // Step 5: Generate issue-based reasoning
-  const reasoning = generateIssueBasedReasoning(currentBrokers, recommendedBrokerId);
+  const reasoning = generateIssueBasedReasoning(currentBrokers, recommendedBrokerId, userProfile);
 
   // Step 6: Always recommend switching to new broker (business logic)
   const shouldSwitch = currentBrokers.length > 0;
@@ -97,11 +99,11 @@ export const generateRecommendation = (userProfile: UserProfile): Recommendation
     shouldSwitch,
     userProfile: {
       type: getUserType(userProfile),
-      priority: userProfile.whatMattersMost || userProfile.tradingPriority || userProfile.topPriority || 'balanced',
+      priority: getArrayFromField(userProfile.whatMattersMost)?.[0] || userProfile.tradingPriority || userProfile.topPriority || 'balanced',
       frequency: userProfile.tradingFrequency || 'moderate',
       experience: userProfile.experienceLevel || 'intermediate',
-      challenge: userProfile.mainChallenge || userProfile.mainIssue || 'none',
-      brokerCount: userProfile.brokerCount || '0'
+      challenge: getArrayFromField(userProfile.mainChallenge)?.[0] || userProfile.mainIssue || 'none',
+      brokerCount: userProfile.brokerInfo?.count || userProfile.brokerCount || '0'
     }
   };
 };
@@ -110,14 +112,40 @@ export const generateRecommendation = (userProfile: UserProfile): Recommendation
 // Now using business priority-based recommendation system
 
 // 🔄 HELPER FUNCTIONS
+const getArrayFromField = (field: string[] | string | undefined): string[] | undefined => {
+  if (!field) return undefined;
+
+  if (Array.isArray(field)) {
+    return field;
+  }
+
+  if (typeof field === 'string') {
+    try {
+      const parsed = JSON.parse(field);
+      return Array.isArray(parsed) ? parsed : [field];
+    } catch {
+      return [field];
+    }
+  }
+
+  return undefined;
+};
 const getCurrentBrokers = (profile: UserProfile): string[] => {
-  // Handle both single broker (legacy) and multiple brokers (FluentForm)
+  // Handle new combined broker data structure first
+  if (profile.brokerInfo?.brokers && profile.brokerInfo.brokers.length > 0) {
+    return profile.brokerInfo.brokers;
+  }
+
+  // Handle legacy multiple brokers (FluentForm/old structure)
   if (profile.currentBrokers && profile.currentBrokers.length > 0) {
     return profile.currentBrokers;
   }
+
+  // Handle legacy single broker
   if (profile.currentBroker && profile.currentBroker !== 'none') {
     return [profile.currentBroker];
   }
+
   return [];
 };
 
@@ -152,14 +180,40 @@ const selectBestBrokerFromAvailable = (availableBrokers: string[]): string => {
 
 
 const getUserType = (profile: UserProfile): string => {
-  // Use new userType field first, then fall back to legacy fields
+  // Handle new multi-select userType field
   if (profile.userType) {
-    switch(profile.userType) {
-      case 'investor': return 'Long-term Investor';
-      case 'trader': return 'Active Trader';
-      case 'learner': return 'Learning Explorer';
-      case 'professional': return 'Professional Trader';
-      default: return 'Active Trader';
+    let userTypes: string[] = [];
+
+    // Handle both array and string formats
+    if (Array.isArray(profile.userType)) {
+      userTypes = profile.userType;
+    } else if (typeof profile.userType === 'string') {
+      try {
+        userTypes = JSON.parse(profile.userType);
+      } catch {
+        userTypes = [profile.userType];
+      }
+    }
+
+    // Return combined types or first one
+    if (userTypes.length > 1) {
+      return userTypes.map(type => {
+        switch(type) {
+          case 'investor': return 'Investor';
+          case 'trader': return 'Trader';
+          case 'learner': return 'Learner';
+          case 'professional': return 'Pro';
+          default: return type;
+        }
+      }).join(' + ');
+    } else if (userTypes.length === 1) {
+      switch(userTypes[0]) {
+        case 'investor': return 'Long-term Investor';
+        case 'trader': return 'Active Trader';
+        case 'learner': return 'Learning Explorer';
+        case 'professional': return 'Professional Trader';
+        default: return 'Active Trader';
+      }
     }
   }
 
@@ -183,10 +237,16 @@ const generateSpecificReasons = (currentBrokers: string[], recommendedBrokerId: 
   const reasons = [];
 
   // CHALLENGE-BASED REASONING (NEW ENHANCED APPROACH)
-  const challenge = userProfile.mainChallenge || userProfile.mainIssue;
-  const whatMatters = userProfile.whatMattersMost || userProfile.tradingPriority;
-  const userType = userProfile.userType;
+  // Handle multi-select fields
+  const challenges = getArrayFromField(userProfile.mainChallenge) || getArrayFromField(userProfile.mainIssue) || [];
+  const whatMattersArray = getArrayFromField(userProfile.whatMattersMost) || getArrayFromField(userProfile.tradingPriority) || [];
+  const userTypes = getArrayFromField(userProfile.userType) || [];
   const frequency = userProfile.tradingFrequency;
+
+  // Use first values for legacy compatibility
+  const challenge = challenges[0];
+  const whatMatters = whatMattersArray[0];
+  const userType = userTypes[0];
 
   // Add challenge-specific solution first (most important)
   if (challenge && currentBrokers.length > 0) {
@@ -239,7 +299,71 @@ const generateSpecificReasons = (currentBrokers: string[], recommendedBrokerId: 
   return reasons.slice(0, 3); // Limit to top 3 most relevant reasons
 };
 
-const generateIssueBasedReasoning = (currentBrokers: string[], recommendedBrokerId: string): string => {
+// 🎯 NEW COMPREHENSIVE SINGLE BROKER VALIDATION SYSTEM
+const generateSingleBrokerValidation = (currentBroker: string, recommendedBrokerId: string, userProfile?: UserProfile): string => {
+  const currentBrokerData = BROKER_CONFIGS[currentBroker];
+  const recommendedBroker = BROKER_CONFIGS[recommendedBrokerId];
+  const currentBrokerIssues = COMPREHENSIVE_BROKER_ISSUES[currentBroker];
+
+  if (!currentBrokerData || !currentBrokerIssues) {
+    // Fallback to simple reasoning if comprehensive data not available
+    return `**${recommendedBroker.name} is a great addition to your trading setup:**
+
+• ${recommendedBroker.real_insights.perfect_for}
+• ${recommendedBroker.real_insights.cost_summary}`;
+  }
+
+  let reasoning = `**We understand your concerns with ${currentBrokerData.name}:**\n\n`;
+
+  // 1. ACKNOWLEDGE USER-SELECTED ISSUES (Validation & Empathy)
+  const userChallenges = getArrayFromField(userProfile?.mainChallenge) || [];
+  const acknowledgedIssues: string[] = [];
+
+  userChallenges.forEach(challenge => {
+    const issueKey = QUESTIONNAIRE_TO_ISSUES_MAP[challenge as keyof typeof QUESTIONNAIRE_TO_ISSUES_MAP];
+    if (issueKey && issueKey !== 'none' && currentBrokerIssues.user_selectable[issueKey]) {
+      acknowledgedIssues.push(`• **${capitalize(challenge)}**: ${currentBrokerIssues.user_selectable[issueKey]}`);
+    }
+  });
+
+  if (acknowledgedIssues.length > 0) {
+    reasoning += `**Issues you've experienced (we hear you):**\n${acknowledgedIssues.join('\n')}\n\n`;
+  }
+
+  // 2. ADD EXPERT INSIGHTS (Additional problems users didn't think of)
+  if (currentBrokerIssues.additional_insights.length > 0) {
+    const topInsights = currentBrokerIssues.additional_insights.slice(0, 2);
+    reasoning += `**Additional challenges we've observed:**\n`;
+    topInsights.forEach(insight => {
+      reasoning += `• ${insight}\n`;
+    });
+    reasoning += '\n';
+  }
+
+  // 3. SHOW HOW RECOMMENDED BROKER ADDRESSES THESE
+  reasoning += `**How ${recommendedBroker.name} addresses these concerns:**\n`;
+  reasoning += `• ${recommendedBroker.real_insights.perfect_for}\n`;
+  reasoning += `• ${recommendedBroker.real_insights.cost_summary}\n\n`;
+
+  // 4. BALANCED PERSPECTIVE - Acknowledge current broker's strengths
+  if (currentBrokerIssues.positive_aspects.length > 0) {
+    const topPositive = currentBrokerIssues.positive_aspects.slice(0, 2);
+    reasoning += `**${currentBrokerData.name} has its strengths too:**\n`;
+    topPositive.forEach(positive => {
+      reasoning += `• ${positive}\n`;
+    });
+    reasoning += `\nBut ${recommendedBroker.name} fills the gaps where you need improvement.`;
+  }
+
+  return reasoning;
+};
+
+// Helper function to capitalize first letter
+const capitalize = (str: string): string => {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+const generateIssueBasedReasoning = (currentBrokers: string[], recommendedBrokerId: string, userProfile?: UserProfile): string => {
   const recommendedBroker = BROKER_CONFIGS[recommendedBrokerId];
 
   if (currentBrokers.length === 0) {
@@ -254,35 +378,7 @@ Start with India's most trusted broker - no need to switch later.`;
   }
 
   if (currentBrokers.length === 1) {
-    // Single broker user - highlight specific issues with current broker
-    const currentBroker = currentBrokers[0];
-    const issues = BROKER_ISSUES[currentBroker as keyof typeof BROKER_ISSUES];
-    const solutions = BROKER_SOLUTIONS[recommendedBrokerId as keyof typeof BROKER_SOLUTIONS];
-
-    let reasoning = `**Why ${recommendedBroker.name} is better than your current ${BROKER_CONFIGS[currentBroker]?.name}:**
-
-`;
-
-    // Highlight 2-3 specific issues with current broker
-    if (issues) {
-      const issueList = Object.values(issues);
-      reasoning += `**Problems with ${BROKER_CONFIGS[currentBroker]?.name}:**
-• ${issueList[0]}
-• ${issueList[1]}
-
-`;
-    }
-
-    // Show how recommended broker solves these
-    const solutionKey = `from_${currentBroker}` as keyof typeof solutions;
-    const specificSolution = solutions?.[solutionKey];
-    if (specificSolution) {
-      reasoning += `**How ${recommendedBroker.name} fixes this:**
-• ${specificSolution}
-• ${recommendedBroker.real_insights.perfect_for}`;
-    }
-
-    return reasoning;
+    return generateSingleBrokerValidation(currentBrokers[0], recommendedBrokerId, userProfile);
   }
 
   // Multiple brokers - show optimization strategy

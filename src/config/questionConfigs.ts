@@ -65,28 +65,11 @@ export const QUESTION_FLOW_A: QuestionFlow = {
       validation: { required: true }
     },
     {
-      id: "broker_count",
-      type: "radio",
-      label: "How many brokers do you currently use?",
-      field_name: "brokerCount",
-      options: [
-        { label: "1 broker", value: "1" },
-        { label: "2 brokers", value: "2" },
-        { label: "3 brokers", value: "3" },
-        { label: "4 or more brokers", value: "4+" }
-      ],
-      conditional: {
-        showIf: "hasAccount",
-        equals: "yes"
-      },
-      validation: { required: true }
-    },
-    {
-      id: "current_brokers_smart",
+      id: "combined_broker_selection",
       type: "custom",
-      label: "Which brokers do you currently use?",
-      field_name: "currentBrokers",
-      helpText: "Select the exact number of brokers you mentioned above",
+      label: "Tell us about your current brokers",
+      field_name: "brokerInfo",
+      helpText: "First select how many, then choose which brokers you use",
       conditional: {
         showIf: "hasAccount",
         equals: "yes"
@@ -94,22 +77,22 @@ export const QUESTION_FLOW_A: QuestionFlow = {
       validation: {
         required: true,
         customValidation: (data: unknown) => {
-          // This will be handled by the smart broker selection component
-          const brokers = data as string[] | undefined;
-          return (brokers?.length || 0) > 0;
+          // Flexible validation - just need at least one broker selected
+          const brokerData = data as { count?: string; brokers?: string[] } | undefined;
+          return (brokerData?.brokers?.length || 0) > 0;
         }
       }
     },
     {
       id: "user_type",
-      type: "radio",
+      type: "checkbox",
       label: "Which best describes you?",
       field_name: "userType",
       options: [
-        { label: "Long-term investor (SIP, mutual funds, stocks for years)", value: "investor" },
-        { label: "Active trader (buy/sell stocks frequently)", value: "trader" },
-        { label: "Learning & exploring (new to markets)", value: "learner" },
-        { label: "Professional trader (F&O, technical analysis)", value: "professional" }
+        { label: "Long-term investor", value: "investor" },
+        { label: "Active trader", value: "trader" },
+        { label: "Learning & exploring", value: "learner" },
+        { label: "Professional trader", value: "professional" }
       ],
       conditional: {
         showIf: "hasAccount",
@@ -119,16 +102,16 @@ export const QUESTION_FLOW_A: QuestionFlow = {
     },
     {
       id: "main_challenge",
-      type: "radio",
-      label: "What's your biggest challenge with your current broker?",
+      type: "checkbox",
+      label: "What challenges do you face?",
       field_name: "mainChallenge",
       options: [
-        { label: "High brokerage and hidden charges", value: "charges" },
-        { label: "Platform crashes during important trades", value: "reliability" },
-        { label: "Poor customer support when needed", value: "support" },
-        { label: "Lack of research and recommendations", value: "research" },
-        { label: "Limited tools for analysis", value: "tools" },
-        { label: "Actually quite satisfied overall", value: "satisfied" }
+        { label: "High charges", value: "charges" },
+        { label: "Platform crashes", value: "reliability" },
+        { label: "Poor support", value: "support" },
+        { label: "Lack of research", value: "research" },
+        { label: "Limited tools", value: "tools" },
+        { label: "No major issues", value: "satisfied" }
       ],
       conditional: {
         showIf: "hasAccount",
@@ -155,16 +138,16 @@ export const QUESTION_FLOW_A: QuestionFlow = {
     },
     {
       id: "what_matters_most",
-      type: "radio",
-      label: "What matters most to you in a broker?",
+      type: "checkbox",
+      label: "What matters to you?",
       field_name: "whatMattersMost",
       options: [
-        { label: "Lowest possible charges", value: "cost" },
-        { label: "Platform speed and reliability", value: "speed" },
-        { label: "Quality research and stock picks", value: "research" },
-        { label: "Advanced tools and features", value: "tools" },
-        { label: "Excellent customer support", value: "support" },
-        { label: "Educational resources", value: "education" }
+        { label: "Low charges", value: "cost" },
+        { label: "Speed & reliability", value: "speed" },
+        { label: "Research & picks", value: "research" },
+        { label: "Advanced tools", value: "tools" },
+        { label: "Good support", value: "support" },
+        { label: "Education", value: "education" }
       ],
       conditional: {
         showIf: "hasAccount",
