@@ -458,7 +458,7 @@ const SmartBrokerSelection = ({
       {selectedBrokers.length < expectedCount && (
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-600 mb-2">
-            Don't see your broker? Add it here:
+            Don&apos;t see your broker? Add it here:
           </label>
           <div className="flex gap-2">
             <input
@@ -493,7 +493,7 @@ const SmartBrokerSelection = ({
       {isCountMatching && (
         <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800 flex items-center gap-2">
           <CheckCircle className="w-4 h-4" />
-          Perfect! You've selected exactly {expectedCount} broker{expectedCount > 1 ? 's' : ''}.
+          Perfect! You&apos;ve selected exactly {expectedCount} broker{expectedCount > 1 ? 's' : ''}.
         </div>
       )}
 

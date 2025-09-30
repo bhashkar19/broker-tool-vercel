@@ -83,7 +83,7 @@ export const generateRecommendation = (userProfile: UserProfile): Recommendation
   };
 
   // Step 5: Generate issue-based reasoning
-  const reasoning = generateIssueBasedReasoning(currentBrokers, recommendedBrokerId, userProfile);
+  const reasoning = generateIssueBasedReasoning(currentBrokers, recommendedBrokerId);
 
   // Step 6: Always recommend switching to new broker (business logic)
   const shouldSwitch = currentBrokers.length > 0;
@@ -148,23 +148,6 @@ const selectBestBrokerFromAvailable = (availableBrokers: string[]): string => {
   return bestBroker;
 };
 
-const getFrequencyFromGoal = (goal?: string): string => {
-  switch(goal) {
-    case 'professional': return 'daily';
-    case 'profit': return 'weekly';
-    case 'learning': return 'monthly';
-    default: return 'weekly';
-  }
-};
-
-const getExperienceFromGoal = (goal?: string): string => {
-  switch(goal) {
-    case 'professional': return 'expert';
-    case 'profit': return 'intermediate';
-    case 'learning': return 'beginner';
-    default: return 'novice';
-  }
-};
 
 const getUserType = (profile: UserProfile): string => {
   // Use new userType field first, then fall back to legacy fields
@@ -191,107 +174,6 @@ const getUserType = (profile: UserProfile): string => {
   return 'Active Trader';
 };
 
-const applyIssueAdjustments = (scores: Record<string, number>, issue: string) => {
-  switch(issue) {
-    case 'speed':
-      scores['upstox'] += 3;
-      scores['fyers'] += 2;
-      scores['zerodha'] -= 2;
-      break;
-    case 'charges':
-      scores['5paisa'] += 3;
-      scores['zerodha'] += 2;
-      scores['angel_one'] -= 1;
-      break;
-    case 'support':
-      scores['angel_one'] += 3;
-      scores['upstox'] += 1;
-      scores['zerodha'] -= 2;
-      break;
-    case 'tools':
-      scores['fyers'] += 3;
-      scores['upstox'] += 2;
-      scores['5paisa'] -= 2;
-      break;
-  }
-};
-
-const applyInvestmentAmountAdjustments = (scores: Record<string, number>, amount: string) => {
-  switch(amount) {
-    case 'small':
-      scores['zerodha'] += 2;
-      scores['5paisa'] += 1;
-      break;
-    case 'very_large':
-      scores['fyers'] += 2;
-      scores['angel_one'] += 2;
-      scores['5paisa'] -= 1;
-      break;
-  }
-};
-
-const applySatisfactionAdjustments = (scores: Record<string, number>, satisfaction: string, currentBroker?: string) => {
-  const satisfactionLevel = parseInt(satisfaction);
-  if (satisfactionLevel >= 4 && currentBroker) {
-    // User is satisfied, don't recommend switching
-    scores[currentBroker] += 5;
-  }
-};
-
-const convertScoresToRecommendations = (scores: Record<string, number>): BrokerRecommendation[] => {
-  const maxScore = Math.max(...Object.values(scores));
-
-  return Object.entries(scores)
-    .map(([brokerId, score]) => {
-      const broker = BROKER_CONFIGS[brokerId];
-      return {
-        brokerId,
-        brokerName: broker.name,
-        score,
-        reasons: generateReasons(brokerId, score),
-        affiliate_url: broker.affiliate_url,
-        matchPercentage: Math.round((score / maxScore) * 100)
-      };
-    })
-    .sort((a, b) => b.score - a.score);
-};
-
-const generateReasons = (brokerId: string, score: number): string[] => {
-  const broker = BROKER_CONFIGS[brokerId];
-  const reasons = [];
-
-  // Add top 2-3 pros as reasons
-  reasons.push(...broker.real_insights.pros.slice(0, 2));
-
-  // Add specific reason based on score
-  if (score > 12) {
-    reasons.push("Perfect match for your trading profile");
-  } else if (score > 10) {
-    reasons.push("Great fit with minor trade-offs");
-  }
-
-  return reasons;
-};
-
-const determineShouldSwitch = (profile: UserProfile, primary: BrokerRecommendation): boolean => {
-  // Don't recommend switching if user is satisfied
-  if (profile.satisfaction && parseInt(profile.satisfaction) >= 4) {
-    return false;
-  }
-
-  // Don't recommend switching if already using the recommended broker
-  if (profile.currentBroker === primary.brokerId) {
-    return false;
-  }
-
-  // Recommend switching if they have specific issues
-  if (profile.mainIssue && profile.mainIssue !== 'satisfied') {
-    return true;
-  }
-
-  // Recommend switching if match percentage is significantly better
-  return primary.matchPercentage >= 85;
-};
 
 // 🎯 NEW ISSUE-BASED REASONING SYSTEM
 const generateSpecificReasons = (currentBrokers: string[], recommendedBrokerId: string, userProfile: UserProfile): string[] => {
@@ -355,7 +237,7 @@ const generateSpecificReasons = (currentBrokers: string[], recommendedBrokerId: 
   return reasons.slice(0, 3); // Limit to top 3 most relevant reasons
 };
 
-const generateIssueBasedReasoning = (currentBrokers: string[], recommendedBrokerId: string, profile: UserProfile): string => {
+const generateIssueBasedReasoning = (currentBrokers: string[], recommendedBrokerId: string): string => {
   const recommendedBroker = BROKER_CONFIGS[recommendedBrokerId];
 
   if (currentBrokers.length === 0) {
@@ -411,7 +293,3 @@ Start with India's most trusted broker - no need to switch later.`;
 Complete your trading toolkit with the missing piece.`;
 };
 
-const generateReasoning = (profile: UserProfile, primary: BrokerRecommendation): string => {
-  // This function is kept for compatibility but redirects to new logic
-  return generateIssueBasedReasoning(getCurrentBrokers(profile), primary.brokerId, profile);
-};
