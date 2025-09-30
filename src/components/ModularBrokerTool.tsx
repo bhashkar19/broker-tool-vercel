@@ -100,7 +100,25 @@ const ModularBrokerTool = () => {
       }
       if (currentQuestion.id === 'current_brokers_smart') {
         const expectedCount = parseInt(userData.brokerCount || '1');
-        const selectedBrokers = (userData.currentBrokers as string[]) || [];
+        let selectedBrokers = (userData.currentBrokers as string[]) || [];
+
+        // Handle JSON string parsing if needed
+        if (typeof userData.currentBrokers === 'string') {
+          try {
+            selectedBrokers = JSON.parse(userData.currentBrokers);
+          } catch {
+            selectedBrokers = [];
+          }
+        }
+
+        console.log('Broker validation:', {
+          expectedCount,
+          selectedBrokers,
+          selectedLength: selectedBrokers.length,
+          isValid: selectedBrokers.length === expectedCount,
+          rawData: userData.currentBrokers
+        });
+
         return selectedBrokers.length === expectedCount;
       }
     }
@@ -357,9 +375,20 @@ const SmartBrokerSelection = ({
   userData: UserProfile;
   onAnswerSelect: (value: string) => void;
 }) => {
-  const [selectedBrokers, setSelectedBrokers] = useState<string[]>(
-    (userData.currentBrokers as string[]) || []
-  );
+  // Initialize selectedBrokers with proper parsing
+  const initializeBrokers = () => {
+    let brokers = (userData.currentBrokers as string[]) || [];
+    if (typeof userData.currentBrokers === 'string') {
+      try {
+        brokers = JSON.parse(userData.currentBrokers);
+      } catch {
+        brokers = [];
+      }
+    }
+    return Array.isArray(brokers) ? brokers : [];
+  };
+
+  const [selectedBrokers, setSelectedBrokers] = useState<string[]>(initializeBrokers);
   const [otherBroker, setOtherBroker] = useState('');
 
   const expectedCount = parseInt(userData.brokerCount || '1');
@@ -367,12 +396,35 @@ const SmartBrokerSelection = ({
 
   // Sync initial selection when userData changes
   useEffect(() => {
-    const currentBrokers = (userData.currentBrokers as string[]) || [];
-    if (currentBrokers.length > 0 && selectedBrokers.length === 0) {
+    let currentBrokers = (userData.currentBrokers as string[]) || [];
+
+    // Parse JSON string if needed
+    if (typeof userData.currentBrokers === 'string') {
+      try {
+        currentBrokers = JSON.parse(userData.currentBrokers);
+      } catch {
+        currentBrokers = [];
+      }
+    }
+
+    // Ensure it's an array
+    if (!Array.isArray(currentBrokers)) {
+      currentBrokers = [];
+    }
+
+    // Update state if needed and trigger answer selection
+    if (currentBrokers.length > 0) {
       setSelectedBrokers(currentBrokers);
       onAnswerSelect(JSON.stringify(currentBrokers));
     }
-  }, [userData.currentBrokers, selectedBrokers.length, onAnswerSelect]);
+  }, [userData.currentBrokers, onAnswerSelect]);
+
+  // Also trigger validation when selectedBrokers changes
+  useEffect(() => {
+    if (selectedBrokers.length > 0) {
+      onAnswerSelect(JSON.stringify(selectedBrokers));
+    }
+  }, [selectedBrokers, onAnswerSelect]);
 
   // Broker options with logos (placeholder for now)
   const brokerOptions = [
