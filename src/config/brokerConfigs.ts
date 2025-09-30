@@ -351,6 +351,100 @@ export const EXPERIENCE_SCORING = {
   }
 };
 
+// 🔍 EXPANDABLE BROKER ISSUES DATABASE
+// Add new issues as you discover them - this will make recommendations more credible
+export const BROKER_ISSUES = {
+  'zerodha': {
+    server_crashes: "Servers crash during Budget/Election results - users miss selling opportunities during volatile markets",
+    slow_support: "Customer support takes 2-3 days, mostly chatbots - real human help is rare",
+    basic_research: "Limited research reports compared to full-service brokers - just basic fundamentals",
+    weekend_maintenance: "Platform unavailable during weekend maintenance - can't prepare for Monday",
+    chart_limitations: "Basic charting tools compared to professional platforms",
+    no_advisory: "No personalized stock recommendations - you're on your own for stock picking"
+  },
+  'angel_one': {
+    hidden_charges: "Advisory fees ₹500+ monthly that users don't realize - bills pile up quietly",
+    complex_pricing: "Multiple fee types confuse users - hard to calculate actual costs",
+    overwhelming_interface: "Too many features overwhelm beginners - analysis paralysis",
+    forced_advisory: "Pushes advisory services even when not needed - sales-first approach",
+    high_margin_charges: "Higher margin charges compared to discount brokers",
+    legacy_platform: "Older technology platform - slower than modern apps"
+  },
+  'upstox': {
+    small_community: "Smaller user base - fewer online discussions and tips sharing",
+    limited_education: "No educational content like Zerodha Varsity - limited learning resources",
+    interface_complexity: "Learning curve for users switching from Zerodha - different layout",
+    fewer_integrations: "Limited third-party app integrations compared to Zerodha",
+    research_gaps: "Basic research compared to full-service brokers - limited analysis",
+    support_hours: "Limited customer support hours compared to larger brokers"
+  },
+  'fyers': {
+    complex_interface: "Professional interface overwhelming for beginners - steep learning curve",
+    higher_costs: "Higher charges than discount brokers for casual traders",
+    limited_popularity: "Smaller user base - less community support and resources",
+    advanced_focus: "Focused on advanced traders - beginners might feel left out",
+    fewer_branches: "Limited physical presence for offline support"
+  },
+  '5paisa': {
+    delivery_charges: "Charges ₹10 for delivery trades while others offer FREE - unnecessary cost",
+    basic_platform: "Very basic platform with limited advanced features - feels outdated",
+    poor_support: "Poor customer support and frequent technical issues - user complaints",
+    limited_research: "Minimal research and advisory services - very basic reports",
+    brand_perception: "Less trusted brand compared to established players",
+    fewer_features: "Missing many features that other brokers provide standard"
+  }
+};
+
+// 🎯 BROKER SOLUTIONS DATABASE
+// What each broker solves for users coming from other brokers
+export const BROKER_SOLUTIONS = {
+  'zerodha': {
+    from_angel_one: "Zero hidden charges and transparent pricing - know exactly what you pay",
+    from_upstox: "Best educational content (Varsity) - learn while you trade",
+    from_5paisa: "Free delivery trading saves money - keep more of your profits",
+    from_fyers: "Simplified interface perfect for beginners - easy to start",
+    general: "Most trusted discount broker with largest user base - proven track record"
+  },
+  'angel_one': {
+    from_zerodha: "Professional research team picks winning stocks - stop guessing which stocks to buy",
+    from_upstox: "Comprehensive advisory services and stock recommendations - guided trading",
+    from_5paisa: "Quality research reports and market analysis - make informed decisions",
+    from_fyers: "Better customer support with human agents - real help when needed",
+    general: "Full-service experience with research-backed recommendations"
+  },
+  'upstox': {
+    from_zerodha: "3x faster execution speed - crucial during volatile market movements",
+    from_angel_one: "Lower costs without advisory fees - pure execution focused",
+    from_5paisa: "Better technology platform and reliability - modern trading experience",
+    from_fyers: "Simpler interface while maintaining speed - best of both worlds",
+    general: "Speed and reliability for active traders - when every second counts"
+  },
+  'fyers': {
+    from_zerodha: "Advanced professional tools and analytics - serious trader features",
+    from_angel_one: "Lower costs for high-volume trading - save on frequent trades",
+    from_upstox: "More sophisticated charting and analysis tools - professional grade",
+    from_5paisa: "Superior technology and platform stability - institutional quality",
+    general: "Professional-grade platform for serious traders"
+  },
+  '5paisa': {
+    from_zerodha: "Lowest possible brokerage charges - maximum savings on frequent trading",
+    from_angel_one: "No advisory fees or hidden charges - pure cost savings",
+    from_upstox: "Zero AMC charges - completely free account maintenance",
+    from_fyers: "Simplified pricing structure - easy to understand costs",
+    general: "Rock-bottom pricing for cost-conscious traders"
+  }
+};
+
+// 🏆 BUSINESS PRIORITY ORDER
+// Higher priority = recommend first (better affiliate commissions)
+export const BROKER_BUSINESS_PRIORITY = {
+  'zerodha': 1,    // Highest priority
+  'angel_one': 1,  // Equal highest priority
+  'upstox': 2,     // Second priority
+  'fyers': 3,      // Third priority
+  '5paisa': 4      // Lowest priority
+};
+
 // 🚀 EASY CONFIGURATION FUNCTIONS
 export const updateBrokerPriority = (brokerId: string, newPriority: number) => {
   if (BROKER_CONFIGS[brokerId]) {

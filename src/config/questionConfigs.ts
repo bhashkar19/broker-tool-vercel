@@ -34,16 +34,16 @@ export interface QuestionFlow {
   totalQuestions: number;
 }
 
-// 🔄 VERSION A: Current System (Improved)
+// 🔄 VERSION A: ENHANCED TWO-PATH FLOW
 export const QUESTION_FLOW_A: QuestionFlow = {
-  name: "Current Improved",
-  description: "Current system with better neutral questions",
+  name: "Enhanced Two-Path Flow",
+  description: "Clear branching: New users (3 questions) vs Existing users (7 questions)",
   totalQuestions: 7,
   questions: [
     {
       id: "contact_info",
       type: "custom",
-      label: "Let's get started with your personalized assessment",
+      label: "Get your personalized broker recommendation",
       field_name: "contact",
       validation: {
         required: true,
@@ -54,92 +54,121 @@ export const QUESTION_FLOW_A: QuestionFlow = {
       }
     },
     {
-      id: "account_status",
+      id: "demat_account_check",
       type: "radio",
-      label: "Do you currently have a trading/demat account?",
+      label: "Do you have a demat account with any broker?",
       field_name: "hasAccount",
       options: [
-        { label: "Yes, I actively trade", value: "active" },
-        { label: "Yes, but I rarely use it", value: "inactive" },
-        { label: "No, I'm completely new", value: "none" }
+        { label: "Yes, I have a demat account", value: "yes" },
+        { label: "No, I'm completely new", value: "no" }
       ],
       validation: { required: true }
     },
     {
-      id: "current_broker",
+      id: "broker_count",
       type: "radio",
-      label: "Which broker do you currently use?",
-      field_name: "currentBroker",
+      label: "How many brokers do you currently use?",
+      field_name: "brokerCount",
       options: [
-        { label: "Zerodha", value: "zerodha" },
-        { label: "Upstox", value: "upstox" },
-        { label: "Groww", value: "groww" },
-        { label: "Angel One", value: "angel_one" },
-        { label: "Fyers", value: "fyers" },
-        { label: "5paisa", value: "5paisa" },
-        { label: "Others", value: "others" }
+        { label: "1 broker", value: "1" },
+        { label: "2 brokers", value: "2" },
+        { label: "3 brokers", value: "3" },
+        { label: "4 or more brokers", value: "4+" }
       ],
       conditional: {
         showIf: "hasAccount",
-        equals: "active"
+        equals: "yes"
       },
       validation: { required: true }
     },
     {
-      id: "trading_priority",
+      id: "current_brokers_smart",
+      type: "custom",
+      label: "Which brokers do you currently use?",
+      field_name: "currentBrokers",
+      helpText: "Select the exact number of brokers you mentioned above",
+      conditional: {
+        showIf: "hasAccount",
+        equals: "yes"
+      },
+      validation: {
+        required: true,
+        customValidation: (data: unknown) => {
+          // This will be handled by the smart broker selection component
+          const brokers = data as string[] | undefined;
+          return (brokers?.length || 0) > 0;
+        }
+      }
+    },
+    {
+      id: "user_type",
       type: "radio",
-      label: "What's most important to you in trading?",
-      field_name: "tradingPriority",
+      label: "Which best describes you?",
+      field_name: "userType",
       options: [
-        { label: "Fast execution speed", value: "speed" },
-        { label: "Low charges and fees", value: "cost" },
-        { label: "Advanced tools and charts", value: "tools" },
-        { label: "Good customer support", value: "support" },
-        { label: "Learning and education", value: "education" }
+        { label: "Long-term investor (SIP, mutual funds, stocks for years)", value: "investor" },
+        { label: "Active trader (buy/sell stocks frequently)", value: "trader" },
+        { label: "Learning & exploring (new to markets)", value: "learner" },
+        { label: "Professional trader (F&O, technical analysis)", value: "professional" }
       ],
+      conditional: {
+        showIf: "hasAccount",
+        equals: "yes"
+      },
+      validation: { required: true }
+    },
+    {
+      id: "main_challenge",
+      type: "radio",
+      label: "What's your biggest challenge with your current broker?",
+      field_name: "mainChallenge",
+      options: [
+        { label: "High brokerage and hidden charges", value: "charges" },
+        { label: "Platform crashes during important trades", value: "reliability" },
+        { label: "Poor customer support when needed", value: "support" },
+        { label: "Lack of research and recommendations", value: "research" },
+        { label: "Limited tools for analysis", value: "tools" },
+        { label: "Actually quite satisfied overall", value: "satisfied" }
+      ],
+      conditional: {
+        showIf: "hasAccount",
+        equals: "yes"
+      },
       validation: { required: true }
     },
     {
       id: "trading_frequency",
       type: "radio",
-      label: "How often do you plan to trade?",
+      label: "How often do you trade?",
       field_name: "tradingFrequency",
       options: [
-        { label: "Daily (intraday trading)", value: "daily" },
-        { label: "Weekly (short-term)", value: "weekly" },
-        { label: "Monthly (long-term)", value: "monthly" },
-        { label: "Rarely (buy and hold)", value: "rarely" }
-      ],
-      validation: { required: true }
-    },
-    {
-      id: "experience_level",
-      type: "radio",
-      label: "What's your trading experience?",
-      field_name: "experienceLevel",
-      options: [
-        { label: "Complete beginner", value: "beginner" },
-        { label: "Made a few trades", value: "novice" },
-        { label: "Reasonable experience", value: "intermediate" },
-        { label: "Very experienced", value: "expert" }
-      ],
-      validation: { required: true }
-    },
-    {
-      id: "main_issue",
-      type: "radio",
-      label: "What's the biggest issue with your current broker?",
-      field_name: "mainIssue",
-      options: [
-        { label: "Slow execution during market hours", value: "speed" },
-        { label: "High or hidden charges", value: "charges" },
-        { label: "Poor customer support", value: "support" },
-        { label: "Limited tools and features", value: "tools" },
-        { label: "Actually, I'm quite satisfied", value: "satisfied" }
+        { label: "Daily (multiple trades per day)", value: "daily" },
+        { label: "Weekly (few trades per week)", value: "weekly" },
+        { label: "Monthly (occasional trades)", value: "monthly" },
+        { label: "Rarely (few times per year)", value: "rarely" }
       ],
       conditional: {
         showIf: "hasAccount",
-        equals: "active"
+        equals: "yes"
+      },
+      validation: { required: true }
+    },
+    {
+      id: "what_matters_most",
+      type: "radio",
+      label: "What matters most to you in a broker?",
+      field_name: "whatMattersMost",
+      options: [
+        { label: "Lowest possible charges", value: "cost" },
+        { label: "Platform speed and reliability", value: "speed" },
+        { label: "Quality research and stock picks", value: "research" },
+        { label: "Advanced tools and features", value: "tools" },
+        { label: "Excellent customer support", value: "support" },
+        { label: "Educational resources", value: "education" }
+      ],
+      conditional: {
+        showIf: "hasAccount",
+        equals: "yes"
       },
       validation: { required: true }
     }
