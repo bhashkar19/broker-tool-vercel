@@ -365,6 +365,15 @@ const SmartBrokerSelection = ({
   const expectedCount = parseInt(userData.brokerCount || '1');
   const isCountMatching = selectedBrokers.length === expectedCount;
 
+  // Sync initial selection when userData changes
+  useEffect(() => {
+    const currentBrokers = (userData.currentBrokers as string[]) || [];
+    if (currentBrokers.length > 0 && selectedBrokers.length === 0) {
+      setSelectedBrokers(currentBrokers);
+      onAnswerSelect(JSON.stringify(currentBrokers));
+    }
+  }, [userData.currentBrokers, selectedBrokers.length, onAnswerSelect]);
+
   // Broker options with logos (placeholder for now)
   const brokerOptions = [
     { value: 'zerodha', label: 'Zerodha', logo: '🟢' },
@@ -384,10 +393,8 @@ const SmartBrokerSelection = ({
     if (newSelection.length <= expectedCount) {
       setSelectedBrokers(newSelection);
 
-      // Update the answer
-      if (newSelection.length === expectedCount) {
-        onAnswerSelect(JSON.stringify(newSelection));
-      }
+      // Always update the answer, regardless of count
+      onAnswerSelect(JSON.stringify(newSelection));
     }
   };
 
@@ -397,9 +404,8 @@ const SmartBrokerSelection = ({
       setSelectedBrokers(newSelection);
       setOtherBroker('');
 
-      if (newSelection.length === expectedCount) {
-        onAnswerSelect(JSON.stringify(newSelection));
-      }
+      // Always update the answer
+      onAnswerSelect(JSON.stringify(newSelection));
     }
   };
 
