@@ -36,6 +36,8 @@ function mapNewFieldsToOld(data: SubmissionData) {
   let currentBroker = data.currentBroker || 'none';
   if (data.brokerInfo) {
     let brokerData = data.brokerInfo;
+
+    // Parse string to object if needed
     if (typeof brokerData === 'string') {
       try {
         brokerData = JSON.parse(brokerData);
@@ -43,8 +45,13 @@ function mapNewFieldsToOld(data: SubmissionData) {
         brokerData = { brokers: [] };
       }
     }
-    if (brokerData.brokers && brokerData.brokers.length > 0) {
-      currentBroker = brokerData.brokers[0]; // Take first broker
+
+    // Type guard: ensure brokerData is object with brokers array
+    if (brokerData && typeof brokerData === 'object' && 'brokers' in brokerData) {
+      const brokers = brokerData.brokers;
+      if (Array.isArray(brokers) && brokers.length > 0) {
+        currentBroker = brokers[0]; // Take first broker
+      }
     }
   }
 
@@ -72,9 +79,9 @@ export async function POST(request: NextRequest) {
     const data: SubmissionData = await request.json();
 
     // Validate required fields
-    if (!data.name || !data.mobile || !data.sessionId) {
+    if (!data.name || !data.mobile || !data.sessionId || !data.recommended_broker) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields (name, mobile, sessionId, recommended_broker)' },
         { status: 400 }
       );
     }
@@ -151,10 +158,4 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// For debugging - remove in production
-export async function GET() {
-  return NextResponse.json({
-    message: 'Submit API endpoint is active',
-    timestamp: new Date().toISOString()
-  });
-}
+// GET method removed - production ready

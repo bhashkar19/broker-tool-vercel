@@ -21,7 +21,7 @@ import { getBrokerById } from '@/config/brokerConfigs';
 const ModularBrokerTool = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showRecommendation, setShowRecommendation] = useState(false);
-  const [showDetailedReasoning, setShowDetailedReasoning] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [userData, setUserData] = useState<UserProfile>({
     name: '',
     mobile: '',
@@ -938,35 +938,11 @@ const RecommendationSection = ({ userData }: { userData: UserProfile }) => {
         </p>
       </div>
 
-      {/* Reasoning - Collapsible for mobile */}
+      {/* Reasoning - Simplified for mobile */}
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-6 text-left">
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="font-semibold text-gray-800">Why we recommend {primaryBroker?.name}:</h4>
-          <button
-            onClick={() => setShowDetailedReasoning(!showDetailedReasoning)}
-            className="text-blue-600 text-sm font-medium md:hidden flex items-center gap-1"
-          >
-            {showDetailedReasoning ? 'Hide' : 'Show'} Details
-            <span className={`transition-transform ${showDetailedReasoning ? 'rotate-180' : ''}`}>
-              ▼
-            </span>
-          </button>
-        </div>
-
-        {/* Summary for mobile, full for desktop */}
-        <div className="text-gray-700 text-sm">
-          <div className="md:hidden">
-            {showDetailedReasoning ? (
-              <div className="whitespace-pre-line">{recommendation.reasoning}</div>
-            ) : (
-              <div>
-                Perfect match for your needs. <span className="text-blue-600 font-medium">Tap "Show Details" for complete analysis.</span>
-              </div>
-            )}
-          </div>
-          <div className="hidden md:block whitespace-pre-line">
-            {recommendation.reasoning}
-          </div>
+        <h4 className="font-semibold text-gray-800 mb-3">Why we recommend {primaryBroker?.name}:</h4>
+        <div className="text-gray-700 text-sm whitespace-pre-line">
+          {recommendation.reasoning}
         </div>
       </div>
 

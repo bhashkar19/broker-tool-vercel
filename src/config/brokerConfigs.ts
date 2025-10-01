@@ -4,6 +4,7 @@
 export interface BrokerConfig {
   id: string;
   name: string;
+  logo_url: string; // Supabase CDN URL for broker logo
   affiliate_url: string;
   priority: number; // Lower number = higher priority
   best_for: string[];
@@ -36,6 +37,7 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
   'zerodha': {
     id: 'zerodha',
     name: 'Zerodha',
+    logo_url: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/zerodha.svg',
     affiliate_url: 'https://zerodha.com/open-account?c=ZMPLLT',
     priority: 1, // 🏆 Currently highest priority
     best_for: ['beginners', 'long_term_investing', 'learning', 'cost_conscious'],
@@ -80,6 +82,7 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
   'upstox': {
     id: 'upstox',
     name: 'Upstox',
+    logo_url: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/upstox.svg',
     affiliate_url: 'https://upstox.com/open-account/?f=E3MQ',
     priority: 2, // 🥈 Second priority
     best_for: ['day_trading', 'speed_execution', 'active_traders', 'professionals'],
@@ -123,6 +126,7 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
   'angel_one': {
     id: 'angel_one',
     name: 'Angel One',
+    logo_url: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/angelone.png',
     affiliate_url: 'https://angelone.in/signup/register/?rne_source=B2B_NXT&btype=SVRQUg&referrer=MAQT::rne_source=B2B_NXT::btype=SVRQUg',
     priority: 3, // 🥉 Third priority
     best_for: ['research_advisory', 'guided_investing', 'recommendations', 'support_focused'],
@@ -166,6 +170,7 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
   'fyers': {
     id: 'fyers',
     name: 'Fyers',
+    logo_url: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/fyers.svg',
     affiliate_url: 'https://signup.fyers.in/?utm-source=AP-Leads&utm-medium=AP0225',
     priority: 4, // Fourth priority
     best_for: ['advanced_tools', 'algo_trading', 'professional_traders', 'technical_analysis'],
@@ -209,6 +214,7 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
   '5paisa': {
     id: '5paisa',
     name: '5paisa',
+    logo_url: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/5paisa.svg',
     affiliate_url: 'https://www.5paisa.com/demat-account?ReferralCode=56765996&ReturnUrl=invest-open-account',
     priority: 5, // Fifth priority
     best_for: ['cost_conscious', 'high_volume_trading', 'budget_focused'],
