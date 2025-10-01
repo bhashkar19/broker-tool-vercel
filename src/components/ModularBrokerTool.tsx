@@ -21,6 +21,7 @@ import { getBrokerById } from '@/config/brokerConfigs';
 const ModularBrokerTool = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showRecommendation, setShowRecommendation] = useState(false);
+  const [showDetailedReasoning, setShowDetailedReasoning] = useState(false);
   const [userData, setUserData] = useState<UserProfile>({
     name: '',
     mobile: '',
@@ -937,11 +938,35 @@ const RecommendationSection = ({ userData }: { userData: UserProfile }) => {
         </p>
       </div>
 
-      {/* Reasoning */}
+      {/* Reasoning - Collapsible for mobile */}
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-6 text-left">
-        <h4 className="font-semibold text-gray-800 mb-3">Why we recommend {primaryBroker?.name}:</h4>
-        <div className="text-gray-700 text-sm whitespace-pre-line">
-          {recommendation.reasoning}
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="font-semibold text-gray-800">Why we recommend {primaryBroker?.name}:</h4>
+          <button
+            onClick={() => setShowDetailedReasoning(!showDetailedReasoning)}
+            className="text-blue-600 text-sm font-medium md:hidden flex items-center gap-1"
+          >
+            {showDetailedReasoning ? 'Hide' : 'Show'} Details
+            <span className={`transition-transform ${showDetailedReasoning ? 'rotate-180' : ''}`}>
+              ▼
+            </span>
+          </button>
+        </div>
+
+        {/* Summary for mobile, full for desktop */}
+        <div className="text-gray-700 text-sm">
+          <div className="md:hidden">
+            {showDetailedReasoning ? (
+              <div className="whitespace-pre-line">{recommendation.reasoning}</div>
+            ) : (
+              <div>
+                Perfect match for your needs. <span className="text-blue-600 font-medium">Tap "Show Details" for complete analysis.</span>
+              </div>
+            )}
+          </div>
+          <div className="hidden md:block whitespace-pre-line">
+            {recommendation.reasoning}
+          </div>
         </div>
       </div>
 
@@ -963,14 +988,24 @@ const RecommendationSection = ({ userData }: { userData: UserProfile }) => {
 
       {/* Removed alternatives - single recommendation only per business requirement */}
 
-      {/* CTA Button */}
+      {/* Primary CTA Button */}
       <motion.button
         onClick={handleConversion}
-        className="w-full py-5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-bold text-lg uppercase tracking-wide transition-all hover:shadow-xl"
+        className="w-full py-5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-bold text-lg uppercase tracking-wide transition-all hover:shadow-xl mb-4"
         whileHover={{ scale: 1.02, y: -2 }}
         whileTap={{ scale: 0.98 }}
       >
         🚀 Open {primaryBroker?.name} Account Now
+      </motion.button>
+
+      {/* Secondary CTA for mobile */}
+      <motion.button
+        onClick={handleConversion}
+        className="w-full py-3 border-2 border-orange-500 text-orange-600 rounded-xl font-semibold text-sm transition-all hover:bg-orange-50 md:hidden"
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
+      >
+        📱 Quick Mobile Signup
       </motion.button>
 
       {/* Trust Indicators */}

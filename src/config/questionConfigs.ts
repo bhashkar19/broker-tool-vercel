@@ -154,6 +154,39 @@ export const QUESTION_FLOW_A: QuestionFlow = {
         equals: "yes"
       },
       validation: { required: true }
+    },
+    // 🆕 NEW USER QUESTIONS (for hasAccount = "no")
+    {
+      id: "new_user_type",
+      type: "radio",
+      label: "What best describes your goal?",
+      field_name: "userType",
+      options: [
+        { label: "Start investing for long-term wealth", value: "investor" },
+        { label: "Learn trading actively", value: "trader" },
+        { label: "Explore and understand markets", value: "learner" }
+      ],
+      conditional: {
+        showIf: "hasAccount",
+        equals: "no"
+      },
+      validation: { required: true }
+    },
+    {
+      id: "new_user_priority",
+      type: "radio",
+      label: "What's most important to you?",
+      field_name: "whatMattersMost",
+      options: [
+        { label: "Learning with good educational content", value: "education" },
+        { label: "Lowest possible charges", value: "cost" },
+        { label: "Good customer support for guidance", value: "support" }
+      ],
+      conditional: {
+        showIf: "hasAccount",
+        equals: "no"
+      },
+      validation: { required: true }
     }
   ]
 };
