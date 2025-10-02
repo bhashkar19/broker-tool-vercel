@@ -37,14 +37,20 @@ function parseCSV(
   const clientIdCol = fileTypeConfig.columns.clientId
     ? headers.indexOf(fileTypeConfig.columns.clientId)
     : -1;
-  const dateCol = headers.indexOf(fileTypeConfig.columns.date);
+
+  // Handle both 'date' and 'createdDate' fields
+  const dateFieldName = 'date' in fileTypeConfig.columns
+    ? (fileTypeConfig.columns as any).date
+    : (fileTypeConfig.columns as any).createdDate;
+  const dateCol = headers.indexOf(dateFieldName);
+
   const statusCol = fileTypeConfig.columns.status
     ? headers.indexOf(fileTypeConfig.columns.status)
     : -1;
 
   if (nameCol === -1 || dateCol === -1) {
     throw new Error(
-      `Required columns not found. Expected: ${fileTypeConfig.columns.name}, ${fileTypeConfig.columns.date}`
+      `Required columns not found. Expected: ${fileTypeConfig.columns.name}, ${dateFieldName}`
     );
   }
 
