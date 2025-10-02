@@ -40,8 +40,8 @@ function parseCSV(
 
   // Handle both 'date' and 'createdDate' fields
   const dateFieldName = 'date' in fileTypeConfig.columns
-    ? (fileTypeConfig.columns as any).date
-    : (fileTypeConfig.columns as any).createdDate;
+    ? (fileTypeConfig.columns as { date: string }).date
+    : (fileTypeConfig.columns as { createdDate: string }).createdDate;
   const dateCol = headers.indexOf(dateFieldName);
 
   const statusCol = fileTypeConfig.columns.status
