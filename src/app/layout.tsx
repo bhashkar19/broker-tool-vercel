@@ -13,8 +13,48 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Find Your Perfect Trading Setup | Broker Recommendation Tool",
-  description: "Discover if your current broker is limiting your trading potential. Get personalized recommendations in 60 seconds.",
+  title: "Find Your Perfect Trading Broker in 60 Seconds | Free Personalized Recommendations",
+  description: "Sick of high brokerage fees? Bad trading tools? Poor customer support? Get a free personalized broker recommendation based on your trading style. Compare Zerodha, Angel One, Upstox, Groww & more.",
+  keywords: "best trading broker India, lowest brokerage charges, broker comparison, Zerodha vs Angel One, stock broker recommendation, trading platform review",
+
+  // Open Graph (Facebook, WhatsApp, LinkedIn)
+  openGraph: {
+    title: "Find Your Perfect Trading Broker in 60 Seconds",
+    description: "Answer 5 quick questions and discover which broker matches your trading needs. Free personalized recommendations.",
+    url: "https://findbroker.paisowala.com",
+    siteName: "FindBroker by Paisowala",
+    images: [
+      {
+        url: "https://findbroker.paisowala.com/og-image.png", // You'll need to create this
+        width: 1200,
+        height: 630,
+        alt: "FindBroker - Get Your Perfect Trading Broker Match"
+      }
+    ],
+    locale: "en_IN",
+    type: "website"
+  },
+
+  // Twitter Card
+  twitter: {
+    card: "summary_large_image",
+    title: "Find Your Perfect Trading Broker in 60 Seconds",
+    description: "Answer 5 quick questions and discover which broker matches your trading needs.",
+    images: ["https://findbroker.paisowala.com/og-image.png"]
+  },
+
+  // Additional meta tags
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 export default function RootLayout({
@@ -25,6 +65,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Performance optimization - Preconnect to external domains */}
+        <link rel="preconnect" href="https://connect.facebook.net" />
+        <link rel="preconnect" href="https://www.facebook.com" />
+        <link rel="dns-prefetch" href="https://connect.facebook.net" />
+
+        {/* Facebook Domain Verification - Add when you have the code */}
+        {/* <meta name="facebook-domain-verification" content="your_verification_code_here" /> */}
+
         {/* Facebook Pixel - Only loads when properly configured */}
         {process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID &&
          process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID !== 'YOUR_PIXEL_ID' &&

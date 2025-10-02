@@ -21,7 +21,8 @@ import { getBrokerById } from '@/config/brokerConfigs';
 const ModularBrokerTool = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showRecommendation, setShowRecommendation] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [apiSuccess, setApiSuccess] = useState<boolean>(false);
   const [userData, setUserData] = useState<UserProfile>({
     name: '',
     mobile: '',
@@ -37,8 +38,9 @@ const ModularBrokerTool = () => {
   // Progress calculation
   const progressPercentage = showRecommendation ? 100 : ((currentQuestionIndex + 1) / visibleQuestions.length) * 100;
 
-  // Facebook Pixel tracking
+  // Facebook Pixel + Supabase Backup Tracking
   useEffect(() => {
+    // Facebook Pixel
     if (typeof window !== 'undefined' && window.fbq) {
       window.fbq('trackCustom', 'ToolStarted', {
         session_id: userData.sessionId,
@@ -46,6 +48,17 @@ const ModularBrokerTool = () => {
         timestamp: new Date().toISOString()
       });
     }
+
+    // Supabase Backup Tracking
+    fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event_name: 'tool_started',
+        session_id: userData.sessionId,
+        event_data: { config_version: questionConfig.name }
+      })
+    }).catch(err => console.error('Tracking error:', err));
   }, [userData.sessionId, questionConfig.name]);
 
   // Handle answer selection
@@ -92,6 +105,14 @@ const ModularBrokerTool = () => {
       ...prev,
       [field]: value
     }));
+
+    // Track Contact event when user starts filling form (Facebook standard event)
+    if (field === 'name' && value.length === 1 && typeof window !== 'undefined' && window.fbq) {
+      window.fbq('track', 'Contact', {
+        content_name: 'broker_recommendation_form',
+        content_category: 'lead_form'
+      });
+    }
   };
 
   // Validate current question
@@ -165,12 +186,32 @@ const ModularBrokerTool = () => {
   // Move to next question
   const nextQuestion = () => {
     if (currentQuestionIndex === 0) {
-      // Track lead capture
+      // Track lead capture (FB Standard + Custom + Supabase)
       if (typeof window !== 'undefined' && window.fbq) {
+        // Standard Lead event (helps Facebook optimize for lead generation)
+        window.fbq('track', 'Lead', {
+          content_name: 'broker_finder_lead',
+          content_category: 'financial_services',
+          value: 100, // Estimated value of a lead
+          currency: 'INR'
+        });
+
+        // Custom event for detailed tracking
         window.fbq('trackCustom', 'LeadCaptured', {
-          session_id: userData.sessionId
+          session_id: userData.sessionId,
+          name_length: userData.name?.length || 0,
+          has_mobile: !!userData.mobile
         });
       }
+      fetch('/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event_name: 'lead_captured',
+          session_id: userData.sessionId,
+          event_data: { name: userData.name, mobile: userData.mobile }
+        })
+      }).catch(err => console.error('Tracking error:', err));
     }
 
     if (isLastQuestion) {
@@ -179,9 +220,25 @@ const ModularBrokerTool = () => {
       // Generate recommendation
       const recommendation = generateRecommendation(userData);
 
-      // Track recommendation view
+      // Track recommendation view (FB Standard + Custom + Supabase)
       if (typeof window !== 'undefined' && window.fbq) {
-        window.fbq('track', 'AddToCart');
+        // Standard AddToCart (user received recommendation)
+        window.fbq('track', 'AddToCart', {
+          content_name: recommendation.primary.brokerId,
+          content_category: 'broker_recommendation',
+          value: 300, // Estimated value of engaged user
+          currency: 'INR'
+        });
+
+        // Standard ViewContent for better tracking
+        window.fbq('track', 'ViewContent', {
+          content_name: `broker_${recommendation.primary.brokerId}`,
+          content_type: 'recommendation',
+          value: 300,
+          currency: 'INR'
+        });
+
+        // Custom event for detailed tracking
         window.fbq('trackCustom', 'RecommendationViewed', {
           recommended_broker: recommendation.primary.brokerId,
           current_broker: userData.currentBroker,
@@ -190,11 +247,24 @@ const ModularBrokerTool = () => {
           session_id: userData.sessionId
         });
       }
+      fetch('/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event_name: 'recommendation_viewed',
+          session_id: userData.sessionId,
+          broker_id: recommendation.primary.brokerId,
+          event_data: {
+            match_percentage: recommendation.primary.matchPercentage,
+            should_switch: recommendation.shouldSwitch
+          }
+        })
+      }).catch(err => console.error('Tracking error:', err));
     } else {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
 
-    // Track progress
+    // Track progress (FB + Supabase)
     if (typeof window !== 'undefined' && window.fbq) {
       window.fbq('trackCustom', 'QuestionProgressed', {
         completed_questions: currentQuestionIndex + 1,
@@ -202,6 +272,18 @@ const ModularBrokerTool = () => {
         session_id: userData.sessionId
       });
     }
+    fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event_name: 'question_progressed',
+        session_id: userData.sessionId,
+        event_data: {
+          completed_questions: currentQuestionIndex + 1,
+          total_questions: visibleQuestions.length
+        }
+      })
+    }).catch(err => console.error('Tracking error:', err));
   };
 
   return (
@@ -258,7 +340,13 @@ const ModularBrokerTool = () => {
           )}
 
           {showRecommendation && (
-            <RecommendationSection userData={userData} />
+            <RecommendationSection
+              userData={userData}
+              apiError={apiError}
+              apiSuccess={apiSuccess}
+              setApiError={setApiError}
+              setApiSuccess={setApiSuccess}
+            />
           )}
         </AnimatePresence>
       </div>
@@ -430,6 +518,7 @@ const SmartBrokerSelection = ({
 
   const [selectedBrokers, setSelectedBrokers] = useState<string[]>(initializeBrokers);
   const [otherBroker, setOtherBroker] = useState('');
+  const [showAllBrokers, setShowAllBrokers] = useState(false);
 
   const expectedCount = parseInt(userData.brokerCount || '1');
   const isCountMatching = selectedBrokers.length === expectedCount;
@@ -466,15 +555,40 @@ const SmartBrokerSelection = ({
     }
   }, [selectedBrokers, onAnswerSelect]);
 
-  // Broker options with logos (placeholder for now)
+  // Broker options: Sorted by popularity with working logos and fallback emojis
   const brokerOptions = [
-    { value: 'zerodha', label: 'Zerodha', logo: '🟢' },
-    { value: 'upstox', label: 'Upstox', logo: '🟠' },
-    { value: 'angel_one', label: 'Angel One', logo: '🔵' },
-    { value: 'groww', label: 'Groww', logo: '🟡' },
-    { value: 'fyers', label: 'Fyers', logo: '🟣' },
-    { value: '5paisa', label: '5paisa', logo: '🔴' }
+    // TOP TIER - Most Popular (Partner brokers)
+    { value: 'zerodha', label: 'Zerodha', logo: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/zerodha.svg', fallback: '🟢', popularity: 1, isPartner: true },
+    { value: 'groww', label: 'Groww', logo: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/groww.png', fallback: '🌱', popularity: 2, isPartner: false },
+    { value: 'angel_one', label: 'Angel One', logo: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/angelone.png', fallback: '😇', popularity: 3, isPartner: true },
+    { value: 'upstox', label: 'Upstox', logo: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/upstox.svg', fallback: '🟠', popularity: 4, isPartner: true },
+
+    // MID TIER - Popular brokers
+    { value: 'icici', label: 'ICICI Direct', logo: '🏦', fallback: '🏦', popularity: 5, isPartner: false },
+    { value: 'hdfc', label: 'HDFC Securities', logo: '🏛️', fallback: '🏛️', popularity: 6, isPartner: false },
+    { value: 'kotak', label: 'Kotak Securities', logo: '🔷', fallback: '🔷', popularity: 7, isPartner: false },
+    { value: 'dhan', label: 'DHAN', logo: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/dhan.svg', fallback: '⚡', popularity: 8, isPartner: false },
+    { value: 'paytm', label: 'Paytm Money', logo: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/paytm.png', fallback: '💰', popularity: 9, isPartner: false },
+
+    // LOWER TIER - Less popular but still relevant
+    { value: '5paisa', label: '5paisa', logo: '5️⃣', fallback: '5️⃣', popularity: 10, isPartner: true },
+    { value: 'fyers', label: 'Fyers', logo: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/fyers.svg', fallback: '🟣', popularity: 11, isPartner: true },
+    { value: 'sharekhan', label: 'Sharekhan', logo: '📈', fallback: '📈', popularity: 12, isPartner: false },
+    { value: 'sbi', label: 'SBI Securities', logo: '🏦', fallback: '🏦', popularity: 13, isPartner: false },
+    { value: 'motilal', label: 'Motilal Oswal', logo: '💼', fallback: '💼', popularity: 14, isPartner: false },
+    { value: 'iifl', label: 'IIFL Securities', logo: '📊', fallback: '📊', popularity: 15, isPartner: false },
+    { value: 'axis', label: 'Axis Direct', logo: '🔴', fallback: '🔴', popularity: 16, isPartner: false }
   ];
+
+  // Debug: Log broker logos on mount
+  useEffect(() => {
+    console.log('🖼️ Broker logos loaded:', brokerOptions.map(b => ({ name: b.label, logo: b.logo })));
+  }, []);
+
+  // Show top 8 popular brokers by default, rest on "Show More"
+  const topBrokers = brokerOptions.filter(b => (b.popularity || 999) <= 8);
+  const moreBrokers = brokerOptions.filter(b => (b.popularity || 999) > 8);
+  const displayedBrokers = showAllBrokers ? brokerOptions : topBrokers;
 
   const handleBrokerToggle = (brokerId: string) => {
     const newSelection = selectedBrokers.includes(brokerId)
@@ -529,8 +643,8 @@ const SmartBrokerSelection = ({
       </div>
 
       {/* Broker selection grid */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        {brokerOptions.map((broker) => (
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        {displayedBrokers.map((broker) => (
           <button
             key={broker.value}
             onClick={() => handleBrokerToggle(broker.value)}
@@ -543,7 +657,24 @@ const SmartBrokerSelection = ({
                 : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50 text-gray-900'
             }`}
           >
-            <span className="text-2xl">{broker.logo}</span>
+            {broker.logo.startsWith('http') ? (
+              <img
+                src={broker.logo}
+                alt={broker.label}
+                className="w-10 h-10 object-contain flex-shrink-0"
+                onError={(e) => {
+                  console.error(`Failed to load logo for ${broker.label}:`, broker.logo);
+                  e.currentTarget.style.display = 'none';
+                  const fallback = document.createElement('span');
+                  fallback.textContent = broker.fallback || '📊';
+                  fallback.className = 'text-3xl';
+                  e.currentTarget.parentElement?.appendChild(fallback);
+                }}
+                loading="lazy"
+              />
+            ) : (
+              <span className="text-3xl">{broker.fallback || broker.logo}</span>
+            )}
             <span className="text-sm">{broker.label}</span>
             {selectedBrokers.includes(broker.value) && (
               <CheckCircle className="w-4 h-4 text-blue-600 ml-auto" />
@@ -551,6 +682,16 @@ const SmartBrokerSelection = ({
           </button>
         ))}
       </div>
+
+      {/* Show More / Show Less Button */}
+      {moreBrokers.length > 0 && (
+        <button
+          onClick={() => setShowAllBrokers(!showAllBrokers)}
+          className="w-full mb-4 py-3 border-2 border-blue-400 text-blue-600 rounded-xl font-medium text-sm hover:bg-blue-50 transition-colors"
+        >
+          {showAllBrokers ? `↑ Show Less` : `↓ Show ${moreBrokers.length} More Brokers`}
+        </button>
+      )}
 
       {/* Others option */}
       {selectedBrokers.length < expectedCount && (
@@ -564,7 +705,7 @@ const SmartBrokerSelection = ({
               value={otherBroker}
               onChange={(e) => setOtherBroker(e.target.value)}
               placeholder="Enter broker name"
-              className="flex-1 p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-sm"
+              className="flex-1 p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-sm text-gray-900 bg-white placeholder-gray-400"
             />
             <button
               onClick={handleOtherBrokerAdd}
@@ -608,7 +749,11 @@ const SmartBrokerSelection = ({
                   key={brokerId}
                   className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
                 >
-                  {broker?.logo || '📊'}
+                  {broker?.logo?.startsWith('http') ? (
+                    <img src={broker.logo} alt={broker.label} className="w-5 h-5 object-contain inline" />
+                  ) : (
+                    <span className="text-base">{broker?.fallback || '📊'}</span>
+                  )}
                   {broker?.label || (isOther ? brokerId.replace('other_', '').replace(/_/g, ' ') : brokerId)}
                   <button
                     onClick={() => handleBrokerToggle(brokerId)}
@@ -661,6 +806,7 @@ const CombinedBrokerSelection = ({
 
   const [brokerData, setBrokerData] = useState(initializeCombinedData);
   const [otherBroker, setOtherBroker] = useState('');
+  const [showAllBrokers, setShowAllBrokers] = useState(false);
 
   // Update parent data whenever our state changes
   useEffect(() => {
@@ -669,13 +815,29 @@ const CombinedBrokerSelection = ({
   }, [brokerData, onAnswerSelect]);
 
   // Broker options with logos
+  // Broker options: Sorted by popularity with working logos and fallback emojis
   const brokerOptions = [
-    { value: 'zerodha', label: 'Zerodha', logo: '🟢' },
-    { value: 'upstox', label: 'Upstox', logo: '🟠' },
-    { value: 'angel_one', label: 'Angel One', logo: '🔵' },
-    { value: 'groww', label: 'Groww', logo: '🟡' },
-    { value: 'fyers', label: 'Fyers', logo: '🟣' },
-    { value: '5paisa', label: '5paisa', logo: '🔴' }
+    // TOP TIER - Most Popular (Partner brokers)
+    { value: 'zerodha', label: 'Zerodha', logo: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/zerodha.svg', fallback: '🟢', popularity: 1, isPartner: true },
+    { value: 'groww', label: 'Groww', logo: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/groww.png', fallback: '🌱', popularity: 2, isPartner: false },
+    { value: 'angel_one', label: 'Angel One', logo: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/angelone.png', fallback: '😇', popularity: 3, isPartner: true },
+    { value: 'upstox', label: 'Upstox', logo: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/upstox.svg', fallback: '🟠', popularity: 4, isPartner: true },
+
+    // MID TIER - Popular brokers
+    { value: 'icici', label: 'ICICI Direct', logo: '🏦', fallback: '🏦', popularity: 5, isPartner: false },
+    { value: 'hdfc', label: 'HDFC Securities', logo: '🏛️', fallback: '🏛️', popularity: 6, isPartner: false },
+    { value: 'kotak', label: 'Kotak Securities', logo: '🔷', fallback: '🔷', popularity: 7, isPartner: false },
+    { value: 'dhan', label: 'DHAN', logo: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/dhan.svg', fallback: '⚡', popularity: 8, isPartner: false },
+    { value: 'paytm', label: 'Paytm Money', logo: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/paytm.png', fallback: '💰', popularity: 9, isPartner: false },
+
+    // LOWER TIER - Less popular but still relevant
+    { value: '5paisa', label: '5paisa', logo: '5️⃣', fallback: '5️⃣', popularity: 10, isPartner: true },
+    { value: 'fyers', label: 'Fyers', logo: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/fyers.svg', fallback: '🟣', popularity: 11, isPartner: true },
+    { value: 'sharekhan', label: 'Sharekhan', logo: '📈', fallback: '📈', popularity: 12, isPartner: false },
+    { value: 'sbi', label: 'SBI Securities', logo: '🏦', fallback: '🏦', popularity: 13, isPartner: false },
+    { value: 'motilal', label: 'Motilal Oswal', logo: '💼', fallback: '💼', popularity: 14, isPartner: false },
+    { value: 'iifl', label: 'IIFL Securities', logo: '📊', fallback: '📊', popularity: 15, isPartner: false },
+    { value: 'axis', label: 'Axis Direct', logo: '🔴', fallback: '🔴', popularity: 16, isPartner: false }
   ];
 
   const countOptions = [
@@ -721,6 +883,11 @@ const CombinedBrokerSelection = ({
 
   const selectedBrokers = brokerData.brokers || [];
   const showBrokerSelection = brokerData.count && brokerData.count !== '';
+
+  // Show top 8 popular brokers by default, rest on "Show More"
+  const topBrokers = brokerOptions.filter(b => (b.popularity || 999) <= 8);
+  const moreBrokers = brokerOptions.filter(b => (b.popularity || 999) > 8);
+  const displayedBrokers = showAllBrokers ? brokerOptions : topBrokers;
 
   return (
     <div>
@@ -777,8 +944,8 @@ const CombinedBrokerSelection = ({
           )}
 
           {/* Broker selection grid */}
-          <div className="grid grid-cols-2 gap-3">
-            {brokerOptions.map((broker) => (
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            {displayedBrokers.map((broker) => (
               <button
                 key={broker.value}
                 onClick={() => handleBrokerToggle(broker.value)}
@@ -788,7 +955,24 @@ const CombinedBrokerSelection = ({
                     : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50 text-gray-900'
                 }`}
               >
-                <span className="text-2xl">{broker.logo}</span>
+                {broker.logo.startsWith('http') ? (
+                  <img
+                    src={broker.logo}
+                    alt={broker.label}
+                    className="w-10 h-10 object-contain flex-shrink-0"
+                    onError={(e) => {
+                      console.error(`Failed to load logo for ${broker.label}:`, broker.logo);
+                      e.currentTarget.style.display = 'none';
+                      const fallback = document.createElement('span');
+                      fallback.textContent = broker.fallback || '📊';
+                      fallback.className = 'text-3xl';
+                      e.currentTarget.parentElement?.appendChild(fallback);
+                    }}
+                    loading="lazy"
+                  />
+                ) : (
+                  <span className="text-3xl">{broker.fallback || broker.logo}</span>
+                )}
                 <span className="text-sm">{broker.label}</span>
                 {selectedBrokers.includes(broker.value) && (
                   <CheckCircle className="w-4 h-4 text-blue-600 ml-auto" />
@@ -796,6 +980,16 @@ const CombinedBrokerSelection = ({
               </button>
             ))}
           </div>
+
+          {/* Show More / Show Less Button */}
+          {moreBrokers.length > 0 && (
+            <button
+              onClick={() => setShowAllBrokers(!showAllBrokers)}
+              className="w-full mb-4 py-3 border-2 border-blue-400 text-blue-600 rounded-xl font-medium text-sm hover:bg-blue-50 transition-colors"
+            >
+              {showAllBrokers ? `↑ Show Less` : `↓ Show ${moreBrokers.length} More Brokers`}
+            </button>
+          )}
 
           {/* Others option */}
           <div>
@@ -808,7 +1002,7 @@ const CombinedBrokerSelection = ({
                 value={otherBroker}
                 onChange={(e) => setOtherBroker(e.target.value)}
                 placeholder="Enter broker name"
-                className="flex-1 p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-sm"
+                className="flex-1 p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-sm text-gray-900 bg-white placeholder-gray-400"
               />
               <button
                 onClick={handleOtherBrokerAdd}
@@ -833,7 +1027,11 @@ const CombinedBrokerSelection = ({
                       key={brokerId}
                       className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium"
                     >
-                      {broker?.logo || '📊'}
+                      {broker?.logo?.startsWith('http') ? (
+                    <img src={broker.logo} alt={broker.label} className="w-5 h-5 object-contain inline" />
+                  ) : (
+                    <span className="text-base">{broker?.fallback || '📊'}</span>
+                  )}
                       {broker?.label || (isOther ? brokerId.replace('other_', '').replace(/_/g, ' ') : brokerId)}
                       <button
                         onClick={() => handleBrokerToggle(brokerId)}
@@ -854,53 +1052,110 @@ const CombinedBrokerSelection = ({
 };
 
 // 🎯 RECOMMENDATION SECTION
-const RecommendationSection = ({ userData }: { userData: UserProfile }) => {
+const RecommendationSection = ({
+  userData,
+  apiError,
+  apiSuccess,
+  setApiError,
+  setApiSuccess
+}: {
+  userData: UserProfile;
+  apiError: string | null;
+  apiSuccess: boolean;
+  setApiError: (error: string | null) => void;
+  setApiSuccess: (success: boolean) => void;
+}) => {
   const recommendation = generateRecommendation(userData);
   const primaryBroker = getBrokerById(recommendation.primary.brokerId);
 
   const handleConversion = async () => {
-    // Track Facebook conversion
+    // Track Facebook InitiateCheckout with enhanced parameters
     if (typeof window !== 'undefined' && window.fbq) {
-      window.fbq('track', 'Purchase', {
-        value: 500,
-        currency: 'INR'
+      // Standard InitiateCheckout event (critical for conversion optimization)
+      window.fbq('track', 'InitiateCheckout', {
+        value: 500, // Estimated conversion value
+        currency: 'INR',
+        content_name: recommendation.primary.brokerId,
+        content_category: 'broker_recommendation',
+        content_ids: [recommendation.primary.brokerId],
+        num_items: 1
       });
 
+      // Custom event for detailed tracking
       window.fbq('trackCustom', 'AffiliateClicked', {
         broker: recommendation.primary.brokerId,
         switching_from: userData.currentBroker,
         match_percentage: recommendation.primary.matchPercentage,
         should_switch: recommendation.shouldSwitch,
-        session_id: userData.sessionId
+        session_id: userData.sessionId,
+        user_type: userData.tradingExperience || 'unknown'
       });
     }
 
-    // Submit data to backend
-    try {
-      await fetch('/api/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...userData,
-          recommended_broker: recommendation.primary.brokerId,
+    // Supabase Backup Tracking for CTA click
+    fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event_name: 'cta_clicked',
+        session_id: userData.sessionId,
+        broker_id: recommendation.primary.brokerId,
+        event_data: {
           match_percentage: recommendation.primary.matchPercentage,
-          should_switch: recommendation.shouldSwitch,
-          alternatives: recommendation.alternatives.map(alt => alt.brokerId).join(','),
-          timestamp: new Date().toISOString(),
-          user_agent: navigator.userAgent,
-          fb_click_id: new URLSearchParams(window.location.search).get('fbclid'),
-          utm_source: new URLSearchParams(window.location.search).get('utm_source'),
-          utm_medium: new URLSearchParams(window.location.search).get('utm_medium'),
-          utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign')
-        })
-      });
-    } catch (error) {
-      console.error('Error submitting data:', error);
+          affiliate_url: recommendation.primary.affiliate_url
+        }
+      })
+    }).catch(err => console.error('Tracking error:', err));
+
+    // Submit data to backend with retry mechanism
+    let submitSuccess = false;
+    let retryCount = 0;
+    const maxRetries = 2;
+
+    while (!submitSuccess && retryCount < maxRetries) {
+      try {
+        const response = await fetch('/api/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...userData,
+            recommended_broker: recommendation.primary.brokerId,
+            match_percentage: recommendation.primary.matchPercentage,
+            should_switch: recommendation.shouldSwitch,
+            alternatives: recommendation.alternatives.map(alt => alt.brokerId).join(','),
+            timestamp: new Date().toISOString(),
+            user_agent: navigator.userAgent,
+            fb_click_id: new URLSearchParams(window.location.search).get('fbclid'),
+            utm_source: new URLSearchParams(window.location.search).get('utm_source'),
+            utm_medium: new URLSearchParams(window.location.search).get('utm_medium'),
+            utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign')
+          })
+        });
+
+        if (response.ok) {
+          submitSuccess = true;
+          setApiSuccess(true);
+          setApiError(null);
+        } else {
+          throw new Error(`API returned ${response.status}`);
+        }
+      } catch (error) {
+        console.error(`Error submitting data (attempt ${retryCount + 1}/${maxRetries}):`, error);
+        retryCount++;
+
+        if (retryCount >= maxRetries) {
+          setApiError('Unable to save your data. But don\'t worry - you can still open your account!');
+          setApiSuccess(false);
+        } else {
+          // Wait 1 second before retry
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
     }
 
-    // Redirect to affiliate link
+    // Redirect to affiliate link (regardless of API success)
     window.open(recommendation.primary.affiliate_url, '_blank');
   };
 
@@ -938,54 +1193,156 @@ const RecommendationSection = ({ userData }: { userData: UserProfile }) => {
         </p>
       </div>
 
-      {/* Reasoning - Simplified for mobile */}
-      <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-6 text-left">
-        <h4 className="font-semibold text-gray-800 mb-3">Why we recommend {primaryBroker?.name}:</h4>
-        <div className="text-gray-700 text-sm whitespace-pre-line">
-          {recommendation.reasoning}
+      {/* Trust & Stats Bar - Real Numbers */}
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl p-5 mb-6">
+        <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="flex flex-col">
+            <span className="text-3xl font-bold text-blue-600">
+              {primaryBroker?.id === 'zerodha' ? '1.6Cr+' :
+               primaryBroker?.id === 'upstox' ? '1.3Cr+' :
+               primaryBroker?.id === 'angel_one' ? '2Cr+' :
+               primaryBroker?.id === 'fyers' ? '10L+' :
+               primaryBroker?.id === '5paisa' ? '40L+' : '50L+'}
+            </span>
+            <span className="text-xs text-gray-600 mt-1">Active Users</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-3xl font-bold text-green-600">
+              {primaryBroker?.charges.delivery_brokerage === 0 ? '₹0' : `₹${primaryBroker?.charges.delivery_brokerage}`}
+            </span>
+            <span className="text-xs text-gray-600 mt-1">Delivery Fee</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-3xl font-bold text-purple-600">
+              {primaryBroker?.id === 'zerodha' ? '4.5★' :
+               primaryBroker?.id === 'upstox' ? '4.5★' :
+               primaryBroker?.id === 'angel_one' ? '4.3★' :
+               primaryBroker?.id === 'fyers' ? '4.4★' : '4.2★'}
+            </span>
+            <span className="text-xs text-gray-600 mt-1">App Rating</span>
+          </div>
         </div>
       </div>
 
-      {/* Key Benefits */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6 text-left">
-        <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
-          <CheckCircle className="w-5 h-5" />
-          Key Benefits for You:
+      {/* Why We Recommend - Enhanced with Real Data */}
+      <div className="bg-white border-2 border-green-200 rounded-xl p-6 mb-6 text-left">
+        <h4 className="font-bold text-gray-800 mb-4 text-lg flex items-center gap-2">
+          <CheckCircle className="w-6 h-6 text-green-600" />
+          Why {primaryBroker?.name} is Perfect for You
         </h4>
-        <ul className="text-blue-700 space-y-2">
-          {recommendation.primary.reasons.slice(0, 3).map((reason, index) => (
-            <li key={index} className="flex items-start gap-2">
-              <CheckCircle className="w-4 h-4 mt-1 text-green-500 flex-shrink-0" />
-              {reason}
-            </li>
+
+        {/* Pros Section - Real Benefits */}
+        <div className="space-y-3 mb-4">
+          {primaryBroker?.real_insights.pros.slice(0, 3).map((pro, index) => (
+            <div key={index} className="flex items-start gap-3 bg-green-50 p-3 rounded-lg">
+              <span className="text-green-600 font-bold text-lg">✓</span>
+              <p className="text-gray-800 text-sm font-medium">{pro}</p>
+            </div>
           ))}
-        </ul>
+        </div>
+
+        {/* Cost Breakdown - Specific Numbers */}
+        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-lg p-4 mb-4">
+          <p className="font-bold text-gray-800 mb-2 flex items-center gap-2">
+            💰 Your Savings with {primaryBroker?.name}:
+          </p>
+          <p className="text-gray-700 text-sm">
+            {primaryBroker?.real_insights.cost_summary}
+          </p>
+          {primaryBroker?.id === 'zerodha' && (
+            <p className="text-green-700 font-semibold text-xs mt-2">
+              💡 Save ₹10,000+ annually vs traditional brokers (₹50/trade)
+            </p>
+          )}
+          {primaryBroker?.id === 'upstox' && (
+            <p className="text-green-700 font-semibold text-xs mt-2">
+              💡 60% fewer server crashes than competitors during volatile days
+            </p>
+          )}
+        </div>
+
+        {/* What Makes Them Different */}
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+          <p className="text-purple-900 font-semibold text-sm mb-2">🎯 What makes them stand out:</p>
+          <p className="text-purple-800 text-sm">{primaryBroker?.real_insights.why_we_recommend}</p>
+        </div>
       </div>
 
+      {/* Specific Reasons Based on User Profile */}
+      {recommendation.primary.reasons.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6 text-left">
+          <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+            <Star className="w-5 h-5 text-blue-600" />
+            Personalized Benefits for Your Trading Style:
+          </h4>
+          <ul className="text-blue-800 space-y-2">
+            {recommendation.primary.reasons.map((reason, index) => (
+              <li key={index} className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 mt-1 text-green-600 flex-shrink-0" />
+                <span className="text-sm">{reason}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* Removed alternatives - single recommendation only per business requirement */}
+
+      {/* Urgency Banner */}
+      <div className="bg-red-50 border-2 border-red-300 rounded-xl p-4 mb-4 text-center">
+        <p className="text-red-700 font-bold text-sm mb-1">⏰ Limited Time Offer</p>
+        <p className="text-red-600 text-xs">
+          Open account today and get {primaryBroker?.id === 'zerodha' ? 'FREE Varsity Pro access (₹999 value)' :
+          primaryBroker?.id === 'upstox' ? '₹500 trading credit' :
+          primaryBroker?.id === 'angel_one' ? 'FREE premium research (₹2,000 value)' :
+          'exclusive welcome bonuses'}
+        </p>
+      </div>
 
       {/* Primary CTA Button */}
       <motion.button
         onClick={handleConversion}
-        className="w-full py-5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-bold text-lg uppercase tracking-wide transition-all hover:shadow-xl mb-4"
+        className="w-full py-5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-lg shadow-lg transition-all hover:shadow-2xl mb-3"
         whileHover={{ scale: 1.02, y: -2 }}
         whileTap={{ scale: 0.98 }}
       >
-        🚀 Open {primaryBroker?.name} Account Now
+        🚀 Open FREE {primaryBroker?.name} Account Now
       </motion.button>
 
-      {/* Secondary CTA for mobile */}
+      <p className="text-center text-gray-600 text-xs mb-4">
+        ✓ 100% FREE • ✓ 5-min setup • ✓ Start trading today
+      </p>
+
+      {/* Secondary CTA with countdown */}
       <motion.button
         onClick={handleConversion}
-        className="w-full py-3 border-2 border-orange-500 text-orange-600 rounded-xl font-semibold text-sm transition-all hover:bg-orange-50 md:hidden"
+        className="w-full py-4 border-2 border-green-500 bg-white text-green-700 rounded-xl font-semibold text-sm transition-all hover:bg-green-50"
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
       >
-        📱 Quick Mobile Signup
+        📱 Continue on Mobile → Get Started in 5 Minutes
       </motion.button>
 
+      {/* API Success/Error Notifications */}
+      {apiError && (
+        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-300 rounded-lg text-sm text-yellow-800 flex items-start gap-2">
+          <span className="text-yellow-600 font-bold">⚠️</span>
+          <span>{apiError}</span>
+        </div>
+      )}
+      {apiSuccess && (
+        <div className="mt-4 p-3 bg-green-50 border border-green-300 rounded-lg text-sm text-green-800 flex items-start gap-2">
+          <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
+          <span>Your details have been saved successfully!</span>
+        </div>
+      )}
+
       {/* Trust Indicators */}
-      <div className="mt-6 text-sm text-gray-600 flex items-center justify-center gap-6">
+      <div className="mt-6 text-sm text-gray-600 flex flex-wrap items-center justify-center gap-4">
+        <span className="flex items-center gap-1">
+          <CheckCircle className="w-4 h-4 text-green-500" />
+          FREE Account Opening
+        </span>
         <span className="flex items-center gap-1">
           <CheckCircle className="w-4 h-4 text-green-500" />
           SEBI Registered

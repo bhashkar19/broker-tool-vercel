@@ -32,6 +32,54 @@ export interface UserSubmission {
   utm_medium?: string;
   utm_campaign?: string;
   created_at?: string;
+
+  // Conversion tracking fields
+  broker_client_id?: string;
+  conversion_status?: 'pending' | 'converted' | 'rejected';
+  conversion_date?: string;
+  match_confidence?: number;
+  import_hash?: string;
+  fb_sync_status?: 'pending' | 'synced' | 'failed';
+  fb_sync_date?: string;
+  notes?: string;
+}
+
+export interface ConversionImport {
+  id?: number;
+  broker_id: string;
+  file_name: string;
+  file_hash: string;
+  total_rows: number;
+  matched_rows?: number;
+  unmatched_rows?: number;
+  duplicate_rows?: number;
+  upload_status?: 'processing' | 'completed' | 'failed';
+  uploaded_by?: string;
+  created_at?: string;
+  completed_at?: string;
+}
+
+export interface ManualReviewQueueItem {
+  id?: number;
+  import_id: number;
+  broker_id: string;
+  broker_name: string;
+  broker_client_id?: string;
+  broker_conversion_date?: string;
+  potential_matches?: Array<{
+    submission_id: number;
+    name: string;
+    mobile: string;
+    confidence: number;
+    created_at: string;
+  }>;
+  matched_submission_id?: number;
+  match_confidence?: number;
+  review_status?: 'pending' | 'approved' | 'rejected' | 'skipped';
+  reviewed_by?: string;
+  reviewed_at?: string;
+  csv_row_data?: Record<string, unknown>;
+  created_at?: string;
 }
 
 // Initialize database table
@@ -136,6 +184,38 @@ export async function getSubmissionsByBroker(broker: string) {
   }
 }
 
+// 📊 BACKUP TRACKING EVENTS (Alternative to Facebook Pixel)
+export interface TrackingEvent {
+  event_name: string;
+  session_id: string;
+  broker_id?: string;
+  event_data?: Record<string, unknown>;
+  user_agent?: string;
+  ip_address?: string;
+  created_at?: string;
+}
+
+// Track event to Supabase (backup tracking)
+export async function trackEvent(eventData: TrackingEvent) {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('tracking_events')
+      .insert([eventData])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error tracking event:', error);
+      return { success: false, error };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error tracking event:', error);
+    return { success: false, error };
+  }
+}
+
 // Get analytics summary
 export async function getAnalyticsSummary() {
   try {
@@ -148,6 +228,39 @@ export async function getAnalyticsSummary() {
       console.error('Error getting total count:', countError);
       return { success: false, error: countError };
     }
+
+    // Total conversions
+    const { count: totalConversions } = await supabaseAdmin
+      .from('user_submissions')
+      .select('*', { count: 'exact', head: true })
+      .eq('conversion_status', 'converted');
+
+    // Pending review count
+    const { count: pendingReview } = await supabaseAdmin
+      .from('manual_review_queue')
+      .select('*', { count: 'exact', head: true })
+      .eq('review_status', 'pending');
+
+    // Synced to Facebook count
+    const { count: syncedToFacebook } = await supabaseAdmin
+      .from('user_submissions')
+      .select('*', { count: 'exact', head: true })
+      .eq('fb_sync_status', 'synced');
+
+    // Auto-matched conversions (confidence >= 90)
+    const { count: autoMatched } = await supabaseAdmin
+      .from('user_submissions')
+      .select('*', { count: 'exact', head: true })
+      .eq('conversion_status', 'converted')
+      .gte('match_confidence', 90);
+
+    // Get last upload date
+    const { data: lastImport } = await supabaseAdmin
+      .from('conversion_imports')
+      .select('created_at')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
 
     // Recent submissions (last 24 hours)
     const yesterday = new Date();
@@ -210,7 +323,13 @@ export async function getAnalyticsSummary() {
         totalSubmissions: totalSubmissions || 0,
         recentSubmissions: recentSubmissions || 0,
         brokerRecommendations: brokerStats || [],
-        topCurrentBrokers: currentBrokerStats || []
+        topCurrentBrokers: currentBrokerStats || [],
+        // Conversion tracking stats
+        totalConversions: totalConversions || 0,
+        autoMatched: autoMatched || 0,
+        pendingReview: pendingReview || 0,
+        syncedToFacebook: syncedToFacebook || 0,
+        lastUploadDate: lastImport?.created_at || null
       }
     };
   } catch (error) {

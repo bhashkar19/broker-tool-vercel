@@ -1,6 +1,6 @@
 // 🧠 RECOMMENDATION ENGINE - Smart broker matching logic
 
-import { BROKER_CONFIGS, BROKER_ISSUES, BROKER_SOLUTIONS, BROKER_BUSINESS_PRIORITY } from './brokerConfigs';
+import { BROKER_CONFIGS, BROKER_SOLUTIONS, BROKER_BUSINESS_PRIORITY, PARTNER_BROKER_IDS } from './brokerConfigs';
 import { COMPREHENSIVE_BROKER_ISSUES, QUESTIONNAIRE_TO_ISSUES_MAP } from './comprehensiveBrokerIssues';
 
 export interface UserProfile extends Record<string, unknown> {
@@ -80,10 +80,10 @@ export const generateRecommendation = (userProfile: UserProfile): Recommendation
   const primary: BrokerRecommendation = {
     brokerId: recommendedBrokerId,
     brokerName: BROKER_CONFIGS[recommendedBrokerId].name,
-    score: 100, // Always show as perfect match
+    score: 100,
     reasons: generateSpecificReasons(currentBrokers, recommendedBrokerId, userProfile),
     affiliate_url: BROKER_CONFIGS[recommendedBrokerId].affiliate_url,
-    matchPercentage: 95 // Always show high match to create confidence
+    matchPercentage: calculateRealMatchPercentage(recommendedBrokerId, userProfile, currentBrokers)
   };
 
   // Step 5: Generate issue-based reasoning
@@ -150,11 +150,11 @@ const getCurrentBrokers = (profile: UserProfile): string[] => {
 };
 
 const getAvailableBrokers = (currentBrokers: string[]): string[] => {
-  // Get all broker IDs from our config
-  const allBrokers = Object.keys(BROKER_CONFIGS);
-
-  // Filter out brokers user already has
-  return allBrokers.filter(brokerId => !currentBrokers.includes(brokerId));
+  // CRITICAL: Only recommend PARTNER brokers that user doesn't already have
+  // Users may select non-partner brokers (Groww, DHAN, etc) but we only recommend partners
+  return PARTNER_BROKER_IDS.filter(
+    brokerId => !currentBrokers.includes(brokerId)
+  );
 };
 
 const selectBestBrokerFromAvailable = (availableBrokers: string[]): string => {
@@ -363,18 +363,141 @@ const capitalize = (str: string): string => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
 
+// 🎯 CALCULATE REAL MATCH PERCENTAGE
+const calculateRealMatchPercentage = (recommendedBrokerId: string, userProfile: UserProfile, currentBrokers: string[]): number => {
+  let matchScore = 70; // Base score for any partner broker
+
+  const broker = BROKER_CONFIGS[recommendedBrokerId];
+  const userTypes = getArrayFromField(userProfile.userType) || [];
+  const challenges = getArrayFromField(userProfile.mainChallenge) || [];
+  const whatMatters = getArrayFromField(userProfile.whatMattersMost) || [];
+  const frequency = userProfile.tradingFrequency;
+
+  // +5 points: User type alignment
+  if (userTypes.includes('investor') && broker.id === 'zerodha') matchScore += 5;
+  if (userTypes.includes('trader') && (broker.id === 'upstox' || broker.id === 'fyers')) matchScore += 5;
+  if (userTypes.includes('learner') && broker.id === 'zerodha') matchScore += 5;
+  if (userTypes.includes('professional') && broker.id === 'fyers') matchScore += 5;
+
+  // +5 points: Challenge-solution alignment
+  if (challenges.includes('slow_execution') && broker.id === 'upstox') matchScore += 5;
+  if (challenges.includes('high_charges') && (broker.id === 'zerodha' || broker.id === '5paisa')) matchScore += 5;
+  if (challenges.includes('poor_support') && broker.id === 'angel_one') matchScore += 5;
+  if (challenges.includes('lack_education') && broker.id === 'zerodha') matchScore += 5;
+
+  // +5 points: Priority alignment
+  if (whatMatters.includes('cost') && (broker.id === 'zerodha' || broker.id === '5paisa')) matchScore += 5;
+  if (whatMatters.includes('speed') && broker.id === 'upstox') matchScore += 5;
+  if (whatMatters.includes('tools') && broker.id === 'fyers') matchScore += 5;
+  if (whatMatters.includes('education') && broker.id === 'zerodha') matchScore += 5;
+  if (whatMatters.includes('support') && broker.id === 'angel_one') matchScore += 5;
+
+  // +5 points: Frequency alignment
+  if (frequency === 'daily' && (broker.id === 'upstox' || broker.id === 'fyers')) matchScore += 5;
+  if (frequency === 'rarely' && broker.id === 'zerodha') matchScore += 5;
+
+  // +10 points: New user bonus (no existing brokers) - higher because we have more control
+  if (currentBrokers.length === 0) {
+    matchScore += 10;
+
+    // Additional scoring for new users based on their profile
+    const experience = userProfile.experienceLevel;
+    const amount = userProfile.investmentAmount;
+
+    // Beginner + Zerodha = perfect match
+    if (experience === 'beginner' && broker.id === 'zerodha') matchScore += 5;
+
+    // Small amount + low-cost broker
+    if ((amount === 'exploring' || amount === 'small') && (broker.id === 'zerodha' || broker.id === '5paisa')) matchScore += 5;
+
+    // Large amount + premium features
+    if ((amount === 'large') && (broker.id === 'angel_one' || broker.id === 'fyers')) matchScore += 3;
+  }
+
+  // Cap at 95 (stay realistic)
+  return Math.min(matchScore, 95);
+};
+
 const generateIssueBasedReasoning = (currentBrokers: string[], recommendedBrokerId: string, userProfile?: UserProfile): string => {
   const recommendedBroker = BROKER_CONFIGS[recommendedBrokerId];
 
   if (currentBrokers.length === 0) {
-    // New user - simple reasoning
-    return `**${recommendedBroker.name} is perfect for starting your investing journey:**
+    // New user - personalized reasoning based on their answers
+    const userTypes = getArrayFromField(userProfile?.userType) || [];
+    const priorities = getArrayFromField(userProfile?.whatMattersMost) || [];
+    const frequency = userProfile?.tradingFrequency;
+    const experience = userProfile?.experienceLevel;
+    const amount = userProfile?.investmentAmount;
 
-• ${recommendedBroker.real_insights.perfect_for}
-• ${recommendedBroker.real_insights.cost_summary}
-• ${recommendedBroker.real_insights.why_we_recommend}
+    let reasoning = `**Based on your profile, ${recommendedBroker.name} is the perfect match:**\n\n`;
 
-Start with India's most trusted broker - no need to switch later.`;
+    // Show what we learned about them
+    reasoning += `**What we learned about you:**\n`;
+    if (userTypes.length > 0) {
+      const typeLabels = userTypes.map(t =>
+        t === 'investor' ? 'Long-term investor' :
+        t === 'trader' ? 'Active trader' :
+        'Learning & exploring'
+      ).join(', ');
+      reasoning += `• Your goal: ${typeLabels}\n`;
+    }
+    if (experience) {
+      const expLabel = experience === 'beginner' ? 'Complete beginner' :
+                      experience === 'intermediate' ? 'Some knowledge' :
+                      'Ready to trade';
+      reasoning += `• Knowledge level: ${expLabel}\n`;
+    }
+    if (amount) {
+      const amountLabel = amount === 'exploring' ? 'Just exploring (under ₹10K)' :
+                         amount === 'small' ? '₹10K-₹50K' :
+                         amount === 'medium' ? '₹50K-₹2L' :
+                         '₹2L+';
+      reasoning += `• Starting with: ${amountLabel}\n`;
+    }
+    if (frequency) {
+      const freqLabel = frequency === 'rarely' ? 'Long-term holdings' :
+                       frequency === 'monthly' ? 'Few times a month' :
+                       frequency === 'weekly' ? 'Weekly trading' :
+                       'Daily trading';
+      reasoning += `• Trading plan: ${freqLabel}\n`;
+    }
+    if (priorities.length > 0) {
+      const prioLabels = priorities.map(p =>
+        p === 'education' ? 'Learning resources' :
+        p === 'cost' ? 'Low charges' :
+        p === 'support' ? 'Good support' :
+        p === 'ease_of_use' ? 'Easy-to-use app' :
+        p === 'trust' ? 'Trusted brand' : p
+      ).join(', ');
+      reasoning += `• Priorities: ${prioLabels}\n\n`;
+    }
+
+    // Explain why this broker matches their profile
+    reasoning += `**Why ${recommendedBroker.name} matches your needs:**\n`;
+    reasoning += `• ${recommendedBroker.real_insights.perfect_for}\n`;
+    reasoning += `• ${recommendedBroker.real_insights.cost_summary}\n`;
+
+    // Add specific matches
+    if (priorities.includes('education') && recommendedBrokerId === 'zerodha') {
+      reasoning += `• **Perfect for learning:** Varsity has 200+ free courses - best in India\n`;
+    }
+    if (priorities.includes('cost') && (recommendedBrokerId === 'zerodha' || recommendedBrokerId === '5paisa')) {
+      reasoning += `• **Lowest costs:** You'll save ₹10,000+ annually vs traditional brokers\n`;
+    }
+    if (priorities.includes('trust') && (recommendedBrokerId === 'zerodha' || recommendedBrokerId === 'upstox')) {
+      reasoning += `• **Most trusted:** Used by ${recommendedBrokerId === 'zerodha' ? '1.6 crore' : '1.3 crore'} Indians\n`;
+    }
+    if (experience === 'beginner' && recommendedBrokerId === 'zerodha') {
+      reasoning += `• **Beginner-friendly:** Easiest platform to learn with no jargon\n`;
+    }
+    if (frequency === 'rarely' && recommendedBrokerId === 'zerodha') {
+      reasoning += `• **For long-term:** ₹0 delivery charges means more money stays invested\n`;
+    }
+
+    reasoning += `\n**${recommendedBroker.real_insights.why_we_recommend}**\n\n`;
+    reasoning += `Start right - no need to switch brokers later!`;
+
+    return reasoning;
   }
 
   if (currentBrokers.length === 1) {

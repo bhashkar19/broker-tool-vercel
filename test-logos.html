@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Broker Logos</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .logo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .logo-item { border: 1px solid #ddd; padding: 15px; border-radius: 8px; }
+        .logo-item img { width: 64px; height: 64px; object-fit: contain; }
+        .logo-item h3 { margin: 10px 0 5px 0; font-size: 14px; }
+        .error { color: red; font-size: 12px; }
+        .success { color: green; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Broker Logo Loading Test</h1>
+    <p>Testing if broker logos load from Supabase storage...</p>
+
+    <div class="logo-grid" id="logoGrid"></div>
+
+    <script>
+        const logos = [
+            { name: 'Zerodha', url: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/zerodha.svg' },
+            { name: 'Upstox', url: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/upstox.svg' },
+            { name: 'Angel One', url: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/angelone.png' },
+            { name: 'Fyers', url: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/fyers.svg' },
+            { name: '5paisa', url: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/5paisa.svg' },
+            { name: 'Groww', url: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/groww.png' },
+            { name: 'DHAN', url: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/dhan.svg' },
+            { name: 'ICICI Direct', url: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/icici.svg' },
+            { name: 'HDFC Securities', url: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/hdfc.png' },
+            { name: 'Kotak Securities', url: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/kotak.svg' },
+            { name: 'Sharekhan', url: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/sharekhan.svg' },
+            { name: 'Axis Direct', url: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/axis.png' },
+            { name: 'Paytm Money', url: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/paytm.png' },
+            { name: 'IIFL Securities', url: 'https://dqmpityshhywzayjysru.supabase.co/storage/v1/object/public/broker-logos/iifl.svg' }
+        ];
+
+        const grid = document.getElementById('logoGrid');
+
+        logos.forEach(logo => {
+            const item = document.createElement('div');
+            item.className = 'logo-item';
+
+            const img = document.createElement('img');
+            img.src = logo.url;
+            img.alt = logo.name;
+
+            const title = document.createElement('h3');
+            title.textContent = logo.name;
+
+            const status = document.createElement('div');
+            status.textContent = '⏳ Loading...';
+
+            img.onload = () => {
+                status.className = 'success';
+                status.textContent = '✅ Loaded successfully';
+            };
+
+            img.onerror = () => {
+                status.className = 'error';
+                status.textContent = '❌ Failed to load';
+            };
+
+            item.appendChild(img);
+            item.appendChild(title);
+            item.appendChild(status);
+            grid.appendChild(item);
+        });
+    </script>
+</body>
+</html>

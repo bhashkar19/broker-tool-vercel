@@ -37,7 +37,7 @@ export interface QuestionFlow {
 // 🔄 VERSION A: ENHANCED TWO-PATH FLOW
 export const QUESTION_FLOW_A: QuestionFlow = {
   name: "Enhanced Two-Path Flow",
-  description: "Clear branching: New users (3 questions) vs Existing users (7 questions)",
+  description: "Clear branching: New users (6 questions) vs Existing users (7 questions)",
   totalQuestions: 7,
   questions: [
     {
@@ -155,16 +155,70 @@ export const QUESTION_FLOW_A: QuestionFlow = {
       },
       validation: { required: true }
     },
-    // 🆕 NEW USER QUESTIONS (for hasAccount = "no")
+    // 🆕 NEW USER QUESTIONS (for hasAccount = "no") - ENHANCED FOR BETTER PERSONALIZATION
     {
       id: "new_user_type",
-      type: "radio",
+      type: "checkbox",
       label: "What best describes your goal?",
       field_name: "userType",
+      helpText: "Select all that apply - helps us understand your needs better",
       options: [
         { label: "Start investing for long-term wealth", value: "investor" },
         { label: "Learn trading actively", value: "trader" },
-        { label: "Explore and understand markets", value: "learner" }
+        { label: "Explore and understand markets first", value: "learner" }
+      ],
+      conditional: {
+        showIf: "hasAccount",
+        equals: "no"
+      },
+      validation: { required: true }
+    },
+    {
+      id: "new_user_investment_amount",
+      type: "radio",
+      label: "How much are you planning to start with?",
+      field_name: "investmentAmount",
+      helpText: "This helps us recommend the right platform for your budget",
+      options: [
+        { label: "Just exploring (under ₹10,000)", value: "exploring" },
+        { label: "Small start (₹10,000 - ₹50,000)", value: "small" },
+        { label: "Moderate (₹50,000 - ₹2,00,000)", value: "medium" },
+        { label: "Serious investment (₹2,00,000+)", value: "large" }
+      ],
+      conditional: {
+        showIf: "hasAccount",
+        equals: "no"
+      },
+      validation: { required: true }
+    },
+    {
+      id: "new_user_knowledge_level",
+      type: "radio",
+      label: "What's your current knowledge about stock markets?",
+      field_name: "experienceLevel",
+      helpText: "Be honest - this helps us recommend the right learning resources",
+      options: [
+        { label: "Complete beginner - know nothing", value: "beginner" },
+        { label: "Some basic understanding", value: "intermediate" },
+        { label: "Good understanding, ready to trade", value: "advanced" }
+      ],
+      conditional: {
+        showIf: "hasAccount",
+        equals: "no"
+      },
+      validation: { required: true }
+    },
+    {
+      id: "new_user_trading_frequency_plan",
+      type: "radio",
+      label: "How often are you planning to trade?",
+      field_name: "tradingFrequency",
+      helpText: "This affects which broker saves you the most money",
+      options: [
+        { label: "Very rarely - long-term holdings only", value: "rarely" },
+        { label: "Few times a month", value: "monthly" },
+        { label: "Weekly - active trading", value: "weekly" },
+        { label: "Daily - day trading", value: "daily" }
       ],
       conditional: {
         showIf: "hasAccount",
@@ -174,13 +228,16 @@ export const QUESTION_FLOW_A: QuestionFlow = {
     },
     {
       id: "new_user_priority",
-      type: "radio",
-      label: "What's most important to you?",
+      type: "checkbox",
+      label: "What matters most to you when choosing a broker?",
       field_name: "whatMattersMost",
+      helpText: "Select your top priorities - we'll match you accordingly",
       options: [
-        { label: "Learning with good educational content", value: "education" },
-        { label: "Lowest possible charges", value: "cost" },
-        { label: "Good customer support for guidance", value: "support" }
+        { label: "Best learning resources & education", value: "education" },
+        { label: "Absolutely lowest charges", value: "cost" },
+        { label: "Excellent customer support", value: "support" },
+        { label: "User-friendly mobile app", value: "ease_of_use" },
+        { label: "Trusted brand with large user base", value: "trust" }
       ],
       conditional: {
         showIf: "hasAccount",

@@ -1,10 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Fix Turbopack workspace root warning
-  experimental: {
-    turbo: {
-      root: '.'
-    }
+  // Modern turbopack configuration for Next.js 15.5.4
+  turbopack: {
+    // Use current directory as root to avoid multiple lockfile conflicts
+    root: __dirname
   },
 
   // Performance optimizations

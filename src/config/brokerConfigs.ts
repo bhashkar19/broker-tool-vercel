@@ -443,6 +443,14 @@ export const BROKER_SOLUTIONS = {
 
 // 🏆 BUSINESS PRIORITY ORDER
 // Higher priority = recommend first (better affiliate commissions)
+// 🤝 PARTNER BROKER IDS - Only these can be recommended
+export const PARTNER_BROKER_IDS = ['zerodha', 'upstox', 'angel_one', 'fyers', '5paisa'];
+
+// Helper function to check if broker is a partner
+export const isPartnerBroker = (brokerId: string): boolean => {
+  return PARTNER_BROKER_IDS.includes(brokerId);
+};
+
 export const BROKER_BUSINESS_PRIORITY = {
   'zerodha': 1,    // Highest priority
   'angel_one': 1,  // Equal highest priority
