@@ -309,6 +309,33 @@ const ModularBrokerTool = () => {
         />
       </div>
 
+      {/* Question Counter & Progress Dots */}
+      {!showRecommendation && (
+        <div className="px-8 pt-6 pb-2">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-semibold text-gray-700">
+              Question {currentQuestionIndex + 1} of {visibleQuestions.length}
+            </p>
+            <p className="text-sm font-medium text-blue-600">
+              {Math.round(progressPercentage)}% Complete
+            </p>
+          </div>
+          {/* Progress Dots */}
+          <div className="flex gap-1.5 justify-center">
+            {visibleQuestions.map((_, index) => (
+              <div
+                key={index}
+                className={`h-2 rounded-full transition-all ${
+                  index <= currentQuestionIndex
+                    ? 'w-8 bg-blue-600'
+                    : 'w-2 bg-gray-300'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Questions Container */}
       <div className="p-8 min-h-[400px] flex flex-col justify-center">
         <AnimatePresence mode="wait">
@@ -320,6 +347,15 @@ const ModularBrokerTool = () => {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.5 }}
             >
+              {/* Motivational message */}
+              {currentQuestionIndex > 0 && currentQuestionIndex < visibleQuestions.length - 1 && (
+                <p className="text-center text-sm text-green-600 font-medium mb-4">
+                  {currentQuestionIndex === 1 ? "Great! We're learning about you..." :
+                   currentQuestionIndex >= visibleQuestions.length - 2 ? "Almost there! Just one more..." :
+                   "You're doing great! Keep going..."}
+                </p>
+              )}
+
               <QuestionRenderer
                 question={currentQuestion}
                 userData={userData}
@@ -330,12 +366,25 @@ const ModularBrokerTool = () => {
               <motion.button
                 onClick={nextQuestion}
                 disabled={!isCurrentQuestionValid()}
-                className="w-full mt-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold text-lg disabled:bg-gray-300 disabled:cursor-not-allowed transition-all hover:shadow-lg hover:-translate-y-1"
+                className={`w-full mt-6 py-5 rounded-xl font-bold text-lg disabled:bg-gray-300 disabled:cursor-not-allowed transition-all hover:shadow-lg ${
+                  isLastQuestion
+                    ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700'
+                    : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:-translate-y-1'
+                }`}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                {isLastQuestion ? 'Get My Recommendation' : 'Continue'}
+                {isLastQuestion ? '🎯 Show My Perfect Match' :
+                 currentQuestionIndex >= visibleQuestions.length - 2 ? 'Almost There! Continue →' :
+                 'Next Question →'}
               </motion.button>
+
+              {/* Helper text */}
+              {!isLastQuestion && currentQuestion.type !== 'custom' && (
+                <p className="text-center text-xs text-gray-500 mt-3">
+                  Select an option to continue →
+                </p>
+              )}
             </motion.div>
           )}
 
@@ -1224,47 +1273,38 @@ const RecommendationSection = ({
         </div>
       </div>
 
-      {/* Why We Recommend - Enhanced with Real Data */}
-      <div className="bg-white border-2 border-green-200 rounded-xl p-6 mb-6 text-left">
-        <h4 className="font-bold text-gray-800 mb-4 text-lg flex items-center gap-2">
-          <CheckCircle className="w-6 h-6 text-green-600" />
+      {/* Why We Recommend - Simplified */}
+      <div className="bg-white border-2 border-green-200 rounded-xl p-5 mb-6 text-left">
+        <h4 className="font-bold text-gray-800 mb-4 text-base flex items-center gap-2">
+          <CheckCircle className="w-5 h-5 text-green-600" />
           Why {primaryBroker?.name} is Perfect for You
         </h4>
 
-        {/* Pros Section - Real Benefits */}
-        <div className="space-y-3 mb-4">
+        {/* Top 3 Benefits Only */}
+        <div className="space-y-2.5 mb-4">
           {primaryBroker?.real_insights.pros.slice(0, 3).map((pro, index) => (
-            <div key={index} className="flex items-start gap-3 bg-green-50 p-3 rounded-lg">
-              <span className="text-green-600 font-bold text-lg">✓</span>
-              <p className="text-gray-800 text-sm font-medium">{pro}</p>
+            <div key={index} className="flex items-start gap-2">
+              <span className="text-green-600 font-bold text-base mt-0.5">✓</span>
+              <p className="text-gray-800 text-sm">{pro}</p>
             </div>
           ))}
         </div>
 
-        {/* Cost Breakdown - Specific Numbers */}
-        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-lg p-4 mb-4">
-          <p className="font-bold text-gray-800 mb-2 flex items-center gap-2">
-            💰 Your Savings with {primaryBroker?.name}:
-          </p>
-          <p className="text-gray-700 text-sm">
-            {primaryBroker?.real_insights.cost_summary}
+        {/* Cost Savings - Prominent */}
+        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-lg p-4">
+          <p className="font-bold text-gray-800 text-sm mb-1">
+            💰 {primaryBroker?.real_insights.cost_summary}
           </p>
           {primaryBroker?.id === 'zerodha' && (
-            <p className="text-green-700 font-semibold text-xs mt-2">
-              💡 Save ₹10,000+ annually vs traditional brokers (₹50/trade)
+            <p className="text-green-700 font-semibold text-xs mt-1">
+              Save up to ₹10,000/year vs traditional brokers
             </p>
           )}
           {primaryBroker?.id === 'upstox' && (
-            <p className="text-green-700 font-semibold text-xs mt-2">
-              💡 60% fewer server crashes than competitors during volatile days
+            <p className="text-green-700 font-semibold text-xs mt-1">
+              Best uptime during market volatility
             </p>
           )}
-        </div>
-
-        {/* What Makes Them Different */}
-        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-          <p className="text-purple-900 font-semibold text-sm mb-2">🎯 What makes them stand out:</p>
-          <p className="text-purple-800 text-sm">{primaryBroker?.real_insights.why_we_recommend}</p>
         </div>
       </div>
 
@@ -1288,40 +1328,30 @@ const RecommendationSection = ({
 
       {/* Removed alternatives - single recommendation only per business requirement */}
 
-      {/* Urgency Banner */}
-      <div className="bg-red-50 border-2 border-red-300 rounded-xl p-4 mb-4 text-center">
-        <p className="text-red-700 font-bold text-sm mb-1">⏰ Limited Time Offer</p>
-        <p className="text-red-600 text-xs">
-          Open account today and get {primaryBroker?.id === 'zerodha' ? 'FREE Varsity Pro access (₹999 value)' :
-          primaryBroker?.id === 'upstox' ? '₹500 trading credit' :
-          primaryBroker?.id === 'angel_one' ? 'FREE premium research (₹2,000 value)' :
-          'exclusive welcome bonuses'}
+      {/* Trust Reassurance */}
+      <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-4 text-center">
+        <p className="text-blue-800 font-semibold text-sm mb-1">✓ 100% Free Account Opening</p>
+        <p className="text-blue-700 text-xs">
+          {primaryBroker?.id === 'zerodha' ? 'Trusted by 1.6 Crore+ traders • SEBI registered' :
+          primaryBroker?.id === 'upstox' ? 'Trusted by 1.3 Crore+ traders • SEBI registered' :
+          primaryBroker?.id === 'angel_one' ? 'Trusted by 2 Crore+ traders • SEBI registered' :
+          'SEBI registered • Bank-grade security'}
         </p>
       </div>
 
       {/* Primary CTA Button */}
       <motion.button
         onClick={handleConversion}
-        className="w-full py-5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-lg shadow-lg transition-all hover:shadow-2xl mb-3"
-        whileHover={{ scale: 1.02, y: -2 }}
+        className="w-full py-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-xl shadow-lg transition-all hover:shadow-2xl mb-3 hover:from-green-600 hover:to-green-700"
+        whileHover={{ scale: 1.03, y: -2 }}
         whileTap={{ scale: 0.98 }}
       >
-        🚀 Open FREE {primaryBroker?.name} Account Now
+        Open FREE {primaryBroker?.name} Account →
       </motion.button>
 
-      <p className="text-center text-gray-600 text-xs mb-4">
-        ✓ 100% FREE • ✓ 5-min setup • ✓ Start trading today
+      <p className="text-center text-gray-600 text-sm mb-4 font-medium">
+        ✓ Takes 5 minutes • ✓ No hidden costs • ✓ Start today
       </p>
-
-      {/* Secondary CTA with countdown */}
-      <motion.button
-        onClick={handleConversion}
-        className="w-full py-4 border-2 border-green-500 bg-white text-green-700 rounded-xl font-semibold text-sm transition-all hover:bg-green-50"
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.99 }}
-      >
-        📱 Continue on Mobile → Get Started in 5 Minutes
-      </motion.button>
 
       {/* API Success/Error Notifications */}
       {apiError && (

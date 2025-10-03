@@ -43,7 +43,8 @@ export const QUESTION_FLOW_A: QuestionFlow = {
     {
       id: "contact_info",
       type: "custom",
-      label: "Get your personalized broker recommendation",
+      label: "Almost done! Get your FREE recommendation",
+      helpText: "Trusted by 1,000+ Indian traders • Your data stays private 🔒",
       field_name: "contact",
       validation: {
         required: true,
@@ -56,11 +57,12 @@ export const QUESTION_FLOW_A: QuestionFlow = {
     {
       id: "demat_account_check",
       type: "radio",
-      label: "Do you have a demat account with any broker?",
+      label: "Do you currently trade stocks?",
+      helpText: "⏱️ Takes 60 seconds • Free personalized match",
       field_name: "hasAccount",
       options: [
-        { label: "Yes, I have a demat account", value: "yes" },
-        { label: "No, I'm completely new", value: "no" }
+        { label: "✓ Yes, I already trade", value: "yes" },
+        { label: "✗ No, I'm new to trading", value: "no" }
       ],
       validation: { required: true }
     },
