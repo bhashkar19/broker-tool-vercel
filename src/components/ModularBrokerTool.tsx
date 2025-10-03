@@ -29,8 +29,16 @@ const ModularBrokerTool = () => {
     sessionId: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   });
 
-  // Get current question configuration (easily changeable for A/B testing)
-  const questionConfig = getQuestionConfig(); // Change to 'A', 'B', or 'C' for testing
+  // Get A/B test version from URL parameter (?v=a or ?v=b)
+  const getVersionFromURL = (): 'A' | 'B' | undefined => {
+    if (typeof window === 'undefined') return undefined;
+    const searchParams = new URLSearchParams(window.location.search);
+    const version = searchParams.get('v')?.toUpperCase();
+    return version === 'A' || version === 'B' ? version : undefined;
+  };
+
+  const abTestVersion = getVersionFromURL();
+  const questionConfig = getQuestionConfig(abTestVersion);
   const visibleQuestions = questionConfig.questions.filter(q => shouldShowQuestion(q, userData));
   const currentQuestion = visibleQuestions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex >= visibleQuestions.length - 1;
@@ -45,6 +53,7 @@ const ModularBrokerTool = () => {
       window.fbq('trackCustom', 'ToolStarted', {
         session_id: userData.sessionId,
         config_version: questionConfig.name,
+        ab_test_version: abTestVersion || 'A',
         timestamp: new Date().toISOString()
       });
     }

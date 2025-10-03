@@ -251,15 +251,190 @@ export const QUESTION_FLOW_A: QuestionFlow = {
 };
 
 // 🧪 VERSION B: Simplified Flow
+// 🔄 VERSION B: Contact Form LAST (Better Conversion)
+// Same as Version A, but contact_info moved to second-to-last position
 export const QUESTION_FLOW_B: QuestionFlow = {
-  name: "Simplified",
-  description: "Shorter, more direct questions for faster completion",
-  totalQuestions: 5,
+  name: "Contact Last Flow",
+  description: "Contact form at the end for better conversion",
+  totalQuestions: 7,
   questions: [
+    {
+      id: "demat_account_check",
+      type: "radio",
+      label: "Do you currently trade stocks?",
+      helpText: "⏱️ Takes 60 seconds • Free personalized match",
+      field_name: "hasAccount",
+      options: [
+        { label: "✓ Yes, I already trade", value: "yes" },
+        { label: "✗ No, I'm new to trading", value: "no" }
+      ],
+      validation: { required: true }
+    },
+    {
+      id: "combined_broker_selection",
+      type: "custom",
+      label: "Tell us about your current brokers",
+      field_name: "brokerInfo",
+      helpText: "First select how many, then choose which brokers you use",
+      conditional: {
+        showIf: "hasAccount",
+        equals: "yes"
+      },
+      validation: {
+        required: true,
+        customValidation: (data: unknown) => {
+          const brokerData = data as { count?: string; brokers?: string[] } | undefined;
+          return (brokerData?.brokers?.length || 0) > 0;
+        }
+      }
+    },
+    {
+      id: "user_type",
+      type: "checkbox",
+      label: "Which best describes you?",
+      field_name: "userType",
+      options: [
+        { label: "Long-term investor", value: "investor" },
+        { label: "Active trader", value: "trader" },
+        { label: "Learning & exploring", value: "learner" },
+        { label: "Professional trader", value: "professional" }
+      ],
+      conditional: {
+        showIf: "hasAccount",
+        equals: "yes"
+      },
+      validation: { required: true }
+    },
+    {
+      id: "main_challenge",
+      type: "checkbox",
+      label: "What challenges do you face?",
+      field_name: "mainChallenge",
+      options: [
+        { label: "High charges", value: "charges" },
+        { label: "Platform crashes", value: "reliability" },
+        { label: "Poor support", value: "support" },
+        { label: "Lack of research", value: "research" },
+        { label: "Limited tools", value: "tools" },
+        { label: "No major issues", value: "satisfied" }
+      ],
+      conditional: {
+        showIf: "hasAccount",
+        equals: "yes"
+      },
+      validation: { required: true }
+    },
+    {
+      id: "trading_frequency",
+      type: "radio",
+      label: "How often do you trade?",
+      field_name: "tradingFrequency",
+      options: [
+        { label: "Very rarely - long-term holdings", value: "rarely" },
+        { label: "Few times a month", value: "monthly" },
+        { label: "Weekly - active trading", value: "weekly" },
+        { label: "Daily - day trading", value: "daily" }
+      ],
+      conditional: {
+        showIf: "hasAccount",
+        equals: "yes"
+      },
+      validation: { required: true }
+    },
+    {
+      id: "most_important",
+      type: "checkbox",
+      label: "What matters most to you?",
+      field_name: "mostImportant",
+      options: [
+        { label: "Low charges", value: "charges" },
+        { label: "Platform speed", value: "speed" },
+        { label: "Advanced tools", value: "tools" },
+        { label: "Good support", value: "support" },
+        { label: "Education", value: "education" }
+      ],
+      conditional: {
+        showIf: "hasAccount",
+        equals: "yes"
+      },
+      validation: { required: true }
+    },
+    {
+      id: "new_user_type",
+      type: "checkbox",
+      label: "What best describes your goal?",
+      field_name: "userType",
+      helpText: "Select all that apply - helps us understand your needs better",
+      options: [
+        { label: "Start investing for long-term wealth", value: "investor" },
+        { label: "Learn trading actively", value: "trader" },
+        { label: "Explore and understand markets first", value: "learner" }
+      ],
+      conditional: {
+        showIf: "hasAccount",
+        equals: "no"
+      },
+      validation: { required: true }
+    },
+    {
+      id: "new_user_investment_amount",
+      type: "radio",
+      label: "How much are you planning to invest?",
+      field_name: "investmentAmount",
+      helpText: "This helps us recommend the right account type",
+      options: [
+        { label: "Under ₹50,000 - starting small", value: "small" },
+        { label: "₹50,000 - ₹2,00,000 - moderate amount", value: "medium" },
+        { label: "₹2,00,000 - ₹10,00,000 - significant capital", value: "large" },
+        { label: "Over ₹10,00,000 - serious investment", value: "very_large" }
+      ],
+      conditional: {
+        showIf: "hasAccount",
+        equals: "no"
+      },
+      validation: { required: true }
+    },
+    {
+      id: "new_user_experience",
+      type: "radio",
+      label: "Your experience with stock markets?",
+      field_name: "experienceLevel",
+      helpText: "Be honest - this helps us recommend the right learning resources",
+      options: [
+        { label: "Complete beginner - know nothing", value: "beginner" },
+        { label: "Some basic understanding", value: "intermediate" },
+        { label: "Good understanding, ready to trade", value: "advanced" }
+      ],
+      conditional: {
+        showIf: "hasAccount",
+        equals: "no"
+      },
+      validation: { required: true }
+    },
+    {
+      id: "new_user_trading_frequency_plan",
+      type: "radio",
+      label: "How often are you planning to trade?",
+      field_name: "tradingFrequency",
+      helpText: "This affects which broker saves you the most money",
+      options: [
+        { label: "Very rarely - long-term holdings only", value: "rarely" },
+        { label: "Few times a month", value: "monthly" },
+        { label: "Weekly - active trading", value: "weekly" },
+        { label: "Daily - day trading", value: "daily" }
+      ],
+      conditional: {
+        showIf: "hasAccount",
+        equals: "no"
+      },
+      validation: { required: true }
+    },
+    // ⭐ CONTACT FORM - MOVED TO SECOND-TO-LAST POSITION
     {
       id: "contact_info",
       type: "custom",
-      label: "Quick broker recommendation in 2 minutes",
+      label: "Almost done! Get your FREE recommendation",
+      helpText: "Trusted by 1,000+ Indian traders • Your data stays private 🔒",
       field_name: "contact",
       validation: {
         required: true,
@@ -268,56 +443,6 @@ export const QUESTION_FLOW_B: QuestionFlow = {
           return (userData.name?.length || 0) >= 2 && (userData.mobile?.length || 0) >= 10;
         }
       }
-    },
-    {
-      id: "trading_goal",
-      type: "radio",
-      label: "What's your main trading goal?",
-      field_name: "tradingGoal",
-      options: [
-        { label: "Learn and start investing slowly", value: "learning" },
-        { label: "Make money through active trading", value: "profit" },
-        { label: "Professional day trading", value: "professional" }
-      ],
-      validation: { required: true }
-    },
-    {
-      id: "investment_amount",
-      type: "radio",
-      label: "How much do you plan to invest initially?",
-      field_name: "investmentAmount",
-      options: [
-        { label: "Under ₹50,000", value: "small" },
-        { label: "₹50,000 - ₹2,00,000", value: "medium" },
-        { label: "₹2,00,000 - ₹10,00,000", value: "large" },
-        { label: "Over ₹10,00,000", value: "very_large" }
-      ],
-      validation: { required: true }
-    },
-    {
-      id: "current_broker_quick",
-      type: "radio",
-      label: "Do you have a broker currently?",
-      field_name: "currentBrokerQuick",
-      options: [
-        { label: "Yes, and I'm happy with them", value: "satisfied" },
-        { label: "Yes, but have some issues", value: "issues" },
-        { label: "No broker yet", value: "none" }
-      ],
-      validation: { required: true }
-    },
-    {
-      id: "main_concern",
-      type: "radio",
-      label: "What concerns you most about trading?",
-      field_name: "mainConcern",
-      options: [
-        { label: "High charges eating my profits", value: "charges" },
-        { label: "Making wrong investment decisions", value: "decisions" },
-        { label: "Platform being slow or unreliable", value: "reliability" },
-        { label: "Not understanding how to use tools", value: "complexity" }
-      ],
-      validation: { required: true }
     }
   ]
 };
