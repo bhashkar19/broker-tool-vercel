@@ -434,6 +434,31 @@ const ModularBrokerTool = () => {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Minimal Footer */}
+      <footer className="mt-20 pb-4 text-center border-t border-gray-50">
+        <div className="text-[9px] text-gray-400 space-x-2 pt-6 tracking-wide">
+          <a
+            href="https://www.paisowala.com/privacy-policy/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-gray-500 transition-colors"
+          >
+            Privacy Policy
+          </a>
+          <span className="text-gray-300">·</span>
+          <a
+            href="https://www.paisowala.com/terms-of-service/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-gray-500 transition-colors"
+          >
+            Terms of Service
+          </a>
+          <span className="text-gray-300">·</span>
+          <span>© 2024 Paisowala</span>
+        </div>
+      </footer>
     </div>
   );
 };
@@ -504,6 +529,28 @@ const QuestionRenderer = ({
           <div className="flex items-center justify-center gap-2 text-xs text-gray-500 mt-3">
             <span>🔒</span>
             <span>Your data stays private & secure</span>
+          </div>
+
+          {/* Consent Checkbox */}
+          <div className="mt-4 mb-2">
+            <label className="flex items-start gap-2.5 text-sm text-gray-600 cursor-pointer group">
+              <input
+                type="checkbox"
+                required
+                className="mt-0.5 w-4 h-4 cursor-pointer accent-blue-600"
+              />
+              <span className="leading-snug">
+                I agree to receive broker recommendations.{' '}
+                <a
+                  href="https://www.paisowala.com/privacy-policy/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline decoration-1 underline-offset-2 hover:text-blue-700"
+                >
+                  Privacy Policy
+                </a>
+              </span>
+            </label>
           </div>
         </div>
       </div>
@@ -1418,6 +1465,11 @@ const RecommendationSection = ({
       >
         Open FREE {primaryBroker?.name} Account →
       </motion.button>
+
+      {/* Referral Disclosure */}
+      <p className="text-[10px] text-gray-400 text-center mt-4 leading-relaxed">
+        Free service · We earn from broker partnerships
+      </p>
 
       <p className="text-center text-gray-600 text-sm mb-4 font-medium">
         ✓ Takes 5 minutes • ✓ No hidden costs • ✓ Start today
