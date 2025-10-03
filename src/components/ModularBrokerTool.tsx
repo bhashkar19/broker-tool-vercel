@@ -366,13 +366,15 @@ const ModularBrokerTool = () => {
               <motion.button
                 onClick={nextQuestion}
                 disabled={!isCurrentQuestionValid()}
-                className={`w-full mt-6 py-5 rounded-xl font-bold text-lg disabled:bg-gray-300 disabled:cursor-not-allowed transition-all hover:shadow-lg ${
-                  isLastQuestion
+                className={`w-full mt-6 py-5 rounded-xl font-bold text-lg transition-all hover:shadow-lg ${
+                  !isCurrentQuestionValid()
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : isLastQuestion
                     ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700'
                     : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:-translate-y-1'
                 }`}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={isCurrentQuestionValid() ? { scale: 1.02 } : {}}
+                whileTap={isCurrentQuestionValid() ? { scale: 0.98 } : {}}
               >
                 {isLastQuestion ? '🎯 Show My Perfect Match' :
                  currentQuestionIndex >= visibleQuestions.length - 2 ? 'Almost There! Continue →' :
@@ -380,7 +382,12 @@ const ModularBrokerTool = () => {
               </motion.button>
 
               {/* Helper text */}
-              {!isLastQuestion && currentQuestion.type !== 'custom' && (
+              {!isCurrentQuestionValid() && currentQuestion.type === 'custom' && currentQuestion.id === 'contact_info' && (
+                <p className="text-center text-xs text-gray-500 mt-3">
+                  ↑ Fill both fields above to continue
+                </p>
+              )}
+              {!isLastQuestion && currentQuestion.type !== 'custom' && !isCurrentQuestionValid() && (
                 <p className="text-center text-xs text-gray-500 mt-3">
                   Select an option to continue →
                 </p>
@@ -418,36 +425,57 @@ const QuestionRenderer = ({
   const selectedValue = userData[question.field_name as keyof UserProfile] as string;
 
   if (question.type === 'custom' && question.id === 'contact_info') {
+    const isNameValid = (userData.name?.length || 0) >= 3;
+    const isMobileValid = (userData.mobile?.length || 0) === 10;
+
     return (
       <div>
-        <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center">
+        <h2 className="text-xl font-semibold text-gray-800 mb-2 text-center">
           {question.label}
         </h2>
+        {question.helpText && (
+          <p className="text-sm text-gray-600 mb-5 text-center">{question.helpText}</p>
+        )}
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-2">Your Name</label>
-            <input
-              type="text"
-              value={userData.name}
-              onChange={(e) => onContactUpdate('name', e.target.value)}
-              placeholder="Enter your full name"
-              className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors text-gray-900 bg-white"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={userData.name}
+                onChange={(e) => onContactUpdate('name', e.target.value)}
+                placeholder="Enter your full name"
+                className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all text-gray-900 bg-white"
+              />
+              {isNameValid && (
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-green-600 font-bold">✓</span>
+              )}
+            </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-2">Mobile Number</label>
+            <label className="block text-sm font-medium text-gray-600 mb-2">WhatsApp Number</label>
             <div className="flex gap-3">
               <div className="bg-gray-100 px-3 py-4 rounded-xl border-2 border-gray-200 font-semibold text-gray-600">
                 +91
               </div>
-              <input
-                type="tel"
-                value={userData.mobile}
-                onChange={(e) => onContactUpdate('mobile', e.target.value)}
-                placeholder="Enter your mobile number"
-                className="flex-1 p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors text-gray-900 bg-white"
-              />
+              <div className="relative flex-1">
+                <input
+                  type="tel"
+                  value={userData.mobile}
+                  onChange={(e) => onContactUpdate('mobile', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  placeholder="10-digit mobile number"
+                  className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all text-gray-900 bg-white"
+                />
+                {isMobileValid && (
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-green-600 font-bold">✓</span>
+                )}
+              </div>
             </div>
+          </div>
+          {/* Privacy Badge */}
+          <div className="flex items-center justify-center gap-2 text-xs text-gray-500 mt-3">
+            <span>🔒</span>
+            <span>Your data stays private & secure</span>
           </div>
         </div>
       </div>
@@ -465,11 +493,11 @@ const QuestionRenderer = ({
   if (question.type === 'radio') {
     return (
       <div>
-        <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center">
+        <h2 className="text-xl font-semibold text-gray-800 mb-3 text-center">
           {question.label}
         </h2>
         {question.helpText && (
-          <p className="text-sm text-gray-600 mb-4 text-center">{question.helpText}</p>
+          <p className="text-sm text-blue-600 mb-5 text-center font-medium">{question.helpText}</p>
         )}
         <div className="space-y-3">
           {question.options?.map((option) => (
