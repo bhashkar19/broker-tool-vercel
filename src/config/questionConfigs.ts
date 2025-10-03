@@ -255,7 +255,7 @@ export const QUESTION_FLOW_A: QuestionFlow = {
 // Same as Version A, but contact_info moved to second-to-last position
 export const QUESTION_FLOW_B: QuestionFlow = {
   name: "Contact Last Flow",
-  description: "Contact form at the end for better conversion",
+  description: "Find your perfect broker in 60 seconds",
   totalQuestions: 7,
   questions: [
     {
@@ -593,7 +593,7 @@ export const QUESTION_FLOW_C: QuestionFlow = {
 };
 
 // 🎯 ACTIVE CONFIGURATION - Change this to switch between A/B tests
-export const ACTIVE_QUESTION_CONFIG = QUESTION_FLOW_A;
+export const ACTIVE_QUESTION_CONFIG = QUESTION_FLOW_B;
 
 // 🔄 Easy A/B Testing Functions
 export const getQuestionConfig = (version?: 'A' | 'B' | 'C') => {
