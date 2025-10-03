@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Target, CheckCircle, TrendingUp, Star } from 'lucide-react';
 
@@ -823,9 +824,11 @@ const SmartBrokerSelection = ({
             }`}
           >
             {broker.logo.startsWith('http') ? (
-              <img
+              <Image
                 src={broker.logo}
                 alt={broker.label}
+                width={40}
+                height={40}
                 className="w-10 h-10 object-contain flex-shrink-0"
                 onError={(e) => {
                   console.error(`Failed to load logo for ${broker.label}:`, broker.logo);
@@ -836,6 +839,7 @@ const SmartBrokerSelection = ({
                   e.currentTarget.parentElement?.appendChild(fallback);
                 }}
                 loading="lazy"
+                unoptimized
               />
             ) : (
               <span className="text-3xl">{broker.fallback || broker.logo}</span>
@@ -915,7 +919,7 @@ const SmartBrokerSelection = ({
                   className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
                 >
                   {broker?.logo?.startsWith('http') ? (
-                    <img src={broker.logo} alt={broker.label} className="w-5 h-5 object-contain inline" />
+                    <Image src={broker.logo} alt={broker.label} width={20} height={20} className="w-5 h-5 object-contain inline" unoptimized />
                   ) : (
                     <span className="text-base">{broker?.fallback || '📊'}</span>
                   )}
@@ -1121,9 +1125,11 @@ const CombinedBrokerSelection = ({
                 }`}
               >
                 {broker.logo.startsWith('http') ? (
-                  <img
+                  <Image
                     src={broker.logo}
                     alt={broker.label}
+                    width={40}
+                    height={40}
                     className="w-10 h-10 object-contain flex-shrink-0"
                     onError={(e) => {
                       console.error(`Failed to load logo for ${broker.label}:`, broker.logo);
@@ -1134,6 +1140,7 @@ const CombinedBrokerSelection = ({
                       e.currentTarget.parentElement?.appendChild(fallback);
                     }}
                     loading="lazy"
+                    unoptimized
                   />
                 ) : (
                   <span className="text-3xl">{broker.fallback || broker.logo}</span>
@@ -1193,7 +1200,7 @@ const CombinedBrokerSelection = ({
                       className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium"
                     >
                       {broker?.logo?.startsWith('http') ? (
-                    <img src={broker.logo} alt={broker.label} className="w-5 h-5 object-contain inline" />
+                    <Image src={broker.logo} alt={broker.label} width={20} height={20} className="w-5 h-5 object-contain inline" unoptimized />
                   ) : (
                     <span className="text-base">{broker?.fallback || '📊'}</span>
                   )}
