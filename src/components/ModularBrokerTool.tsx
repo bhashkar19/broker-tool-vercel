@@ -43,8 +43,21 @@ const ModularBrokerTool = () => {
   const currentQuestion = visibleQuestions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex >= visibleQuestions.length - 1;
 
+  // Calculate total questions based on user's first answer to avoid counter jumping
+  const totalQuestionsToShow = React.useMemo(() => {
+    // If user hasn't answered the first question yet, show the config's total
+    if (!userData.hasAccount) {
+      return questionConfig.totalQuestions;
+    }
+
+    // After first answer, calculate based on their path
+    const allQuestions = questionConfig.questions;
+    const userPath = allQuestions.filter(q => shouldShowQuestion(q, userData));
+    return userPath.length;
+  }, [userData.hasAccount, userData, questionConfig]);
+
   // Progress calculation
-  const progressPercentage = showRecommendation ? 100 : ((currentQuestionIndex + 1) / visibleQuestions.length) * 100;
+  const progressPercentage = showRecommendation ? 100 : ((currentQuestionIndex + 1) / totalQuestionsToShow) * 100;
 
   // Facebook Pixel + Supabase Backup Tracking
   useEffect(() => {
@@ -296,7 +309,7 @@ const ModularBrokerTool = () => {
     if (typeof window !== 'undefined' && window.fbq) {
       window.fbq('trackCustom', 'QuestionProgressed', {
         completed_questions: currentQuestionIndex + 1,
-        total_questions: visibleQuestions.length,
+        total_questions: totalQuestionsToShow,
         session_id: userData.sessionId
       });
     }
@@ -308,7 +321,7 @@ const ModularBrokerTool = () => {
         session_id: userData.sessionId,
         event_data: {
           completed_questions: currentQuestionIndex + 1,
-          total_questions: visibleQuestions.length
+          total_questions: totalQuestionsToShow
         }
       })
     }).catch(err => console.error('Tracking error:', err));
@@ -320,7 +333,7 @@ const ModularBrokerTool = () => {
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-8 text-center">
         <h1 className="text-2xl font-bold mb-2 flex items-center justify-center gap-2">
           <Target className="w-6 h-6" />
-          Smart Broker Recommendation
+          Find Your Perfect Broker
         </h1>
         <p className="text-blue-100">
           {questionConfig.description}
@@ -342,7 +355,7 @@ const ModularBrokerTool = () => {
         <div className="px-8 pt-6 pb-2">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-semibold text-gray-700">
-              Question {currentQuestionIndex + 1} of {visibleQuestions.length}
+              Question {currentQuestionIndex + 1} of {totalQuestionsToShow}
             </p>
             <p className="text-sm font-medium text-blue-600">
               {Math.round(progressPercentage)}% Complete
