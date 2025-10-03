@@ -453,9 +453,7 @@ const ModularBrokerTool = () => {
       <footer className="mt-20 pb-4 text-center border-t border-gray-50">
         <div className="text-[9px] text-gray-400 space-x-2 pt-6 tracking-wide">
           <a
-            href="https://www.paisowala.com/privacy-policy/"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/privacy-policy"
             className="hover:text-gray-500 transition-colors"
           >
             Privacy Policy
@@ -556,9 +554,7 @@ const QuestionRenderer = ({
               <span className="leading-snug">
                 I agree to receive broker recommendations.{' '}
                 <a
-                  href="https://www.paisowala.com/privacy-policy/"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="/privacy-policy"
                   className="text-blue-600 underline decoration-1 underline-offset-2 hover:text-blue-700"
                 >
                   Privacy Policy
@@ -1240,6 +1236,10 @@ const RecommendationSection = ({
   const recommendation = generateRecommendation(userData);
   const primaryBroker = getBrokerById(recommendation.primary.brokerId);
 
+  // Collapsible sections state
+  const [showValidationDetails, setShowValidationDetails] = useState(false);
+  const [showPricingInfo, setShowPricingInfo] = useState(false);
+
   const handleConversion = async () => {
     // Track Facebook InitiateCheckout with enhanced parameters
     if (typeof window !== 'undefined' && window.fbq) {
@@ -1357,51 +1357,78 @@ const RecommendationSection = ({
         Your Perfect Broker Match
       </h2>
 
-      {/* VALIDATION SECTION - Show we understand their problems */}
+      {/* VALIDATION SECTION - Show we understand their problems (COLLAPSIBLE) */}
       {recommendation.validation && recommendation.validation.challenges.length > 0 && (
         <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-5 mb-6 text-left">
           <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
             <span className="text-xl">🔍</span>
-            We Understand Your Frustration with {recommendation.validation.currentBrokerName}
+            Issues with {recommendation.validation.currentBrokerName}
           </h3>
 
-          {recommendation.validation.challenges.map((challengeData, idx) => (
-            <div key={idx} className="mb-4 last:mb-0">
-              <h4 className="font-semibold text-amber-900 mb-2">
-                {challengeData.label}:
-              </h4>
-
-              {/* Show documented issues */}
-              <div className="space-y-1.5 mb-2">
-                {challengeData.issues.slice(0, 3).map((issue, issueIdx) => (
-                  <div key={issueIdx} className="flex items-start gap-2">
-                    <span className="text-red-500 font-bold text-sm mt-0.5">❌</span>
-                    <p className="text-gray-700 text-sm">{issue}</p>
-                  </div>
-                ))}
+          {/* Brief Summary (Always Visible) */}
+          <div className="mb-3">
+            {recommendation.validation.challenges.map((challengeData, idx) => (
+              <div key={idx} className="mb-2 last:mb-0">
+                <div className="flex items-start gap-2">
+                  <span className="text-red-500 font-bold text-sm mt-0.5">⚠️</span>
+                  <p className="text-gray-800 text-sm font-medium">
+                    {challengeData.label}: {challengeData.issues[0].split('.')[0]}...
+                  </p>
+                </div>
               </div>
-
-              {/* Show impact */}
-              {challengeData.impact && (
-                <p className="text-amber-800 text-xs italic ml-6">
-                  Impact: {challengeData.impact}
-                </p>
-              )}
-
-              {/* Show user quotes if available */}
-              {challengeData.userQuotes && (
-                <p className="text-gray-600 text-xs mt-2 ml-6 bg-white/50 rounded p-2 border-l-2 border-amber-400">
-                  💬 {challengeData.userQuotes}
-                </p>
-              )}
-            </div>
-          ))}
-
-          <div className="mt-4 pt-3 border-t border-amber-300">
-            <p className="text-gray-700 text-sm">
-              <strong>You&apos;re not alone</strong> - these are real, documented issues that thousands of traders face.
-            </p>
+            ))}
           </div>
+
+          {/* Read More Button */}
+          <button
+            onClick={() => setShowValidationDetails(!showValidationDetails)}
+            className="w-full text-center py-2 px-4 bg-amber-100 hover:bg-amber-200 rounded-lg border border-amber-300 text-amber-900 font-medium text-sm transition-colors"
+          >
+            {showValidationDetails ? '▲ Hide Details' : '▼ Read Full Details'}
+          </button>
+
+          {/* Detailed Information (Collapsible) */}
+          {showValidationDetails && (
+            <div className="mt-4 pt-4 border-t border-amber-300">
+              {recommendation.validation.challenges.map((challengeData, idx) => (
+                <div key={idx} className="mb-4 last:mb-0">
+                  <h4 className="font-semibold text-amber-900 mb-2">
+                    {challengeData.label}:
+                  </h4>
+
+                  {/* Show all documented issues */}
+                  <div className="space-y-1.5 mb-2">
+                    {challengeData.issues.map((issue, issueIdx) => (
+                      <div key={issueIdx} className="flex items-start gap-2">
+                        <span className="text-red-500 font-bold text-sm mt-0.5">❌</span>
+                        <p className="text-gray-700 text-sm">{issue}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Show impact */}
+                  {challengeData.impact && (
+                    <p className="text-amber-800 text-xs italic ml-6">
+                      Impact: {challengeData.impact}
+                    </p>
+                  )}
+
+                  {/* Show user quotes if available */}
+                  {challengeData.userQuotes && (
+                    <p className="text-gray-600 text-xs mt-2 ml-6 bg-white/50 rounded p-2 border-l-2 border-amber-400">
+                      💬 {challengeData.userQuotes}
+                    </p>
+                  )}
+                </div>
+              ))}
+
+              <div className="mt-4 pt-3 border-t border-amber-300">
+                <p className="text-gray-700 text-sm">
+                  <strong>You&apos;re not alone</strong> - these are real, documented issues that thousands of traders face.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -1551,6 +1578,54 @@ const RecommendationSection = ({
       )}
 
       {/* Removed alternatives - single recommendation only per business requirement */}
+
+      {/* NEW: Collapsible Pricing Information */}
+      {recommendation.chargesComparison && (
+        <div className="mb-6">
+          <button
+            onClick={() => setShowPricingInfo(!showPricingInfo)}
+            className="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-300 flex items-center justify-between transition-colors"
+          >
+            <span className="font-medium text-gray-800 flex items-center gap-2">
+              <span className="text-lg">💰</span>
+              View {primaryBroker?.name} Brokerage Charges
+            </span>
+            <span className="text-gray-500 font-bold">{showPricingInfo ? '▲' : '▼'}</span>
+          </button>
+
+          {showPricingInfo && (
+            <div className="mt-2 bg-white border border-gray-300 rounded-lg p-4">
+              <h4 className="font-semibold text-gray-800 mb-3">Brokerage Fees</h4>
+              <table className="w-full text-sm">
+                <tbody>
+                  <tr className="border-b border-gray-200">
+                    <td className="py-2 text-gray-600">Delivery Trading</td>
+                    <td className="py-2 font-medium text-right">{recommendation.chargesComparison.table.delivery.recommended}</td>
+                  </tr>
+                  <tr className="border-b border-gray-200">
+                    <td className="py-2 text-gray-600">Intraday Trading</td>
+                    <td className="py-2 font-medium text-right">{recommendation.chargesComparison.table.intraday.recommended}</td>
+                  </tr>
+                  <tr className="border-b border-gray-200">
+                    <td className="py-2 text-gray-600">F&O Trading</td>
+                    <td className="py-2 font-medium text-right">{recommendation.chargesComparison.table.fo.recommended}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-600">AMC (Annual)</td>
+                    <td className="py-2 font-medium text-right">{recommendation.chargesComparison.table.amc.recommended}</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div className="mt-3 pt-3 border-t border-gray-200">
+                <p className="text-xs text-gray-500 italic">
+                  Note: Most discount brokers have similar pricing. Choose based on features, tools, and service quality that matter to you.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Trust Reassurance */}
       <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-4 text-center">
