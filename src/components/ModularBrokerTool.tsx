@@ -106,6 +106,16 @@ const ModularBrokerTool = () => {
         session_id: userData.sessionId
       });
     }
+
+    // Track Google Analytics event
+    if (typeof window !== 'undefined' && 'gtag' in window) {
+      const gtag = (window as Window & { gtag: (...args: unknown[]) => void }).gtag;
+      gtag('event', 'question_answered', {
+        question_id: currentQuestion.id,
+        question_number: currentQuestionIndex + 1,
+        session_id: userData.sessionId
+      });
+    }
   };
 
   // Handle contact info update
@@ -204,6 +214,15 @@ const ModularBrokerTool = () => {
           value: 100, // Estimated value of a lead
           currency: 'INR'
         });
+
+        // Google Analytics Lead event
+        if ('gtag' in window) {
+          const gtag = (window as Window & { gtag: (...args: unknown[]) => void }).gtag;
+          gtag('event', 'generate_lead', {
+            currency: 'INR',
+            value: 100
+          });
+        }
 
         // Custom event for detailed tracking
         window.fbq('trackCustom', 'LeadCaptured', {
@@ -1166,6 +1185,20 @@ const RecommendationSection = ({
         content_ids: [recommendation.primary.brokerId],
         num_items: 1
       });
+
+      // Google Analytics begin_checkout event
+      if ('gtag' in window) {
+        const gtag = (window as Window & { gtag: (...args: unknown[]) => void }).gtag;
+        gtag('event', 'begin_checkout', {
+          currency: 'INR',
+          value: 500,
+          items: [{
+            item_id: recommendation.primary.brokerId,
+            item_name: recommendation.primary.brokerId,
+            item_category: 'broker_recommendation'
+          }]
+        });
+      }
 
       // Custom event for detailed tracking
       window.fbq('trackCustom', 'AffiliateClicked', {

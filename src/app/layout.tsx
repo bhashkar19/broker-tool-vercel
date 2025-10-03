@@ -66,12 +66,32 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* Performance optimization - Preconnect to external domains */}
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://connect.facebook.net" />
         <link rel="preconnect" href="https://www.facebook.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://connect.facebook.net" />
 
         {/* Facebook Domain Verification - Add when you have the code */}
         {/* <meta name="facebook-domain-verification" content="your_verification_code_here" /> */}
+
+        {/* Google Analytics 4 - G-VWS8RVQ18T */}
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-VWS8RVQ18T"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-VWS8RVQ18T', {
+                page_path: window.location.pathname,
+              });
+            `,
+          }}
+        />
 
         {/* Facebook Pixel - Only loads when properly configured */}
         {process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID &&
