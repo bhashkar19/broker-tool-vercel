@@ -1,7 +1,10 @@
 // 🧠 RECOMMENDATION ENGINE - Smart broker matching logic
 
 import { BROKER_CONFIGS, BROKER_SOLUTIONS, BROKER_BUSINESS_PRIORITY, PARTNER_BROKER_IDS } from './brokerConfigs';
-import { COMPREHENSIVE_BROKER_ISSUES, QUESTIONNAIRE_TO_ISSUES_MAP } from './comprehensiveBrokerIssues';
+import { BROKER_VALIDATION_MESSAGES } from './brokerValidationMessages';
+import { getSolutionForChallenge, getBonusBenefits as getFramingBenefits } from './recommendationFraming';
+
+// Legacy mapping removed - now using direct challenge keys
 
 export interface UserProfile extends Record<string, unknown> {
   // Contact info
@@ -50,11 +53,34 @@ export interface BrokerRecommendation {
   matchPercentage: number;
 }
 
+export interface ValidationData {
+  currentBroker: string;
+  currentBrokerName: string;
+  challenges: Array<{
+    challenge: string;
+    label: string;
+    issues: string[];
+    impact: string;
+    userQuotes?: string;
+  }>;
+}
+
+export interface SolutionData {
+  solutions: Array<{
+    challenge: string;
+    label: string;
+    solution: string;
+  }>;
+  bonusBenefits: string[];
+}
+
 export interface RecommendationResult {
   primary: BrokerRecommendation;
   alternatives: BrokerRecommendation[];
   reasoning: string;
   shouldSwitch: boolean;
+  validation?: ValidationData; // NEW: Validation text for current broker
+  solutionFraming?: SolutionData; // NEW: How recommended broker solves issues
   userProfile: {
     type: string;
     priority: string;
@@ -65,7 +91,7 @@ export interface RecommendationResult {
   };
 }
 
-// 🎯 MAIN RECOMMENDATION ENGINE - NEW BUSINESS-FOCUSED LOGIC
+// 🎯 MAIN RECOMMENDATION ENGINE - PRIORITY-BASED WITH VALIDATION
 export const generateRecommendation = (userProfile: UserProfile): RecommendationResult => {
   // Step 1: Get current brokers (never recommend these)
   const currentBrokers = getCurrentBrokers(userProfile);
@@ -92,11 +118,19 @@ export const generateRecommendation = (userProfile: UserProfile): Recommendation
   // Step 6: Always recommend switching to new broker (business logic)
   const shouldSwitch = currentBrokers.length > 0;
 
+  // Step 7: NEW - Generate validation data (show we understand their problems)
+  const validation = generateValidationData(currentBrokers, userProfile);
+
+  // Step 8: NEW - Generate solution framing (how recommended broker solves issues)
+  const solutionFraming = generateSolutionData(recommendedBrokerId, userProfile);
+
   return {
     primary,
     alternatives: [], // No alternatives - single recommendation only
     reasoning,
     shouldSwitch,
+    validation, // NEW: Validation text for trust building
+    solutionFraming, // NEW: Solution framing for recommended broker
     userProfile: {
       type: getUserType(userProfile),
       priority: getArrayFromField(userProfile.whatMattersMost)?.[0] || userProfile.tradingPriority || userProfile.topPriority || 'balanced',
@@ -299,14 +333,14 @@ const generateSpecificReasons = (currentBrokers: string[], recommendedBrokerId: 
   return reasons.slice(0, 3); // Limit to top 3 most relevant reasons
 };
 
-// 🎯 NEW COMPREHENSIVE SINGLE BROKER VALIDATION SYSTEM
+// 🎯 COMPREHENSIVE SINGLE BROKER VALIDATION SYSTEM (Using New Data)
 const generateSingleBrokerValidation = (currentBroker: string, recommendedBrokerId: string, userProfile?: UserProfile): string => {
   const currentBrokerData = BROKER_CONFIGS[currentBroker];
   const recommendedBroker = BROKER_CONFIGS[recommendedBrokerId];
-  const currentBrokerIssues = COMPREHENSIVE_BROKER_ISSUES[currentBroker];
+  const currentBrokerValidation = BROKER_VALIDATION_MESSAGES[currentBroker];
 
-  if (!currentBrokerData || !currentBrokerIssues) {
-    // Fallback to simple reasoning if comprehensive data not available
+  if (!currentBrokerData || !currentBrokerValidation) {
+    // Fallback to simple reasoning if validation data not available
     return `**${recommendedBroker.name} is a great addition to your trading setup:**
 
 • ${recommendedBroker.real_insights.perfect_for}
@@ -320,9 +354,10 @@ const generateSingleBrokerValidation = (currentBroker: string, recommendedBroker
   const acknowledgedIssues: string[] = [];
 
   userChallenges.forEach(challenge => {
-    const issueKey = QUESTIONNAIRE_TO_ISSUES_MAP[challenge as keyof typeof QUESTIONNAIRE_TO_ISSUES_MAP];
-    if (issueKey && issueKey !== 'none' && currentBrokerIssues.user_selectable[issueKey]) {
-      acknowledgedIssues.push(`• **${capitalize(challenge)}**: ${currentBrokerIssues.user_selectable[issueKey]}`);
+    const issueData = currentBrokerValidation[challenge as keyof typeof currentBrokerValidation];
+    if (issueData && typeof issueData === 'object' && 'issues' in issueData) {
+      const topIssue = issueData.issues[0]; // Show first issue
+      acknowledgedIssues.push(`• **${capitalize(challenge)}**: ${topIssue}`);
     }
   });
 
@@ -330,9 +365,20 @@ const generateSingleBrokerValidation = (currentBroker: string, recommendedBroker
     reasoning += `**Issues you've experienced (we hear you):**\n${acknowledgedIssues.join('\n')}\n\n`;
   }
 
-  // 2. ADD EXPERT INSIGHTS (Additional problems users didn't think of)
-  if (currentBrokerIssues.additional_insights.length > 0) {
-    const topInsights = currentBrokerIssues.additional_insights.slice(0, 2);
+  // 2. ADD EXPERT INSIGHTS (Additional problems from other challenges)
+  const allChallenges = ['charges', 'reliability', 'support', 'research', 'tools'];
+  const additionalInsights: string[] = [];
+  allChallenges.forEach(challenge => {
+    if (!userChallenges.includes(challenge)) {
+      const issueData = currentBrokerValidation[challenge as keyof typeof currentBrokerValidation];
+      if (issueData && typeof issueData === 'object' && 'issues' in issueData && issueData.issues.length > 0) {
+        additionalInsights.push(issueData.issues[0]);
+      }
+    }
+  });
+
+  if (additionalInsights.length > 0) {
+    const topInsights = additionalInsights.slice(0, 2);
     reasoning += `**Additional challenges we've observed:**\n`;
     topInsights.forEach(insight => {
       reasoning += `• ${insight}\n`;
@@ -346,8 +392,8 @@ const generateSingleBrokerValidation = (currentBroker: string, recommendedBroker
   reasoning += `• ${recommendedBroker.real_insights.cost_summary}\n\n`;
 
   // 4. BALANCED PERSPECTIVE - Acknowledge current broker's strengths
-  if (currentBrokerIssues.positive_aspects.length > 0) {
-    const topPositive = currentBrokerIssues.positive_aspects.slice(0, 2);
+  if (currentBrokerValidation.positive_aspects && currentBrokerValidation.positive_aspects.length > 0) {
+    const topPositive = currentBrokerValidation.positive_aspects.slice(0, 2);
     reasoning += `**${currentBrokerData.name} has its strengths too:**\n`;
     topPositive.forEach(positive => {
       reasoning += `• ${positive}\n`;
@@ -512,5 +558,83 @@ const generateIssueBasedReasoning = (currentBrokers: string[], recommendedBroker
 • ${recommendedBroker.real_insights.cost_summary}
 
 Complete your trading toolkit with the missing piece.`;
+};
+
+// 🎯 NEW VALIDATION SYSTEM - Show we understand their problems
+const generateValidationData = (currentBrokers: string[], userProfile: UserProfile): ValidationData | undefined => {
+  // Only show validation if user has current broker
+  if (currentBrokers.length === 0) return undefined;
+
+  const currentBroker = currentBrokers[0];
+  const brokerName = BROKER_CONFIGS[currentBroker]?.name || currentBroker;
+
+  // Get user's challenges
+  const challenges = getArrayFromField(userProfile.mainChallenge) || [];
+
+  // Map to challenge labels
+  const CHALLENGE_LABELS: Record<string, string> = {
+    charges: 'High Charges',
+    reliability: 'Platform Crashes/Reliability',
+    support: 'Poor Customer Support',
+    research: 'Lack of Research/Education',
+    tools: 'Limited Tools/Features',
+    satisfied: 'General Trading Needs'
+  };
+
+  // Get validation messages for each challenge
+  const validationIssues = challenges.map(challenge => {
+    const brokerData = BROKER_VALIDATION_MESSAGES[currentBroker];
+    const issueData = brokerData?.[challenge as keyof typeof brokerData];
+
+    // Type guard: only process if issueData has 'issues' property (not positive_aspects)
+    if (!issueData || typeof issueData === 'string' || Array.isArray(issueData) || !('issues' in issueData)) {
+      return null;
+    }
+
+    return {
+      challenge,
+      label: CHALLENGE_LABELS[challenge] || challenge,
+      issues: issueData.issues || [],
+      impact: issueData.impact || '',
+      userQuotes: issueData.userQuotes
+    };
+  }).filter((item): item is NonNullable<typeof item> => item !== null && item.issues.length > 0);
+
+  return {
+    currentBroker,
+    currentBrokerName: brokerName,
+    challenges: validationIssues
+  };
+};
+
+// 🎯 NEW SOLUTION FRAMING SYSTEM - Frame partner as solving their issues
+const generateSolutionData = (recommendedBrokerId: string, userProfile: UserProfile): SolutionData | undefined => {
+  // Get user's challenges
+  const challenges = getArrayFromField(userProfile.mainChallenge) || [];
+
+  // Challenge labels
+  const CHALLENGE_LABELS: Record<string, string> = {
+    charges: 'High Charges',
+    reliability: 'Platform Crashes/Reliability',
+    support: 'Poor Customer Support',
+    research: 'Lack of Research/Education',
+    tools: 'Limited Tools/Features',
+    satisfied: 'General Trading Needs'
+  };
+
+  // Get solution framing for each challenge
+  const solutions = challenges.map(challenge => ({
+    challenge,
+    label: CHALLENGE_LABELS[challenge] || challenge,
+    solution: getSolutionForChallenge(recommendedBrokerId, challenge)
+  })).filter(item => item.solution);
+
+  // Get bonus benefits
+  const bonusBenefits = getFramingBenefits(recommendedBrokerId);
+
+  return {
+    solutions,
+    bonusBenefits
+  };
 };
 

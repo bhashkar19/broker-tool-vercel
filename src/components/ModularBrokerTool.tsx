@@ -1350,6 +1350,54 @@ const RecommendationSection = ({
         Your Perfect Broker Match
       </h2>
 
+      {/* VALIDATION SECTION - Show we understand their problems */}
+      {recommendation.validation && recommendation.validation.challenges.length > 0 && (
+        <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-5 mb-6 text-left">
+          <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+            <span className="text-xl">🔍</span>
+            We Understand Your Frustration with {recommendation.validation.currentBrokerName}
+          </h3>
+
+          {recommendation.validation.challenges.map((challengeData, idx) => (
+            <div key={idx} className="mb-4 last:mb-0">
+              <h4 className="font-semibold text-amber-900 mb-2">
+                {challengeData.label}:
+              </h4>
+
+              {/* Show documented issues */}
+              <div className="space-y-1.5 mb-2">
+                {challengeData.issues.slice(0, 3).map((issue, issueIdx) => (
+                  <div key={issueIdx} className="flex items-start gap-2">
+                    <span className="text-red-500 font-bold text-sm mt-0.5">❌</span>
+                    <p className="text-gray-700 text-sm">{issue}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Show impact */}
+              {challengeData.impact && (
+                <p className="text-amber-800 text-xs italic ml-6">
+                  Impact: {challengeData.impact}
+                </p>
+              )}
+
+              {/* Show user quotes if available */}
+              {challengeData.userQuotes && (
+                <p className="text-gray-600 text-xs mt-2 ml-6 bg-white/50 rounded p-2 border-l-2 border-amber-400">
+                  💬 {challengeData.userQuotes}
+                </p>
+              )}
+            </div>
+          ))}
+
+          <div className="mt-4 pt-3 border-t border-amber-300">
+            <p className="text-gray-700 text-sm">
+              <strong>You&apos;re not alone</strong> - these are real, documented issues that thousands of traders face.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* User Profile Summary */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 text-left">
         <h4 className="font-semibold text-blue-800 mb-2">Your Profile:</h4>
@@ -1438,8 +1486,47 @@ const RecommendationSection = ({
         </div>
       </div>
 
-      {/* Specific Reasons Based on User Profile */}
-      {recommendation.primary.reasons.length > 0 && (
+      {/* SOLUTION FRAMING - How recommended broker solves their issues */}
+      {recommendation.solutionFraming && recommendation.solutionFraming.solutions.length > 0 && (
+        <div className="bg-green-50 border-2 border-green-200 rounded-xl p-5 mb-6 text-left">
+          <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <span className="text-xl">✅</span>
+            How {primaryBroker?.name} Solves Your Issues
+          </h3>
+
+          {recommendation.solutionFraming.solutions.map((solutionData, idx) => (
+            <div key={idx} className="mb-3 last:mb-0">
+              <h4 className="font-semibold text-green-900 mb-1.5 text-sm">
+                For your &quot;{solutionData.label}&quot; concern:
+              </h4>
+              <p className="text-gray-700 text-sm ml-4 leading-relaxed">
+                → {solutionData.solution}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Bonus Benefits */}
+      {recommendation.solutionFraming && recommendation.solutionFraming.bonusBenefits.length > 0 && (
+        <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-5 mb-6 text-left">
+          <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+            <span className="text-xl">🎁</span>
+            Bonus Benefits You&apos;ll Get
+          </h4>
+          <div className="space-y-2">
+            {recommendation.solutionFraming.bonusBenefits.map((benefit, index) => (
+              <div key={index} className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 mt-1 text-purple-600 flex-shrink-0" />
+                <span className="text-gray-700 text-sm">{benefit}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Specific Reasons Based on User Profile (Backup if no solution framing) */}
+      {!recommendation.solutionFraming && recommendation.primary.reasons.length > 0 && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6 text-left">
           <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
             <Star className="w-5 h-5 text-blue-600" />
