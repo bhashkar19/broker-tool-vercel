@@ -22,6 +22,7 @@ import ProgressIndicator from './quiz/ProgressIndicator';
 import ContactForm from './quiz/ContactForm';
 import RadioQuestion from './quiz/RadioQuestion';
 import CheckboxQuestion from './quiz/CheckboxQuestion';
+import VisualCardQuestion from './quiz/VisualCardQuestion';
 
 // 🎯 MAIN COMPONENT
 const ModularBrokerTool = () => {
@@ -519,6 +520,11 @@ const QuestionRenderer = ({
   }
 
   if (question.type === 'radio') {
+    // Use VisualCardQuestion for questions with 2-3 options
+    if (question.visualCard) {
+      return <VisualCardQuestion question={question} userData={userData} onAnswerSelect={onAnswerSelect} />;
+    }
+    // Use compact RadioQuestion for 4+ options
     return <RadioQuestion question={question} userData={userData} onAnswerSelect={onAnswerSelect} />;
   }
 

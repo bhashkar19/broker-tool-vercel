@@ -25,6 +25,7 @@ export interface Question {
   };
   placeholder?: string;
   helpText?: string;
+  visualCard?: boolean; // Use large visual cards for 2-3 options (no scrolling)
 }
 
 export interface QuestionFlow {
@@ -64,7 +65,8 @@ export const QUESTION_FLOW_A: QuestionFlow = {
         { label: "✓ Yes, I already trade", value: "yes" },
         { label: "✗ No, I'm new to trading", value: "no" }
       ],
-      validation: { required: true }
+      validation: { required: true },
+      visualCard: true // 2 options - perfect for large visual cards
     },
     {
       id: "combined_broker_selection",
@@ -174,7 +176,8 @@ export const QUESTION_FLOW_A: QuestionFlow = {
         showIf: "hasAccount",
         equals: "no"
       },
-      validation: { required: true }
+      validation: { required: true },
+      visualCard: true // 3 options - perfect for large visual cards
     },
     {
       id: "new_user_investment_amount",
@@ -193,6 +196,7 @@ export const QUESTION_FLOW_A: QuestionFlow = {
         equals: "no"
       },
       validation: { required: true }
+      // 4 options - keep compact radio boxes
     },
     {
       id: "new_user_knowledge_level",
@@ -209,7 +213,8 @@ export const QUESTION_FLOW_A: QuestionFlow = {
         showIf: "hasAccount",
         equals: "no"
       },
-      validation: { required: true }
+      validation: { required: true },
+      visualCard: true // 3 options - perfect for large visual cards
     },
     {
       id: "new_user_trading_frequency_plan",
@@ -269,7 +274,8 @@ export const QUESTION_FLOW_B: QuestionFlow = {
         { label: "✓ Yes, I already trade", value: "yes" },
         { label: "✗ No, I'm new to trading", value: "no" }
       ],
-      validation: { required: true }
+      validation: { required: true },
+      visualCard: true // 2 options - perfect for large visual cards
     },
     {
       id: "combined_broker_selection",
@@ -377,7 +383,8 @@ export const QUESTION_FLOW_B: QuestionFlow = {
         showIf: "hasAccount",
         equals: "no"
       },
-      validation: { required: true }
+      validation: { required: true },
+      visualCard: true // 3 options - perfect for large visual cards
     },
     {
       id: "new_user_investment_amount",
@@ -396,6 +403,7 @@ export const QUESTION_FLOW_B: QuestionFlow = {
         equals: "no"
       },
       validation: { required: true }
+      // 4 options - keep compact radio boxes
     },
     {
       id: "new_user_experience",
@@ -412,7 +420,8 @@ export const QUESTION_FLOW_B: QuestionFlow = {
         showIf: "hasAccount",
         equals: "no"
       },
-      validation: { required: true }
+      validation: { required: true },
+      visualCard: true // 3 options - perfect for large visual cards
     },
     {
       id: "new_user_trading_frequency_plan",
