@@ -1,5 +1,6 @@
 import React from 'react';
 import { Metadata } from 'next';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy - FindBroker by Paisowala',
@@ -10,342 +11,404 @@ export const metadata: Metadata = {
 export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-8 md:p-12">
+      {/* Back to FindBroker */}
+      <div className="max-w-4xl mx-auto mb-4">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium transition-colors"
+        >
+          ← Back to FindBroker
+        </Link>
+      </div>
+
+      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8 md:p-12">
         {/* Header */}
-        <div className="mb-8 border-b border-gray-200 pb-6">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Privacy Policy</h1>
-          <p className="text-lg text-gray-600">FindBroker by Paisowala</p>
-          <p className="text-sm text-gray-500 mt-2">Last Updated: October 3, 2025</p>
+        <div className="mb-8 pb-6 border-b border-gray-200 text-center">
+          <div className="mb-4">
+            <h1 className="text-3xl font-bold text-blue-600 mb-1">Paisowala</h1>
+            <p className="text-sm text-gray-500">FindBroker Privacy Policy</p>
+          </div>
+          <p className="text-sm text-gray-500">Last Updated: October 3, 2025</p>
         </div>
 
-        {/* Introduction */}
+        {/* Trust Badges */}
+        <div className="flex flex-wrap items-center justify-center gap-6 mb-8 text-sm text-gray-600">
+          <span className="flex items-center gap-2">
+            <span className="text-green-600 font-bold">✓</span> Your Data Protected
+          </span>
+          <span className="flex items-center gap-2">
+            <span className="text-green-600 font-bold">✓</span> SEBI Partners
+          </span>
+          <span className="flex items-center gap-2">
+            <span className="text-green-600 font-bold">✓</span> Transparent Practices
+          </span>
+        </div>
+
+        {/* TL;DR Section */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 mb-10">
+          <h2 className="text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">
+            <span className="text-2xl">📋</span>
+            TL;DR (The Quick Version)
+          </h2>
+          <ul className="space-y-3 text-gray-800">
+            <li className="flex items-start gap-3">
+              <span className="text-blue-600 font-bold text-lg">•</span>
+              <span>We collect your name, mobile number, and trading preferences to recommend the best broker for you</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-blue-600 font-bold text-lg">•</span>
+              <span>We <strong>only share your contact info with ONE broker</strong> - the one we recommend, and only after you click &quot;Open Account&quot;</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-blue-600 font-bold text-lg">•</span>
+              <span>We use cookies and analytics to improve our service and show relevant ads</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-blue-600 font-bold text-lg">•</span>
+              <span>You can request your data or delete it anytime by emailing us</span>
+            </li>
+          </ul>
+        </div>
+
+        {/* Main Content */}
         <div className="prose prose-lg max-w-none">
-          <p className="text-gray-700 leading-relaxed mb-6">
-            At Paisowala, we value the privacy and security of your personal information. This Privacy Policy explains
-            how FindBroker (our broker recommendation tool at <strong>findbroker.paisowala.com</strong>) collects, uses,
-            protects, and shares your data. By using our service, you agree to the terms outlined in this policy.
+          <p className="text-gray-700 leading-relaxed mb-10">
+            Hey! Thanks for using FindBroker. We respect your privacy and want to be transparent about what we do with your information.
+            This policy explains everything in plain English - no legal mumbo jumbo (well, mostly).
           </p>
 
-          {/* Section 1: Services Covered */}
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">1. Services Covered by This Policy</h2>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              This privacy policy specifically covers the <strong>FindBroker</strong> service, a broker recommendation
-              tool operated by Paisowala. FindBroker is part of the broader Paisowala ecosystem, which includes:
-            </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
-              <li><strong>Paisowala.com</strong> - Financial education and blog</li>
-              <li><strong>Course.Paisowala.com</strong> - Online courses and workshops</li>
-              <li><strong>FindBroker.Paisowala.com</strong> - Broker recommendation tool (covered by this policy)</li>
-            </ul>
-          </section>
+          {/* Section 1: What We Collect */}
+          <section className="mb-10">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8 flex items-center gap-3">
+              <span className="text-3xl">📝</span>
+              What Information We Collect
+            </h2>
 
-          {/* Section 2: Information We Collect */}
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">2. Information We Collect</h2>
-
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-6">Personal Information</h3>
-            <p className="text-gray-700 leading-relaxed mb-3">
-              When you use FindBroker, we collect the following personal information:
-            </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li><strong>Name:</strong> Your full name for broker communication</li>
-              <li><strong>Mobile Number:</strong> Your 10-digit Indian mobile number for account opening</li>
-              <li><strong>Email Address:</strong> Optional, for follow-up communications</li>
-            </ul>
-
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-6">Trading Preferences</h3>
-            <p className="text-gray-700 leading-relaxed mb-3">
-              To match you with suitable brokers, we collect:
-            </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li>Current broker(s) you have accounts with</li>
-              <li>Your trading experience level (beginner, intermediate, advanced)</li>
-              <li>Trading frequency (daily, weekly, monthly, occasional)</li>
-              <li>Main challenges you face with your current broker</li>
-              <li>Features you prioritize (cost, tools, support, research, etc.)</li>
-            </ul>
-
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-6">Technical & Tracking Data</h3>
-            <p className="text-gray-700 leading-relaxed mb-3">
-              We automatically collect technical information to improve our service and track conversions:
-            </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li><strong>Facebook Click ID (fbclid):</strong> For ad conversion tracking</li>
-              <li><strong>UTM Parameters:</strong> Campaign source, medium, and campaign name</li>
-              <li><strong>Session ID:</strong> Unique identifier for your visit</li>
-              <li><strong>IP Address:</strong> For spam prevention and geolocation</li>
-              <li><strong>Device Information:</strong> Browser type, device type, operating system</li>
-              <li><strong>User Agent:</strong> Technical details about your browser</li>
-            </ul>
-          </section>
-
-          {/* Section 3: How We Use Your Data */}
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">3. How We Use Your Information</h2>
-
-            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
-              <h3 className="text-lg font-semibold text-blue-900 mb-2">Broker Matching & Recommendations</h3>
-              <p className="text-blue-800 text-sm">
-                We analyze your trading preferences to recommend the most suitable broker based on your specific needs,
-                experience level, and priorities.
-              </p>
-            </div>
-
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-6">Specific Uses:</h3>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li><strong>Recommendation Algorithm:</strong> Match you with brokers that fit your profile</li>
-              <li><strong>Partner Communication:</strong> Share your contact details with recommended broker (only after you click &quot;Open Account&quot;)</li>
-              <li><strong>Analytics & Tracking:</strong> Measure tool effectiveness and conversion rates</li>
-              <li><strong>Service Improvement:</strong> Understand user behavior to enhance our recommendation engine</li>
-              <li><strong>Spam Prevention:</strong> Detect and prevent duplicate or fraudulent submissions</li>
-              <li><strong>Customer Support:</strong> Respond to your questions or issues</li>
-            </ul>
-          </section>
-
-          {/* Section 4: Broker Partners & Data Sharing */}
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">4. Broker Partners & Data Sharing</h2>
-
-            <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6">
-              <p className="text-amber-900 font-semibold mb-2">⚠️ Important: When Data is Shared</p>
-              <p className="text-amber-800 text-sm">
-                We <strong>ONLY</strong> share your contact information (name, mobile, email) with the recommended broker
-                <strong> AFTER</strong> you click the &quot;Open Account&quot; button. We never share your data with all brokers
-                or without your explicit action.
-              </p>
-            </div>
-
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-6">Our Broker Partners (SEBI Registered)</h3>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              FindBroker partners with the following SEBI-registered stockbrokers. We may share your contact details with
-              these partners based on our recommendation and your explicit action:
-            </p>
-
-            <div className="overflow-x-auto mb-6">
-              <table className="min-w-full border border-gray-300">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold text-gray-700">Broker Name</th>
-                    <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold text-gray-700">Type</th>
-                    <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold text-gray-700">Regulation</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700">Zerodha Securities</td>
-                    <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700">Discount Broker</td>
-                    <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700">SEBI Registered</td>
-                  </tr>
-                  <tr className="bg-gray-50">
-                    <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700">Angel One (Angel Broking)</td>
-                    <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700">Full Service + Discount</td>
-                    <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700">SEBI Registered</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700">Upstox</td>
-                    <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700">Discount Broker</td>
-                    <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700">SEBI Registered</td>
-                  </tr>
-                  <tr className="bg-gray-50">
-                    <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700">Fyers Securities</td>
-                    <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700">Discount Broker</td>
-                    <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700">SEBI Registered</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700">5paisa Capital</td>
-                    <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700">Discount Broker</td>
-                    <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700">SEBI Registered</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-6">What Data We Share:</h3>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li>✅ <strong>Contact Information:</strong> Name, mobile number, email (for account opening)</li>
-              <li>✅ <strong>Referral Source:</strong> That you came from FindBroker/Paisowala</li>
-              <li>❌ <strong>NOT Shared:</strong> Your trading preferences, challenges, or questionnaire responses</li>
-              <li>❌ <strong>NOT Shared:</strong> Information about other brokers you have accounts with</li>
-            </ul>
-
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-6">Purpose of Data Sharing:</h3>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              Brokers use your contact information to:
-            </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
-              <li>Contact you for account opening process</li>
-              <li>Verify your identity (KYC compliance)</li>
-              <li>Send account opening links and instructions</li>
-              <li>Provide customer support during onboarding</li>
-            </ul>
-          </section>
-
-          {/* Section 5: Facebook Pixel & Third-Party Tracking */}
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">5. Facebook Pixel & Third-Party Tracking</h2>
-
-            <div className="bg-purple-50 border-l-4 border-purple-500 p-4 mb-6">
-              <h3 className="text-lg font-semibold text-purple-900 mb-2">What is Facebook Pixel?</h3>
-              <p className="text-purple-800 text-sm">
-                Facebook Pixel is a tracking code that helps us measure the effectiveness of our advertising campaigns
-                and improve ad targeting. It collects data about your actions on our website.
-              </p>
-            </div>
-
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-6">We Use Facebook Pixel To:</h3>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li><strong>Measure Conversions:</strong> Track how many people submit the form after clicking our ads</li>
-              <li><strong>Optimize Ads:</strong> Show our ads to people most likely to benefit from FindBroker</li>
-              <li><strong>Create Custom Audiences:</strong> Retarget users who visited but didn&apos;t complete the form</li>
-              <li><strong>Improve Ad Delivery:</strong> Show ads to people similar to our existing users</li>
-            </ul>
-
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-6">Data Facebook Pixel Collects:</h3>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li>Pages you visit on FindBroker</li>
-              <li>Actions you take (button clicks, form submissions, question answers)</li>
-              <li>Device information (browser, operating system, screen resolution)</li>
-              <li>IP address and general location (city/state level)</li>
-              <li>Facebook Click ID (if you came from a Facebook ad)</li>
-            </ul>
-
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-6">Google Analytics:</h3>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              We also use Google Analytics to understand how users interact with FindBroker. Google Analytics collects
-              similar data to Facebook Pixel (page views, session duration, bounce rate, etc.) to help us improve the tool.
-            </p>
-
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-6">How to Opt-Out of Tracking:</h3>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
-              <li>Use browser extensions like Privacy Badger or uBlock Origin</li>
-              <li>Enable &quot;Do Not Track&quot; in your browser settings</li>
-              <li>Visit <a href="https://www.facebook.com/settings?tab=ads" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Facebook Ad Preferences</a> to control ad targeting</li>
-              <li>Install <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Google Analytics Opt-out Browser Add-on</a></li>
-            </ul>
-          </section>
-
-          {/* Section 6: Your Consent & Rights */}
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">6. Your Consent & Rights</h2>
-
-            <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-6">
-              <h3 className="text-lg font-semibold text-green-900 mb-2">✓ Explicit Consent</h3>
-              <p className="text-green-800 text-sm mb-2">
-                By using FindBroker and clicking the <strong>&quot;Open Account&quot;</strong> button, you explicitly consent to:
-              </p>
-              <ul className="list-disc list-inside text-green-800 text-sm space-y-1 ml-4">
-                <li>Collection of your contact information and trading preferences</li>
-                <li>Sharing your contact details with the recommended broker</li>
-                <li>Facebook Pixel and Google Analytics tracking</li>
-                <li>Communication from Paisowala and broker partners</li>
+            <div className="bg-gray-50 rounded-lg p-5 mb-5">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">Personal Details:</h3>
+              <ul className="space-y-2 text-gray-700">
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 mt-1">→</span>
+                  <span><strong>Name & Mobile:</strong> So brokers can contact you for account opening</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 mt-1">→</span>
+                  <span><strong>Email:</strong> Optional, for follow-ups and updates</span>
+                </li>
               </ul>
             </div>
 
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-6">Your Rights Under DPDPA 2023:</h3>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              As a data principal under India&apos;s Digital Personal Data Protection Act (DPDPA) 2023, you have the following rights:
-            </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li><strong>Right to Access:</strong> Request a copy of all personal data we hold about you</li>
-              <li><strong>Right to Correction:</strong> Update or correct inaccurate information</li>
-              <li><strong>Right to Erasure:</strong> Request deletion of your personal data</li>
-              <li><strong>Right to Withdraw Consent:</strong> Opt-out of data sharing or communications at any time</li>
-              <li><strong>Right to Nominate:</strong> Nominate another person to exercise your rights in case of death/incapacity</li>
-            </ul>
-
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-6">How to Exercise Your Rights:</h3>
-            <p className="text-gray-700 leading-relaxed mb-3">
-              To exercise any of these rights, contact us at:
-            </p>
-            <div className="bg-gray-100 rounded-lg p-4 mb-4">
-              <p className="text-gray-800"><strong>Email:</strong> <a href="mailto:support@paisowala.com" className="text-blue-600 hover:underline">support@paisowala.com</a></p>
-              <p className="text-gray-800 mt-2"><strong>Subject:</strong> &quot;FindBroker Privacy Request - [Your Request Type]&quot;</p>
+            <div className="bg-gray-50 rounded-lg p-5 mb-5">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">Trading Info:</h3>
+              <ul className="space-y-2 text-gray-700">
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 mt-1">→</span>
+                  <span>Your current broker and account status</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 mt-1">→</span>
+                  <span>Trading experience and frequency</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 mt-1">→</span>
+                  <span>Challenges you face and features you want</span>
+                </li>
+              </ul>
             </div>
-            <p className="text-gray-700 text-sm leading-relaxed">
-              We will respond to your request within 7-14 business days. For data deletion requests, we may retain certain
-              information for legal, administrative, or security purposes as required by law.
-            </p>
+
+            <div className="bg-gray-50 rounded-lg p-5">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">Technical Stuff:</h3>
+              <p className="text-gray-700 text-sm mb-2">
+                Like most websites, we automatically collect some technical data to improve our service:
+              </p>
+              <ul className="space-y-1 text-gray-700 text-sm ml-4">
+                <li>• IP address and location (city level, not exact address)</li>
+                <li>• Device type and browser info</li>
+                <li>• How you found us (Google, Facebook ad, etc.)</li>
+                <li>• Pages you visit and buttons you click</li>
+              </ul>
+            </div>
           </section>
 
-          {/* Section 7: Data Retention & Security */}
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">7. Data Retention & Security</h2>
+          {/* Section 2: How We Use Your Data */}
+          <section className="mb-10">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8 flex items-center gap-3">
+              <span className="text-3xl">🎯</span>
+              How We Use Your Information
+            </h2>
 
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-6">How Long We Keep Your Data:</h3>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li><strong>Contact Information:</strong> Retained for up to 2 years for customer support and follow-ups</li>
-              <li><strong>Trading Preferences:</strong> Retained for up to 1 year for analytics and service improvement</li>
-              <li><strong>Analytics Data:</strong> Anonymized after 6 months, aggregated data retained indefinitely</li>
-              <li><strong>Legal Requirements:</strong> Some data may be retained longer if required by law or regulation</li>
-            </ul>
+            <div className="space-y-4 text-gray-700">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">1️⃣</span>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-1">Match You With The Right Broker</h4>
+                  <p className="text-sm">We analyze your answers to recommend a broker that fits your needs - that&apos;s literally the whole point of FindBroker!</p>
+                </div>
+              </div>
 
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-6">Data Security Measures:</h3>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              We implement industry-standard security measures to protect your data:
-            </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li><strong>Encryption:</strong> All data transmitted via HTTPS (SSL/TLS encryption)</li>
-              <li><strong>Database Security:</strong> Data stored in secure, encrypted databases (Supabase)</li>
-              <li><strong>Access Control:</strong> Only authorized personnel can access user data</li>
-              <li><strong>Rate Limiting:</strong> Spam protection to prevent unauthorized data collection</li>
-              <li><strong>Regular Audits:</strong> Periodic security reviews and updates</li>
-            </ul>
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">2️⃣</span>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-1">Share Your Details With Your Match</h4>
+                  <p className="text-sm">When you click &quot;Open Account&quot;, we send your name, mobile, and email to that specific broker so they can help you get started.</p>
+                </div>
+              </div>
 
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-6">Data Breach Notification:</h3>
-            <p className="text-gray-700 leading-relaxed">
-              In the unlikely event of a data breach, we will notify affected users within 72 hours via email and/or SMS,
-              as required by DPDPA 2023. We will also report the breach to the Data Protection Board of India if required.
-            </p>
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">3️⃣</span>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-1">Improve Our Service</h4>
+                  <p className="text-sm">We track how people use FindBroker to fix bugs, improve recommendations, and make the experience better.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">4️⃣</span>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-1">Show You Relevant Ads</h4>
+                  <p className="text-sm">We use cookies and analytics (Google, Facebook, etc.) to understand our audience and show ads to people who might benefit from FindBroker.</p>
+                </div>
+              </div>
+            </div>
           </section>
 
-          {/* Section 8: Contact Information */}
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">8. Contact Us</h2>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              For questions, concerns, or requests regarding this Privacy Policy or your personal data, please contact us:
+          {/* Section 3: Who We Share With */}
+          <section className="mb-10">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8 flex items-center gap-3">
+              <span className="text-3xl">🤝</span>
+              Who We Share Your Data With
+            </h2>
+
+            <div className="bg-amber-50 border-l-4 border-amber-500 p-5 mb-6 rounded-r-lg">
+              <p className="text-amber-900 font-semibold mb-2 flex items-center gap-2">
+                <span className="text-xl">⚠️</span>
+                Important: Here&apos;s Exactly When We Share Your Info
+              </p>
+              <p className="text-amber-800">
+                We <strong>ONLY</strong> share your contact details (name, mobile, email) with <strong>ONE broker</strong> -
+                the one we recommend to you - and <strong>ONLY AFTER</strong> you click the &quot;Open Account&quot; button.
+                We never spam all brokers with your info.
+              </p>
+            </div>
+
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Our Broker Partners:</h3>
+            <p className="text-gray-700 mb-4">
+              We work with trusted, SEBI-registered brokers including Zerodha, Angel One, Upstox, Fyers, and 5paisa.
+              All are legit, regulated brokers - we only recommend based on what fits your needs.
             </p>
 
-            <div className="bg-blue-50 rounded-lg p-6 mb-6">
-              <h3 className="text-lg font-semibold text-blue-900 mb-3">Paisowala Privacy Team</h3>
-              <div className="space-y-2">
-                <p className="text-blue-800"><strong>Email:</strong> <a href="mailto:support@paisowala.com" className="text-blue-600 hover:underline">support@paisowala.com</a></p>
-                <p className="text-blue-800"><strong>Website:</strong> <a href="https://paisowala.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">paisowala.com</a></p>
-                <p className="text-blue-800"><strong>Service:</strong> FindBroker at <a href="https://findbroker.paisowala.com" className="text-blue-600 hover:underline">findbroker.paisowala.com</a></p>
+            <div className="bg-blue-50 rounded-lg p-5 mb-5">
+              <h4 className="font-semibold text-blue-900 mb-3">What We Share:</h4>
+              <div className="space-y-2 text-sm text-blue-800">
+                <p className="flex items-center gap-2">
+                  <span className="text-green-600 font-bold">✓</span>
+                  Your name, mobile, and email (for account opening)
+                </p>
+                <p className="flex items-center gap-2">
+                  <span className="text-green-600 font-bold">✓</span>
+                  That you came from FindBroker/Paisowala
+                </p>
               </div>
             </div>
 
-            <p className="text-gray-700 text-sm leading-relaxed">
-              We aim to respond to all privacy inquiries within 7-14 business days. For urgent matters, please mark your
-              email as &quot;URGENT&quot; in the subject line.
+            <div className="bg-red-50 rounded-lg p-5">
+              <h4 className="font-semibold text-red-900 mb-3">What We DON&apos;T Share:</h4>
+              <div className="space-y-2 text-sm text-red-800">
+                <p className="flex items-center gap-2">
+                  <span className="text-red-600 font-bold">✗</span>
+                  Your questionnaire answers or trading preferences
+                </p>
+                <p className="flex items-center gap-2">
+                  <span className="text-red-600 font-bold">✗</span>
+                  Info about other brokers you have accounts with
+                </p>
+                <p className="flex items-center gap-2">
+                  <span className="text-red-600 font-bold">✗</span>
+                  Your challenges or pain points
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Section 4: Cookies & Tracking */}
+          <section className="mb-10">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8 flex items-center gap-3">
+              <span className="text-3xl">🍪</span>
+              Cookies & Tracking
+            </h2>
+
+            <p className="text-gray-700 mb-5">
+              Like pretty much every website on the internet, we use cookies and analytics tools to understand how people use FindBroker.
+              This helps us improve the tool and show ads to the right people.
+            </p>
+
+            <div className="bg-purple-50 rounded-lg p-5 mb-5">
+              <h3 className="text-lg font-semibold text-purple-900 mb-3">What We Track:</h3>
+              <ul className="space-y-2 text-sm text-purple-800">
+                <li className="flex items-start gap-2">
+                  <span className="mt-1">•</span>
+                  <span><strong>Page views:</strong> Which pages you visit on FindBroker</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1">•</span>
+                  <span><strong>Button clicks:</strong> What you click on (helps us improve UX)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1">•</span>
+                  <span><strong>Form submissions:</strong> When someone completes the questionnaire</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1">•</span>
+                  <span><strong>Ad performance:</strong> Which ads bring the most helpful users</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-gray-100 rounded-lg p-5">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">Tools We Use:</h3>
+              <p className="text-gray-700 text-sm mb-3">
+                We use standard analytics and advertising platforms like Google Analytics and Facebook Pixel.
+                These are industry-standard tools used by millions of websites.
+              </p>
+              <p className="text-gray-600 text-sm">
+                <strong>Don&apos;t like tracking?</strong> You can use browser extensions like Privacy Badger, enable &quot;Do Not Track&quot;
+                in your browser, or adjust your ad preferences on Google and Facebook.
+              </p>
+            </div>
+          </section>
+
+          {/* Section 5: Your Rights */}
+          <section className="mb-10">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8 flex items-center gap-3">
+              <span className="text-3xl">🛡️</span>
+              Your Rights & Control
+            </h2>
+
+            <p className="text-gray-700 mb-5">
+              This is your data. You have full control over it. Here&apos;s what you can do:
+            </p>
+
+            <div className="grid md:grid-cols-2 gap-4 mb-6">
+              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                <h4 className="font-semibold text-green-900 mb-2">✓ Access Your Data</h4>
+                <p className="text-sm text-green-800">Request a copy of everything we have about you</p>
+              </div>
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <h4 className="font-semibold text-blue-900 mb-2">✓ Update Info</h4>
+                <p className="text-sm text-blue-800">Correct any inaccurate information</p>
+              </div>
+              <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                <h4 className="font-semibold text-red-900 mb-2">✓ Delete Everything</h4>
+                <p className="text-sm text-red-800">Request complete deletion of your data</p>
+              </div>
+              <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                <h4 className="font-semibold text-purple-900 mb-2">✓ Opt-Out</h4>
+                <p className="text-sm text-purple-800">Stop communications or data sharing</p>
+              </div>
+            </div>
+
+            <p className="text-gray-700 text-sm">
+              To exercise any of these rights, just email us at{' '}
+              <a href="mailto:support@paisowala.com" className="text-blue-600 hover:underline font-medium">
+                support@paisowala.com
+              </a>
+              {' '}with subject &quot;Privacy Request&quot; and we&apos;ll respond within 7-14 business days.
             </p>
           </section>
 
-          {/* Policy Updates */}
+          {/* Section 6: Data Security */}
+          <section className="mb-10">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8 flex items-center gap-3">
+              <span className="text-3xl">🔒</span>
+              How We Protect Your Data
+            </h2>
+
+            <p className="text-gray-700 mb-5">
+              We take security seriously. Your data is protected with:
+            </p>
+
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-3xl mb-2">🔐</div>
+                <h4 className="font-semibold text-gray-900 mb-1">Encryption</h4>
+                <p className="text-sm text-gray-600">All data encrypted in transit (HTTPS)</p>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-3xl mb-2">💾</div>
+                <h4 className="font-semibold text-gray-900 mb-1">Secure Storage</h4>
+                <p className="text-sm text-gray-600">Data stored in encrypted databases</p>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-3xl mb-2">🚫</div>
+                <h4 className="font-semibold text-gray-900 mb-1">Access Control</h4>
+                <p className="text-sm text-gray-600">Only authorized team members</p>
+              </div>
+            </div>
+
+            <p className="text-gray-600 text-sm mt-5">
+              We keep your contact info for up to 2 years for customer support. Trading preferences are anonymized after 6 months.
+            </p>
+          </section>
+
+          {/* Contact Section */}
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">Changes to This Privacy Policy</h2>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              We may update this Privacy Policy from time to time to reflect changes in our practices, services, or legal
-              requirements. When we make significant changes, we will:
-            </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li>Update the &quot;Last Updated&quot; date at the top of this page</li>
-              <li>Notify active users via email (if we have your email address)</li>
-              <li>Display a prominent notice on FindBroker for 30 days</li>
-            </ul>
-            <p className="text-gray-700 leading-relaxed">
-              We encourage you to review this Privacy Policy periodically to stay informed about how we protect your data.
-            </p>
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-8 text-white shadow-lg">
+              <h2 className="text-2xl font-bold mb-3 flex items-center gap-3">
+                <span className="text-3xl">💬</span>
+                Questions? We&apos;re Here to Help
+              </h2>
+              <p className="mb-6 text-blue-50">
+                Got privacy questions or concerns? Don&apos;t hesitate to reach out.
+              </p>
+
+              <div className="space-y-3">
+                <a
+                  href="mailto:support@paisowala.com"
+                  className="flex items-center gap-3 bg-white/20 hover:bg-white/30 rounded-lg px-5 py-3 transition-colors"
+                >
+                  <span className="text-2xl">✉️</span>
+                  <div>
+                    <p className="font-semibold">support@paisowala.com</p>
+                    <p className="text-sm text-blue-100">We respond within 7-14 business days</p>
+                  </div>
+                </a>
+
+                <div className="flex items-center gap-3 bg-white/10 rounded-lg px-5 py-3">
+                  <span className="text-2xl">🌐</span>
+                  <div>
+                    <p className="font-semibold">Paisowala.com</p>
+                    <p className="text-sm text-blue-100">Visit our main website</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </section>
 
-          {/* Footer */}
-          <div className="border-t border-gray-200 pt-6 mt-8">
-            <p className="text-sm text-gray-500 text-center">
-              This Privacy Policy is effective as of <strong>October 3, 2025</strong> and applies to all users of FindBroker.
+          {/* Legal Compliance Footer */}
+          <div className="bg-gray-50 rounded-lg p-5 text-sm text-gray-600">
+            <p className="mb-2">
+              <strong className="text-gray-800">Legal Stuff:</strong> This privacy policy complies with India&apos;s Digital Personal
+              Data Protection Act (DPDPA) 2023 and other applicable privacy laws. We may update this policy occasionally -
+              if we make major changes, we&apos;ll notify you via email.
             </p>
-            <p className="text-sm text-gray-500 text-center mt-2">
-              © 2025 Paisowala. All rights reserved.
+            <p className="text-xs text-gray-500 mt-3">
+              This policy is part of the Paisowala ecosystem, which includes Paisowala.com (financial education),
+              Course.Paisowala.com (online courses), and FindBroker.Paisowala.com (this tool).
             </p>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-gray-200 pt-6 mt-10">
+          <p className="text-sm text-gray-500 text-center mb-3">
+            Effective Date: <strong>October 3, 2025</strong>
+          </p>
+          <div className="flex items-center justify-center gap-4 text-sm">
+            <Link href="/" className="text-blue-600 hover:underline">← Back to FindBroker</Link>
+            <span className="text-gray-300">•</span>
+            <a href="https://paisowala.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Paisowala.com</a>
+            <span className="text-gray-300">•</span>
+            <span className="text-gray-500">© 2025 Paisowala</span>
           </div>
         </div>
       </div>
