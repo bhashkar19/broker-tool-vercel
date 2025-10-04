@@ -23,6 +23,7 @@ import ContactForm from './quiz/ContactForm';
 import RadioQuestion from './quiz/RadioQuestion';
 import CheckboxQuestion from './quiz/CheckboxQuestion';
 import VisualCardQuestion from './quiz/VisualCardQuestion';
+import GridCheckboxQuestion from './quiz/GridCheckboxQuestion';
 
 // 🎯 MAIN COMPONENT
 const ModularBrokerTool = () => {
@@ -376,7 +377,7 @@ const ModularBrokerTool = () => {
       />
 
       {/* Questions Container */}
-      <div className="px-6 py-4 min-h-[380px] flex flex-col justify-center pb-20">
+      <div className="px-6 py-6 min-h-[380px] flex flex-col justify-center pb-20">
         <AnimatePresence mode="wait">
           {!showRecommendation && currentQuestion && (
             <motion.div
@@ -529,6 +530,15 @@ const QuestionRenderer = ({
   }
 
   if (question.type === 'checkbox') {
+    // Use GridCheckboxQuestion for questions with grid layout (2x2, 2x3, 3x2)
+    if (question.gridLayout) {
+      return <GridCheckboxQuestion
+        question={question}
+        userData={userData}
+        onAnswerSelect={(values: string[]) => onAnswerSelect(JSON.stringify(values))}
+      />;
+    }
+    // Use regular CheckboxQuestion for vertical list
     return <CheckboxQuestion question={question} userData={userData} onAnswerSelect={onAnswerSelect} />;
   }
 
@@ -1118,6 +1128,20 @@ const RecommendationSection = ({
   const [showValidationDetails, setShowValidationDetails] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
   const [viewAlternatives, setViewAlternatives] = useState(false);
+  const [showBeginnerGuide, setShowBeginnerGuide] = useState(false); // Collapsed by default
+  const [showStickyButton, setShowStickyButton] = useState(false); // Sticky CTA visibility
+  const [showWhatNextModal, setShowWhatNextModal] = useState(false); // Preview modal
+
+  // Scroll listener for sticky CTA button
+  useEffect(() => {
+    const handleScroll = () => {
+      // Show sticky button after scrolling past hero section (~800px)
+      setShowStickyButton(window.scrollY > 800);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleConversion = async () => {
     // Track Facebook InitiateCheckout with enhanced parameters
@@ -1220,8 +1244,30 @@ const RecommendationSection = ({
       }
     }
 
-    // Redirect to affiliate link (regardless of API success)
-    window.open(recommendation.primary.affiliate_url, '_blank');
+    // Show "What Happens Next" modal instead of immediate redirect
+    setShowWhatNextModal(true);
+
+    // Track modal view
+    if (typeof window !== 'undefined' && window.fbq) {
+      window.fbq('trackCustom', 'WhatNextModalShown', {
+        broker: recommendation.primary.brokerId,
+        session_id: userData.sessionId
+      });
+    }
+  };
+
+  // Handle final redirect after modal preview
+  const handleFinalRedirect = () => {
+    // Track modal confirmation
+    if (typeof window !== 'undefined' && window.fbq) {
+      window.fbq('trackCustom', 'WhatNextModalConfirmed', {
+        broker: recommendation.primary.brokerId,
+        session_id: userData.sessionId
+      });
+    }
+
+    // Redirect in same tab (not new tab)
+    window.location.href = recommendation.primary.affiliate_url;
   };
 
   return (
@@ -1364,17 +1410,58 @@ const RecommendationSection = ({
         </div>
       </div>
 
+      {/* EARLY CTA - Above the Fold (Captures immediate decisions) */}
+      {!showComparison && (
+        <motion.button
+          onClick={handleConversion}
+          className="w-full py-5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-lg shadow-lg transition-all hover:shadow-2xl mb-6 hover:from-green-600 hover:to-green-700"
+          whileHover={{ scale: 1.03, y: -2 }}
+          whileTap={{ scale: 0.98 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          Open FREE {primaryBroker?.name} Account →
+        </motion.button>
+      )}
+
       {/* FIRST-TIME USER GUIDE - Only for new_account users - ZERODHA SPECIFIC */}
       {recommendation.recommendationType === 'new_account' && (
         <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-300 rounded-xl p-6 mb-6 text-left">
-          <h3 className="font-bold text-indigo-900 mb-4 text-lg flex items-center gap-2">
-            <span className="text-2xl">🎯</span>
-            Starting Your Investment Journey with Zerodha
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-indigo-900 text-lg flex items-center gap-2">
+              <span className="text-2xl">🎯</span>
+              Starting Your Investment Journey with Zerodha
+            </h3>
+            <button
+              onClick={() => {
+                setShowBeginnerGuide(!showBeginnerGuide);
+                // Track expand/collapse
+                if (typeof window !== 'undefined' && window.fbq) {
+                  window.fbq('trackCustom', 'BeginnerGuideToggled', {
+                    action: showBeginnerGuide ? 'collapsed' : 'expanded',
+                    broker: recommendation.primary.brokerId,
+                    session_id: userData.sessionId
+                  });
+                }
+              }}
+              className="text-indigo-700 hover:text-indigo-900 font-medium text-sm transition-colors flex items-center gap-1"
+            >
+              {showBeginnerGuide ? '▲ Hide' : '▼ Show Guide'}
+            </button>
+          </div>
 
-          <p className="text-gray-800 text-sm mb-4 leading-relaxed">
-            Since this is your <strong>first trading account</strong>, we recommend <strong>Zerodha</strong> - India&apos;s most trusted broker for beginners. Here&apos;s why:
-          </p>
+          <AnimatePresence>
+            {showBeginnerGuide && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <p className="text-gray-800 text-sm mb-4 leading-relaxed">
+                  Since this is your <strong>first trading account</strong>, we recommend <strong>Zerodha</strong> - India&apos;s most trusted broker for beginners. Here&apos;s why:
+                </p>
 
           {/* Why Zerodha for First Account */}
           <div className="bg-white rounded-lg p-4 mb-4 border border-indigo-200">
@@ -1454,6 +1541,9 @@ const RecommendationSection = ({
               Over a year with just 2 trades/month: Save ₹720-1200 by choosing Zerodha over traditional banks
             </p>
           </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
 
@@ -1670,6 +1760,127 @@ const RecommendationSection = ({
           Instant Activation
         </span>
       </div>
+
+      {/* STICKY CTA BUTTON - Shows after scrolling past hero */}
+      <AnimatePresence>
+        {showStickyButton && !showComparison && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-gray-200 shadow-2xl p-4"
+          >
+            <div className="max-w-4xl mx-auto">
+              <motion.button
+                onClick={handleConversion}
+                className="w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-lg shadow-lg transition-all hover:shadow-2xl hover:from-green-600 hover:to-green-700"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Open FREE {primaryBroker?.name} Account →
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* WHAT HAPPENS NEXT MODAL - Shows before redirect */}
+      <AnimatePresence>
+        {showWhatNextModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
+            onClick={() => setShowWhatNextModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <span className="text-3xl">🚀</span>
+                What Happens Next?
+              </h3>
+
+              {/* 4-Step Process */}
+              <div className="space-y-4 mb-6">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-bold">1</div>
+                  <div>
+                    <h4 className="font-bold text-gray-900">Click to Open {primaryBroker?.name}</h4>
+                    <p className="text-sm text-gray-600">You&apos;ll be redirected to {primaryBroker?.name}&apos;s secure website</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-bold">2</div>
+                  <div>
+                    <h4 className="font-bold text-gray-900">Fill the Application Form (5-10 mins)</h4>
+                    <p className="text-sm text-gray-600">Have ready: PAN card, Aadhaar, bank details, signature photo</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-bold">3</div>
+                  <div>
+                    <h4 className="font-bold text-gray-900">Verification (4-24 hours)</h4>
+                    <p className="text-sm text-gray-600">{primaryBroker?.name} verifies documents with SEBI & exchanges</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-bold">4</div>
+                  <div>
+                    <h4 className="font-bold text-gray-900">Start Trading!</h4>
+                    <p className="text-sm text-gray-600">Get login credentials, add funds, and place your first trade</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Required Documents */}
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                <h4 className="font-bold text-amber-900 mb-2 flex items-center gap-1">
+                  <span>📋</span> Required Documents
+                </h4>
+                <ul className="text-sm text-amber-800 space-y-1">
+                  <li>✓ PAN Card</li>
+                  <li>✓ Aadhaar Card</li>
+                  <li>✓ Bank Account Details</li>
+                  <li>✓ Signature Photo (white background)</li>
+                </ul>
+              </div>
+
+              {/* Timeline */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <h4 className="font-bold text-blue-900 mb-2 flex items-center gap-1">
+                  <span>⏱️</span> Account Opens in 24-48 Hours
+                </h4>
+                <p className="text-sm text-blue-800">
+                  You&apos;ll receive login credentials via email and SMS once verification is complete
+                </p>
+              </div>
+
+              {/* CTA Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowWhatNextModal(false)}
+                  className="flex-1 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleFinalRedirect}
+                  className="flex-1 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-bold hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl"
+                >
+                  I&apos;m Ready, Continue to {primaryBroker?.name} →
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
