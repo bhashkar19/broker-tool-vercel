@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, CheckCircle, TrendingUp, Star } from 'lucide-react';
+import { Target, CheckCircle, TrendingUp, Star, ChevronLeft } from 'lucide-react';
 
 // Import our modular configurations
 import {
@@ -16,7 +16,12 @@ import {
   generateRecommendation,
   type UserProfile
 } from '@/config/recommendationEngine';
-import { getBrokerById } from '@/config/brokerConfigs';
+import { getBrokerById } from '@/lib/broker-repository';
+import BrokerComparisonWidget from './BrokerComparisonWidget';
+import ProgressIndicator from './quiz/ProgressIndicator';
+import ContactForm from './quiz/ContactForm';
+import RadioQuestion from './quiz/RadioQuestion';
+import CheckboxQuestion from './quiz/CheckboxQuestion';
 
 // 🎯 MAIN COMPONENT
 const ModularBrokerTool = () => {
@@ -328,58 +333,49 @@ const ModularBrokerTool = () => {
     }).catch(err => console.error('Tracking error:', err));
   };
 
+  // Go back to previous question
+  const goBack = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+
+      // Track back navigation
+      if (typeof window !== 'undefined' && window.fbq) {
+        window.fbq('trackCustom', 'QuestionBackNavigated', {
+          from_question: currentQuestionIndex + 1,
+          to_question: currentQuestionIndex,
+          session_id: userData.sessionId
+        });
+      }
+    }
+  };
+
+  // Check if back button should be shown
+  const canGoBack = currentQuestionIndex > 0 && !showRecommendation;
+
   return (
     <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-8 text-center">
-        <h1 className="text-2xl font-bold mb-2 flex items-center justify-center gap-2">
-          <Target className="w-6 h-6" />
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-5 text-center">
+        <h1 className="text-xl font-bold mb-1 flex items-center justify-center gap-2">
+          <Target className="w-5 h-5" />
           Find Your Perfect Broker
         </h1>
-        <p className="text-blue-100">
+        <p className="text-blue-100 text-sm">
           {questionConfig.description}
         </p>
       </div>
 
-      {/* Progress Bar */}
-      <div className="h-1 bg-blue-200">
-        <motion.div
-          className="h-full bg-white"
-          initial={{ width: 0 }}
-          animate={{ width: `${progressPercentage}%` }}
-          transition={{ duration: 0.5 }}
-        />
-      </div>
-
-      {/* Question Counter & Progress Dots */}
-      {!showRecommendation && (
-        <div className="px-8 pt-6 pb-2">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-semibold text-gray-700">
-              Question {currentQuestionIndex + 1} of {totalQuestionsToShow}
-            </p>
-            <p className="text-sm font-medium text-blue-600">
-              {Math.round(progressPercentage)}% Complete
-            </p>
-          </div>
-          {/* Progress Dots */}
-          <div className="flex gap-1.5 justify-center">
-            {visibleQuestions.map((_, index) => (
-              <div
-                key={index}
-                className={`h-2 rounded-full transition-all ${
-                  index <= currentQuestionIndex
-                    ? 'w-8 bg-blue-600'
-                    : 'w-2 bg-gray-300'
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Progress Indicator */}
+      <ProgressIndicator
+        currentQuestionIndex={currentQuestionIndex}
+        totalQuestions={totalQuestionsToShow}
+        progressPercentage={progressPercentage}
+        visibleQuestions={visibleQuestions}
+        showRecommendation={showRecommendation}
+      />
 
       {/* Questions Container */}
-      <div className="p-8 min-h-[400px] flex flex-col justify-center">
+      <div className="px-6 py-4 min-h-[380px] flex flex-col justify-center pb-20">
         <AnimatePresence mode="wait">
           {!showRecommendation && currentQuestion && (
             <motion.div
@@ -391,7 +387,7 @@ const ModularBrokerTool = () => {
             >
               {/* Motivational message */}
               {currentQuestionIndex > 0 && currentQuestionIndex < visibleQuestions.length - 1 && (
-                <p className="text-center text-sm text-green-600 font-medium mb-4">
+                <p className="text-center text-xs text-green-600 font-medium mb-3">
                   {currentQuestionIndex === 1 ? "Great! We're learning about you..." :
                    currentQuestionIndex >= visibleQuestions.length - 2 ? "Almost there! Just one more..." :
                    "You're doing great! Keep going..."}
@@ -405,23 +401,19 @@ const ModularBrokerTool = () => {
                 onContactUpdate={handleContactUpdate}
               />
 
-              <motion.button
-                onClick={nextQuestion}
-                disabled={!isCurrentQuestionValid()}
-                className={`w-full mt-6 py-5 rounded-xl font-bold text-lg transition-all hover:shadow-lg ${
-                  !isCurrentQuestionValid()
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : isLastQuestion
-                    ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700'
-                    : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:-translate-y-1'
-                }`}
-                whileHover={isCurrentQuestionValid() ? { scale: 1.02 } : {}}
-                whileTap={isCurrentQuestionValid() ? { scale: 0.98 } : {}}
-              >
-                {isLastQuestion ? '🎯 Show My Perfect Match' :
-                 currentQuestionIndex >= visibleQuestions.length - 2 ? 'Almost There! Continue →' :
-                 'Next Question →'}
-              </motion.button>
+              {/* Back Button */}
+              {canGoBack && (
+                <motion.button
+                  onClick={goBack}
+                  className="flex items-center gap-2 text-gray-600 hover:text-gray-800 text-sm font-medium mt-3 transition-colors"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  whileHover={{ x: -3 }}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Back
+                </motion.button>
+              )}
 
               {/* Helper text */}
               {!isCurrentQuestionValid() && currentQuestion.type === 'custom' && currentQuestion.id === 'contact_info' && (
@@ -430,8 +422,8 @@ const ModularBrokerTool = () => {
                 </p>
               )}
               {!isLastQuestion && currentQuestion.type !== 'custom' && !isCurrentQuestionValid() && (
-                <p className="text-center text-xs text-gray-500 mt-3">
-                  Select an option to continue →
+                <p className="text-center text-xs text-gray-400 mt-3">
+                  Tap an option to continue →
                 </p>
               )}
             </motion.div>
@@ -447,6 +439,31 @@ const ModularBrokerTool = () => {
             />
           )}
         </AnimatePresence>
+
+        {/* Floating Next Button */}
+        {!showRecommendation && (
+          <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-transparent pt-6 pb-4 px-4">
+            <div className="max-w-md mx-auto">
+              <motion.button
+                onClick={nextQuestion}
+                disabled={!isCurrentQuestionValid()}
+                className={`w-full py-3.5 rounded-xl font-bold text-base transition-all shadow-lg ${
+                  !isCurrentQuestionValid()
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : isLastQuestion
+                    ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700'
+                    : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:-translate-y-1'
+                }`}
+                whileHover={isCurrentQuestionValid() ? { scale: 1.02 } : {}}
+                whileTap={isCurrentQuestionValid() ? { scale: 0.98 } : {}}
+              >
+                {isLastQuestion ? '🎯 Show My Perfect Match' :
+                 currentQuestionIndex >= visibleQuestions.length - 2 ? 'Almost There! Continue →' :
+                 'Next Question →'}
+              </motion.button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Minimal Footer */}
@@ -490,81 +507,7 @@ const QuestionRenderer = ({
   const selectedValue = userData[question.field_name as keyof UserProfile] as string;
 
   if (question.type === 'custom' && question.id === 'contact_info') {
-    const isNameValid = (userData.name?.length || 0) >= 3;
-    const isMobileValid = (userData.mobile?.length || 0) === 10;
-
-    return (
-      <div>
-        <h2 className="text-xl font-semibold text-gray-800 mb-2 text-center">
-          {question.label}
-        </h2>
-        {question.helpText && (
-          <p className="text-sm text-gray-600 mb-5 text-center">{question.helpText}</p>
-        )}
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-2">Your Name</label>
-            <div className="relative">
-              <input
-                type="text"
-                value={userData.name}
-                onChange={(e) => onContactUpdate('name', e.target.value)}
-                placeholder="Enter your full name"
-                className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all text-gray-900 bg-white"
-              />
-              {isNameValid && (
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-green-600 font-bold">✓</span>
-              )}
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-2">WhatsApp Number</label>
-            <div className="flex gap-3">
-              <div className="bg-gray-100 px-3 py-4 rounded-xl border-2 border-gray-200 font-semibold text-gray-600">
-                +91
-              </div>
-              <div className="relative flex-1">
-                <input
-                  type="tel"
-                  value={userData.mobile}
-                  onChange={(e) => onContactUpdate('mobile', e.target.value.replace(/\D/g, '').slice(0, 10))}
-                  placeholder="10-digit mobile number"
-                  className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all text-gray-900 bg-white"
-                />
-                {isMobileValid && (
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-green-600 font-bold">✓</span>
-                )}
-              </div>
-            </div>
-          </div>
-          {/* Privacy Badge */}
-          <div className="flex items-center justify-center gap-2 text-xs text-gray-500 mt-3">
-            <span>🔒</span>
-            <span>Your data stays private & secure</span>
-          </div>
-
-          {/* Consent Checkbox */}
-          <div className="mt-4 mb-2">
-            <label className="flex items-start gap-2.5 text-sm text-gray-600 cursor-pointer group">
-              <input
-                type="checkbox"
-                required
-                className="mt-0.5 w-4 h-4 cursor-pointer accent-blue-600"
-              />
-              <span className="leading-snug">
-                I agree to receive broker recommendations.{' '}
-                <a
-                  href="/privacy-policy"
-                  className="text-blue-600 underline decoration-1 underline-offset-2 hover:text-blue-700"
-                >
-                  Privacy Policy
-                </a>
-              </span>
-            </label>
-          </div>
-        </div>
-      </div>
-    );
+    return <ContactForm question={question} userData={userData} onContactUpdate={onContactUpdate} />;
   }
 
   if (question.type === 'custom' && question.id === 'current_brokers_smart') {
@@ -576,82 +519,11 @@ const QuestionRenderer = ({
   }
 
   if (question.type === 'radio') {
-    return (
-      <div>
-        <h2 className="text-xl font-semibold text-gray-800 mb-3 text-center">
-          {question.label}
-        </h2>
-        {question.helpText && (
-          <p className="text-sm text-blue-600 mb-5 text-center font-medium">{question.helpText}</p>
-        )}
-        <div className="space-y-3">
-          {question.options?.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => onAnswerSelect(option.value)}
-              className={`w-full p-4 border-2 rounded-xl text-left font-medium transition-all ${
-                selectedValue === option.value
-                  ? 'border-blue-600 bg-blue-50 text-blue-900'
-                  : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50 text-gray-900'
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      </div>
-    );
+    return <RadioQuestion question={question} userData={userData} onAnswerSelect={onAnswerSelect} />;
   }
 
   if (question.type === 'checkbox') {
-    const selectedValues = (userData[question.field_name as keyof UserProfile] as string[]) || [];
-
-    const handleCheckboxChange = (value: string) => {
-      const currentValues = selectedValues || [];
-      const newValues = currentValues.includes(value)
-        ? currentValues.filter(v => v !== value)
-        : [...currentValues, value];
-
-      onAnswerSelect(JSON.stringify(newValues)); // Store as JSON string
-    };
-
-    return (
-      <div>
-        <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center">
-          {question.label}
-        </h2>
-        {question.helpText && (
-          <p className="text-sm text-gray-600 mb-4 text-center">{question.helpText}</p>
-        )}
-        <div className="space-y-3">
-          {question.options?.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => handleCheckboxChange(option.value)}
-              className={`w-full p-4 border-2 rounded-xl text-left font-medium transition-all ${
-                selectedValues.includes(option.value)
-                  ? 'border-blue-600 bg-blue-50 text-blue-900'
-                  : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50 text-gray-900'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span>{option.label}</span>
-                {selectedValues.includes(option.value) && (
-                  <CheckCircle className="w-5 h-5 text-blue-600" />
-                )}
-              </div>
-            </button>
-          ))}
-        </div>
-        {selectedValues.length > 0 && (
-          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-700">
-              Selected: {selectedValues.length} broker{selectedValues.length > 1 ? 's' : ''}
-            </p>
-          </div>
-        )}
-      </div>
-    );
+    return <CheckboxQuestion question={question} userData={userData} onAnswerSelect={onAnswerSelect} />;
   }
 
   return null;
@@ -1238,7 +1110,8 @@ const RecommendationSection = ({
 
   // Collapsible sections state
   const [showValidationDetails, setShowValidationDetails] = useState(false);
-  const [showPricingInfo, setShowPricingInfo] = useState(false);
+  const [showComparison, setShowComparison] = useState(false);
+  const [viewAlternatives, setViewAlternatives] = useState(false);
 
   const handleConversion = async () => {
     // Track Facebook InitiateCheckout with enhanced parameters
@@ -1485,6 +1358,99 @@ const RecommendationSection = ({
         </div>
       </div>
 
+      {/* FIRST-TIME USER GUIDE - Only for new_account users - ZERODHA SPECIFIC */}
+      {recommendation.recommendationType === 'new_account' && (
+        <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-300 rounded-xl p-6 mb-6 text-left">
+          <h3 className="font-bold text-indigo-900 mb-4 text-lg flex items-center gap-2">
+            <span className="text-2xl">🎯</span>
+            Starting Your Investment Journey with Zerodha
+          </h3>
+
+          <p className="text-gray-800 text-sm mb-4 leading-relaxed">
+            Since this is your <strong>first trading account</strong>, we recommend <strong>Zerodha</strong> - India&apos;s most trusted broker for beginners. Here&apos;s why:
+          </p>
+
+          {/* Why Zerodha for First Account */}
+          <div className="bg-white rounded-lg p-4 mb-4 border border-indigo-200">
+            <h4 className="font-semibold text-gray-800 text-sm mb-3">What makes Zerodha perfect for your first account?</h4>
+            <div className="space-y-2">
+              <div className="flex items-start gap-2">
+                <span className="text-indigo-600 font-bold mt-0.5">•</span>
+                <p className="text-gray-700 text-xs"><strong>Zero learning curve:</strong> Kite app is the easiest to understand - even if you&apos;ve never traded before</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-indigo-600 font-bold mt-0.5">•</span>
+                <p className="text-gray-700 text-xs"><strong>Free education:</strong> Varsity platform teaches you everything from basics to advanced strategies</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-indigo-600 font-bold mt-0.5">•</span>
+                <p className="text-gray-700 text-xs"><strong>No cost mistakes:</strong> ₹0 brokerage on delivery means you can practice buying stocks without fees eating your returns</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-indigo-600 font-bold mt-0.5">•</span>
+                <p className="text-gray-700 text-xs"><strong>Proven track record:</strong> 1.6 crore+ users trust it - you&apos;re joining India&apos;s largest trading community</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Terminology Guide */}
+          <div className="bg-amber-50 rounded-lg p-4 mb-4 border border-amber-200">
+            <h4 className="font-semibold text-gray-800 text-sm mb-3 flex items-center gap-1">
+              <span className="text-base">📖</span> Quick Terms You&apos;ll See
+            </h4>
+            <div className="space-y-2 text-xs text-gray-700">
+              <p><strong>Delivery Trading:</strong> Buy stocks and hold them (like buying property to keep) - This is how most people invest</p>
+              <p><strong>Intraday Trading:</strong> Buy and sell same stock on same day (risky, not recommended for beginners)</p>
+              <p><strong>Brokerage:</strong> Fee charged per trade - FREE at Zerodha for delivery</p>
+              <p><strong>AMC (Annual Charges):</strong> Yearly account maintenance - ₹300/year at Zerodha (₹25/month)</p>
+            </div>
+          </div>
+
+          {/* What to Expect - Realistic Timeline */}
+          <div className="bg-green-50 rounded-lg p-4 mb-4 border border-green-200">
+            <h4 className="font-semibold text-gray-800 text-sm mb-3 flex items-center gap-1">
+              <span className="text-base">⏱️</span> What Happens Next (Realistic Timeline)
+            </h4>
+            <div className="space-y-2.5 text-xs text-gray-700">
+              <div className="flex items-start gap-2">
+                <span className="font-bold text-green-700 min-w-[60px]">Step 1:</span>
+                <p><strong>Fill application (5-10 mins)</strong> - Need PAN card, Aadhaar, bank account details, and signature photo</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="font-bold text-green-700 min-w-[60px]">Step 2:</span>
+                <p><strong>Verification (4-24 hours)</strong> - Zerodha verifies your documents with SEBI and exchanges</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="font-bold text-green-700 min-w-[60px]">Step 3:</span>
+                <p><strong>Account activated</strong> - You&apos;ll get login credentials via email and SMS</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="font-bold text-green-700 min-w-[60px]">Step 4:</span>
+                <p><strong>Add money & start</strong> - Transfer funds from your bank account and place your first trade</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Why Not Banks? - Educational Comparison */}
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <h4 className="font-semibold text-gray-800 text-sm mb-3 flex items-center gap-1">
+              <span className="text-base">💡</span> Why Not Open Account at Your Bank?
+            </h4>
+            <p className="text-gray-700 text-xs mb-3">
+              Traditional banks (ICICI, HDFC, Kotak) charge <strong>0.3-0.5% per trade</strong>. Here&apos;s what that means:
+            </p>
+            <div className="bg-red-50 rounded p-3 mb-2 border border-red-200">
+              <p className="text-xs text-gray-800 mb-1"><strong>Example: Buy ₹10,000 worth of Reliance shares</strong></p>
+              <p className="text-xs text-red-700">• Bank broker: ₹30-50 brokerage <span className="text-gray-600">(0.3-0.5%)</span></p>
+              <p className="text-xs text-green-700">• Zerodha: ₹0 brokerage</p>
+            </div>
+            <p className="text-xs text-gray-600 italic">
+              Over a year with just 2 trades/month: Save ₹720-1200 by choosing Zerodha over traditional banks
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Why We Recommend - Simplified */}
       <div className="bg-white border-2 border-green-200 rounded-xl p-5 mb-6 text-left">
         <h4 className="font-bold text-gray-800 mb-4 text-base flex items-center gap-2">
@@ -1579,74 +1545,82 @@ const RecommendationSection = ({
 
       {/* Removed alternatives - single recommendation only per business requirement */}
 
-      {/* NEW: Collapsible Pricing Information */}
-      {recommendation.chargesComparison && (
+      {/* SMART COMPARISON WIDGET - Replaces old chargesComparison feature */}
+      {userData.currentBrokers && Array.isArray(userData.currentBrokers) && userData.currentBrokers.length > 0 && !showComparison && (
         <div className="mb-6">
-          <button
-            onClick={() => setShowPricingInfo(!showPricingInfo)}
-            className="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-300 flex items-center justify-between transition-colors"
+          <motion.button
+            onClick={() => setShowComparison(true)}
+            className="w-full py-5 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-bold text-lg shadow-lg transition-all hover:shadow-2xl hover:from-blue-600 hover:to-purple-700"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            <span className="font-medium text-gray-800 flex items-center gap-2">
-              <span className="text-lg">💰</span>
-              View {primaryBroker?.name} Brokerage Charges
-            </span>
-            <span className="text-gray-500 font-bold">{showPricingInfo ? '▲' : '▼'}</span>
-          </button>
+            🔍 Compare with Your Current Broker
+          </motion.button>
+        </div>
+      )}
 
-          {showPricingInfo && (
-            <div className="mt-2 bg-white border border-gray-300 rounded-lg p-4">
-              <h4 className="font-semibold text-gray-800 mb-3">Brokerage Fees</h4>
-              <table className="w-full text-sm">
-                <tbody>
-                  <tr className="border-b border-gray-200">
-                    <td className="py-2 text-gray-600">Delivery Trading</td>
-                    <td className="py-2 font-medium text-right">{recommendation.chargesComparison.table.delivery.recommended}</td>
-                  </tr>
-                  <tr className="border-b border-gray-200">
-                    <td className="py-2 text-gray-600">Intraday Trading</td>
-                    <td className="py-2 font-medium text-right">{recommendation.chargesComparison.table.intraday.recommended}</td>
-                  </tr>
-                  <tr className="border-b border-gray-200">
-                    <td className="py-2 text-gray-600">F&O Trading</td>
-                    <td className="py-2 font-medium text-right">{recommendation.chargesComparison.table.fo.recommended}</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 text-gray-600">AMC (Annual)</td>
-                    <td className="py-2 font-medium text-right">{recommendation.chargesComparison.table.amc.recommended}</td>
-                  </tr>
-                </tbody>
-              </table>
+      {/* Show comparison widget when requested */}
+      {showComparison && userData.currentBrokers && Array.isArray(userData.currentBrokers) && userData.currentBrokers.length > 0 && (
+        <BrokerComparisonWidget
+          currentBrokerId={userData.currentBrokers[0]}
+          recommendedBrokerId={recommendation.primary.brokerId}
+          onSwitchConfirm={handleConversion}
+          onViewAlternatives={() => setViewAlternatives(true)}
+          tradingFrequency={userData.tradingFrequency || 'monthly'}
+        />
+      )}
 
-              <div className="mt-3 pt-3 border-t border-gray-200">
-                <p className="text-xs text-gray-500 italic">
-                  Note: Most discount brokers have similar pricing. Choose based on features, tools, and service quality that matter to you.
-                </p>
-              </div>
-            </div>
-          )}
+      {/* Show alternatives if requested */}
+      {viewAlternatives && recommendation.alternatives.length > 0 && (
+        <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-6 mb-6">
+          <h3 className="font-bold text-gray-900 mb-4 text-center">Other Good Options</h3>
+          <div className="space-y-3">
+            {recommendation.alternatives.slice(0, 2).map((alt) => {
+              const altBroker = getBrokerById(alt.brokerId);
+              return (
+                <div key={alt.brokerId} className="bg-white rounded-xl p-4 border border-gray-300">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-bold text-gray-900">{alt.brokerName}</h4>
+                    <span className="text-sm text-gray-600">{alt.matchPercentage}% match</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">{altBroker?.real_insights.perfect_for}</p>
+                  <button
+                    onClick={() => window.open(alt.affiliate_url, '_blank')}
+                    className="w-full py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+                  >
+                    Open {alt.brokerName} Account →
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
       {/* Trust Reassurance */}
-      <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-4 text-center">
-        <p className="text-blue-800 font-semibold text-sm mb-1">✓ 100% Free Account Opening</p>
-        <p className="text-blue-700 text-xs">
-          {primaryBroker?.id === 'zerodha' ? 'Trusted by 1.6 Crore+ traders • SEBI registered' :
-          primaryBroker?.id === 'upstox' ? 'Trusted by 1.3 Crore+ traders • SEBI registered' :
-          primaryBroker?.id === 'angel_one' ? 'Trusted by 2 Crore+ traders • SEBI registered' :
-          'SEBI registered • Bank-grade security'}
-        </p>
-      </div>
+      {!showComparison && (
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-4 text-center">
+          <p className="text-blue-800 font-semibold text-sm mb-1">✓ 100% Free Account Opening</p>
+          <p className="text-blue-700 text-xs">
+            {primaryBroker?.id === 'zerodha' ? 'Trusted by 1.6 Crore+ traders • SEBI registered' :
+            primaryBroker?.id === 'upstox' ? 'Trusted by 1.3 Crore+ traders • SEBI registered' :
+            primaryBroker?.id === 'angel_one' ? 'Trusted by 2 Crore+ traders • SEBI registered' :
+            'SEBI registered • Bank-grade security'}
+          </p>
+        </div>
+      )}
 
-      {/* Primary CTA Button */}
-      <motion.button
-        onClick={handleConversion}
-        className="w-full py-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-xl shadow-lg transition-all hover:shadow-2xl mb-3 hover:from-green-600 hover:to-green-700"
-        whileHover={{ scale: 1.03, y: -2 }}
-        whileTap={{ scale: 0.98 }}
-      >
-        Open FREE {primaryBroker?.name} Account →
-      </motion.button>
+      {/* Primary CTA Button - Only show if not in comparison mode */}
+      {!showComparison && (
+        <motion.button
+          onClick={handleConversion}
+          className="w-full py-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-xl shadow-lg transition-all hover:shadow-2xl mb-3 hover:from-green-600 hover:to-green-700"
+          whileHover={{ scale: 1.03, y: -2 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          Open FREE {primaryBroker?.name} Account →
+        </motion.button>
+      )}
 
       {/* Referral Disclosure */}
       <p className="text-[10px] text-gray-400 text-center mt-4 leading-relaxed">

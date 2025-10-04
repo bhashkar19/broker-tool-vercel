@@ -87,14 +87,15 @@ export const QUESTION_FLOW_A: QuestionFlow = {
     },
     {
       id: "user_type",
-      type: "checkbox",
-      label: "Which best describes you?",
+      type: "radio",
+      label: "What's your PRIMARY goal?",
+      helpText: "Pick the one that fits best",
       field_name: "userType",
       options: [
-        { label: "Long-term investor", value: "investor" },
-        { label: "Active trader", value: "trader" },
-        { label: "Learning & exploring", value: "learner" },
-        { label: "Professional trader", value: "professional" }
+        { label: "📊 Build wealth long-term", value: "investor" },
+        { label: "💰 Active trading for income", value: "trader" },
+        { label: "📚 Learning markets first", value: "learner" },
+        { label: "🎯 Already expert trader", value: "professional" }
       ],
       conditional: {
         showIf: "hasAccount",
@@ -104,16 +105,16 @@ export const QUESTION_FLOW_A: QuestionFlow = {
     },
     {
       id: "main_challenge",
-      type: "checkbox",
-      label: "What challenges do you face?",
+      type: "radio",
+      label: "What's your BIGGEST frustration?",
+      helpText: "Select the most important one",
       field_name: "mainChallenge",
       options: [
-        { label: "High charges", value: "charges" },
-        { label: "Platform crashes", value: "reliability" },
-        { label: "Poor support", value: "support" },
-        { label: "Lack of research", value: "research" },
-        { label: "Limited tools", value: "tools" },
-        { label: "No major issues", value: "satisfied" }
+        { label: "💸 High charges eating profits", value: "charges" },
+        { label: "📉 Platform crashes during trades", value: "reliability" },
+        { label: "😤 Poor customer support", value: "support" },
+        { label: "🔍 Need better research/tools", value: "research" },
+        { label: "✅ I'm actually quite happy", value: "satisfied" }
       ],
       conditional: {
         showIf: "hasAccount",
@@ -140,16 +141,16 @@ export const QUESTION_FLOW_A: QuestionFlow = {
     },
     {
       id: "what_matters_most",
-      type: "checkbox",
-      label: "What matters to you?",
+      type: "radio",
+      label: "What matters MOST to you?",
+      helpText: "Choose your top priority",
       field_name: "whatMattersMost",
       options: [
-        { label: "Low charges", value: "cost" },
-        { label: "Speed & reliability", value: "speed" },
-        { label: "Research & picks", value: "research" },
-        { label: "Advanced tools", value: "tools" },
-        { label: "Good support", value: "support" },
-        { label: "Education", value: "education" }
+        { label: "💰 Lowest possible charges", value: "cost" },
+        { label: "⚡ Speed & reliability", value: "speed" },
+        { label: "📊 Research & stock picks", value: "research" },
+        { label: "🛠️ Advanced trading tools", value: "tools" },
+        { label: "🎓 Learning & education", value: "education" }
       ],
       conditional: {
         showIf: "hasAccount",
@@ -160,14 +161,14 @@ export const QUESTION_FLOW_A: QuestionFlow = {
     // 🆕 NEW USER QUESTIONS (for hasAccount = "no") - ENHANCED FOR BETTER PERSONALIZATION
     {
       id: "new_user_type",
-      type: "checkbox",
-      label: "What best describes your goal?",
+      type: "radio",
+      label: "What's your PRIMARY goal?",
       field_name: "userType",
-      helpText: "Select all that apply - helps us understand your needs better",
+      helpText: "Pick the one that fits best",
       options: [
-        { label: "Start investing for long-term wealth", value: "investor" },
-        { label: "Learn trading actively", value: "trader" },
-        { label: "Explore and understand markets first", value: "learner" }
+        { label: "📊 Build wealth long-term", value: "investor" },
+        { label: "💰 Learn active trading", value: "trader" },
+        { label: "📚 Just exploring markets", value: "learner" }
       ],
       conditional: {
         showIf: "hasAccount",
@@ -230,16 +231,16 @@ export const QUESTION_FLOW_A: QuestionFlow = {
     },
     {
       id: "new_user_priority",
-      type: "checkbox",
-      label: "What matters most to you when choosing a broker?",
+      type: "radio",
+      label: "What matters MOST to you?",
       field_name: "whatMattersMost",
-      helpText: "Select your top priorities - we'll match you accordingly",
+      helpText: "Choose your top priority",
       options: [
-        { label: "Best learning resources & education", value: "education" },
-        { label: "Absolutely lowest charges", value: "cost" },
-        { label: "Excellent customer support", value: "support" },
-        { label: "User-friendly mobile app", value: "ease_of_use" },
-        { label: "Trusted brand with large user base", value: "trust" }
+        { label: "🎓 Best learning resources", value: "education" },
+        { label: "💰 Lowest charges", value: "cost" },
+        { label: "👍 Excellent support", value: "support" },
+        { label: "📱 Easy-to-use app", value: "ease_of_use" },
+        { label: "🏆 Trusted brand", value: "trust" }
       ],
       conditional: {
         showIf: "hasAccount",
@@ -290,14 +291,15 @@ export const QUESTION_FLOW_B: QuestionFlow = {
     },
     {
       id: "user_type",
-      type: "checkbox",
-      label: "Which best describes you?",
+      type: "radio",
+      label: "What's your PRIMARY goal?",
+      helpText: "Pick the one that fits best",
       field_name: "userType",
       options: [
-        { label: "Long-term investor", value: "investor" },
-        { label: "Active trader", value: "trader" },
-        { label: "Learning & exploring", value: "learner" },
-        { label: "Professional trader", value: "professional" }
+        { label: "📊 Build wealth long-term", value: "investor" },
+        { label: "💰 Active trading for income", value: "trader" },
+        { label: "📚 Learning markets first", value: "learner" },
+        { label: "🎯 Already expert trader", value: "professional" }
       ],
       conditional: {
         showIf: "hasAccount",
@@ -307,16 +309,16 @@ export const QUESTION_FLOW_B: QuestionFlow = {
     },
     {
       id: "main_challenge",
-      type: "checkbox",
-      label: "What challenges do you face?",
+      type: "radio",
+      label: "What's your BIGGEST frustration?",
+      helpText: "Select the most important one",
       field_name: "mainChallenge",
       options: [
-        { label: "High charges", value: "charges" },
-        { label: "Platform crashes", value: "reliability" },
-        { label: "Poor support", value: "support" },
-        { label: "Lack of research", value: "research" },
-        { label: "Limited tools", value: "tools" },
-        { label: "No major issues", value: "satisfied" }
+        { label: "💸 High charges eating profits", value: "charges" },
+        { label: "📉 Platform crashes during trades", value: "reliability" },
+        { label: "😤 Poor customer support", value: "support" },
+        { label: "🔍 Need better research/tools", value: "research" },
+        { label: "✅ I'm actually quite happy", value: "satisfied" }
       ],
       conditional: {
         showIf: "hasAccount",
@@ -343,15 +345,16 @@ export const QUESTION_FLOW_B: QuestionFlow = {
     },
     {
       id: "most_important",
-      type: "checkbox",
-      label: "What matters most to you?",
+      type: "radio",
+      label: "What matters MOST to you?",
+      helpText: "Choose your top priority",
       field_name: "mostImportant",
       options: [
-        { label: "Low charges", value: "charges" },
-        { label: "Platform speed", value: "speed" },
-        { label: "Advanced tools", value: "tools" },
-        { label: "Good support", value: "support" },
-        { label: "Education", value: "education" }
+        { label: "💰 Lowest possible charges", value: "charges" },
+        { label: "⚡ Speed & reliability", value: "speed" },
+        { label: "🛠️ Advanced trading tools", value: "tools" },
+        { label: "👍 Good customer support", value: "support" },
+        { label: "🎓 Learning & education", value: "education" }
       ],
       conditional: {
         showIf: "hasAccount",
@@ -361,14 +364,14 @@ export const QUESTION_FLOW_B: QuestionFlow = {
     },
     {
       id: "new_user_type",
-      type: "checkbox",
-      label: "What best describes your goal?",
+      type: "radio",
+      label: "What's your PRIMARY goal?",
       field_name: "userType",
-      helpText: "Select all that apply - helps us understand your needs better",
+      helpText: "Pick the one that fits best",
       options: [
-        { label: "Start investing for long-term wealth", value: "investor" },
-        { label: "Learn trading actively", value: "trader" },
-        { label: "Explore and understand markets first", value: "learner" }
+        { label: "📊 Build wealth long-term", value: "investor" },
+        { label: "💰 Learn active trading", value: "trader" },
+        { label: "📚 Just exploring markets", value: "learner" }
       ],
       conditional: {
         showIf: "hasAccount",

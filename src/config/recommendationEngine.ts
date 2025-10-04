@@ -3,6 +3,7 @@
 import { BROKER_CONFIGS, BROKER_SOLUTIONS, BROKER_BUSINESS_PRIORITY, PARTNER_BROKER_IDS } from './brokerConfigs';
 import { BROKER_VALIDATION_MESSAGES } from './brokerValidationMessages';
 import { getSolutionForChallenge, getBonusBenefits as getFramingBenefits } from './recommendationFraming';
+import { PRIORITY_BROKER_CONFIG, shouldForcePriorityBroker } from './priorityBroker';
 
 // Legacy mapping removed - now using direct challenge keys
 
@@ -79,8 +80,10 @@ export interface RecommendationResult {
   alternatives: BrokerRecommendation[];
   reasoning: string;
   shouldSwitch: boolean;
-  validation?: ValidationData; // NEW: Validation text for current broker
-  solutionFraming?: SolutionData; // NEW: How recommended broker solves issues
+  recommendationType: 'new_account' | 'secondary_account' | 'optimization'; // NEW
+  validation?: ValidationData; // Validation text for current broker
+  solutionFraming?: SolutionData; // How recommended broker solves issues
+  // chargesComparison removed - now using BrokerComparisonWidget component
   userProfile: {
     type: string;
     priority: string;
@@ -96,11 +99,21 @@ export const generateRecommendation = (userProfile: UserProfile): Recommendation
   // Step 1: Get current brokers (never recommend these)
   const currentBrokers = getCurrentBrokers(userProfile);
 
-  // Step 2: Get available brokers (exclude current ones)
-  const availableBrokers = getAvailableBrokers(currentBrokers);
+  // Step 2: Check if we should force priority broker for new users
+  const hasExistingAccount = currentBrokers.length > 0;
+  const forcePriorityBroker = shouldForcePriorityBroker(hasExistingAccount);
 
-  // Step 3: Select best broker from available ones based on business priority
-  const recommendedBrokerId = selectBestBrokerFromAvailable(availableBrokers);
+  // Step 3: Determine recommended broker
+  let recommendedBrokerId: string;
+
+  if (forcePriorityBroker) {
+    // Force priority broker for new users (highest commission)
+    recommendedBrokerId = PRIORITY_BROKER_CONFIG.brokerId;
+  } else {
+    // For existing users, use normal business priority
+    const availableBrokers = getAvailableBrokers(currentBrokers);
+    recommendedBrokerId = selectBestBrokerFromAvailable(availableBrokers);
+  }
 
   // Step 4: Create single recommendation
   const primary: BrokerRecommendation = {
@@ -124,13 +137,17 @@ export const generateRecommendation = (userProfile: UserProfile): Recommendation
   // Step 8: NEW - Generate solution framing (how recommended broker solves issues)
   const solutionFraming = generateSolutionData(recommendedBrokerId, userProfile);
 
+  // Step 9: Determine recommendation type (new vs secondary vs optimization)
+  const recommendationType = determineRecommendationType(currentBrokers.length);
+
   return {
     primary,
     alternatives: [], // No alternatives - single recommendation only
     reasoning,
     shouldSwitch,
-    validation, // NEW: Validation text for trust building
-    solutionFraming, // NEW: Solution framing for recommended broker
+    recommendationType,
+    validation,
+    solutionFraming,
     userProfile: {
       type: getUserType(userProfile),
       priority: getArrayFromField(userProfile.whatMattersMost)?.[0] || userProfile.tradingPriority || userProfile.topPriority || 'balanced',
@@ -638,3 +655,13 @@ const generateSolutionData = (recommendedBrokerId: string, userProfile: UserProf
   };
 };
 
+// 🎯 RECOMMENDATION TYPE LOGIC
+const determineRecommendationType = (currentBrokerCount: number): 'new_account' | 'secondary_account' | 'optimization' => {
+  if (currentBrokerCount === 0) {
+    return 'new_account'; // User has no broker - first account
+  } else if (currentBrokerCount === 1) {
+    return 'secondary_account'; // User has 1 broker - recommend as secondary
+  } else {
+    return 'optimization'; // User has 2+ brokers - suggest optimization (future feature)
+  }
+};

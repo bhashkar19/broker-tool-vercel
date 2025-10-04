@@ -71,14 +71,15 @@ function mapNewFieldsToOld(data: SubmissionData) {
     }
   }
 
-  // Handle challenges (new: mainChallenge array, old: executionIssues string)
+  // Handle challenges (new: mainChallenge - now single value, old: executionIssues string)
   let executionIssues = data.executionIssues || 'none';
   if (data.mainChallenge) {
+    // Can be string (radio) or array (legacy checkbox)
     const challenges = Array.isArray(data.mainChallenge) ? data.mainChallenge : [data.mainChallenge];
     executionIssues = challenges.join(', ');
   }
 
-  // Handle what matters most (new: whatMattersMost array, old: multiple single fields)
+  // Handle what matters most (new: whatMattersMost - now single value, old: multiple single fields)
   const whatMatters = Array.isArray(data.whatMattersMost) ? data.whatMattersMost : [data.whatMattersMost || ''];
 
   return {
