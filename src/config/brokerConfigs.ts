@@ -43,19 +43,19 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
     best_for: ['beginners', 'long_term_investing', 'learning', 'cost_conscious'],
     real_insights: {
       pros: [
-        "India's largest broker with 1.6 crore+ active users - highest trust and liquidity",
+        "1.6 crore+ clients, India's 2nd largest broker by active users (7.4M) - high trust and liquidity",
         "Truly FREE delivery trading - zero brokerage charges forever",
-        "Kite app rated #1 - genuinely user-friendly and fastest",
+        "Kite app rated #1 - most popular trading app in India",
         "Varsity educational platform - comprehensive free trading courses",
-        "Lowest overall cost for delivery-focused investors",
+        "Among the lowest overall costs for delivery-focused investors",
         "Transparent pricing with no hidden charges"
       ],
       cons: [
-        "Server crashes occasionally on high-volatility days (Budget, results)",
-        "Customer support primarily chatbot-based - email responses take 2-3 days",
-        "No phone support available for urgent trading issues",
-        "Basic research compared to full-service brokers with analyst calls",
-        "Not ideal for very active intraday traders due to per-trade charges"
+        "Server crashes occasionally on high-volatility days (Budget Day, Earnings Announcements, Market Crashes)",
+        "Customer support primarily chatbot-based - email responses typically take 2-3 days",
+        "No phone support available - cannot call for urgent trading issues or account problems",
+        "Basic research and analysis - no premium stock recommendations or expert analyst calls like full-service brokers",
+        "Not ideal for very active intraday traders - ₹20 per trade charges add up quickly (100 trades = ₹2,000/day)"
       ],
       perfect_for: "Buy-and-hold delivery investors who want to learn and keep costs minimal",
       cost_summary: "Best for long-term: ₹0 delivery brokerage + ₹300 AMC annually",
@@ -93,15 +93,20 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
     real_insights: {
       pros: [
         "Ratan Tata backed - strong financial stability and credibility",
-        "Fastest execution speed - consistently faster than Zerodha during market hours",
-        "Better tech infrastructure - 60% fewer server crashes than competitors",
+        "Fast execution speed with modern platform technology",
+        "Improved platform stability with regular technology updates",
         "Competitive delivery charges - ₹20 or 2.5% (whichever is lower)",
-        "₹0 AMC for first year, then ₹300/year - still competitive pricing",
-        "Reliable platform especially during volatile market conditions"
+        "₹0 AMC for first year, then ₹300/year - competitive pricing",
+        "Clean modern interface with advanced features"
       ],
       cons: [
-        "Delivery NOT free - charges ₹20 or 2.5% per trade (unlike Zerodha)",
-        "Fewer educational resources compared to Zerodha's Varsity platform"
+        "Delivery NOT free - charges ₹20 or 2.5% (whichever is lower) per trade, while top discount brokers offer ₹0",
+        "Poor customer service rated 1.3-1.7/5 with slow response times during peak trading hours",
+        "App stability issues reported during extremely high-volatility sessions",
+        "No unlimited monthly trading plans available unlike some competitors",
+        "AMC charges ₹300/year after first year (first year free for new users)",
+        "Account freeze issues reported - users locked out waiting for ticket resolution",
+        "No 3-in-1 account integration with banks like full-service brokers offer"
       ],
       perfect_for: "Active intraday traders who prioritize speed and reliability over everything else",
       cost_summary: "Speed-focused: ₹20/2.5% delivery + ₹20 intraday + ₹300 AMC (free 1st year)",
@@ -137,17 +142,21 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
     best_for: ['research_advisory', 'guided_investing', 'recommendations', 'support_focused'],
     real_insights: {
       pros: [
-        "Best research reports and daily stock recommendations in the industry",
-        "SmartAPI and SpeedPro - powerful trading platforms for professionals",
-        "Strong customer support with actual humans (rare in discount broking)",
-        "Lower AMC than Zerodha, competitive pricing overall",
-        "First 30 days brokerage refund offer to try premium features",
+        "Professional research reports and daily stock recommendations",
+        "SmartAPI - powerful API for algo trading with multi-language support",
+        "Angel SpeedPro trading platform with advanced features",
+        "Lower AMC than competitors - ₹240/year (free 1st year)",
+        "First 30 days promotional FREE delivery (up to ₹500 waiver)",
         "AI-powered Angel Insights app for portfolio analysis"
       ],
       cons: [
-        "IMPORTANT: Delivery trading NO LONGER FREE since Nov 1, 2024 - now charges brokerage",
-        "Margin penalty interest charged daily on shortfalls above certain threshold",
-        "Auto square-off penalty charges apply if positions not closed on time"
+        "IMPORTANT: Delivery trading NO LONGER FREE since Nov 1, 2024 - now charges ₹20 brokerage per trade",
+        "Platform crashes and technical glitches during trading hours - users unable to square off positions, portfolios showing zero balance",
+        "Poor customer service rated 1.13/5 with low issue resolution rates reported",
+        "Delayed customer support response especially during peak trading hours when help is most urgent",
+        "Margin penalty interest charged daily - 0.0342% per day on cash shortfall above ₹50,000 (for margin traders)",
+        "Auto square-off penalty charges apply if positions not closed on time (for F&O traders)",
+        "Peak margin shortfall interest charged even if you square off by day end (for margin traders)"
       ],
       perfect_for: "Investors who need professional research and guidance, willing to pay for quality",
       cost_summary: "Research-focused: ₹20 per trade + ₹240 AMC (delivery no longer free)",
@@ -184,20 +193,20 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
     real_insights: {
       pros: [
         "TradingView Premium integration included - saves separate subscription cost",
-        "Best API access for algorithmic trading and custom strategies",
+        "Best API access for algorithmic trading with multi-platform support",
         "Professional-grade options chain with advanced Greeks and analytics",
         "100+ technical indicators vs limited options on other platforms",
         "Excellent for complex options strategies and professional trading",
-        "Free delivery trading like other discount brokers"
+        "FREE delivery brokerage and lifetime zero AMC (promotional offers active)"
       ],
       cons: [
-        "Higher AMC than other discount brokers if not utilizing advanced features",
-        "Steep learning curve - complex platform takes time to master effectively",
-        "Wasted cost if you don't actively use professional tools and APIs"
+        "Steep learning curve - complex platform takes time to master effectively for beginners",
+        "TradingView charts only on desktop/web - not available on mobile app",
+        "Not ideal for casual traders - platform built for active professional traders"
       ],
       perfect_for: "Professional traders and algo enthusiasts who utilize advanced tools daily",
-      cost_summary: "Premium tools: ₹20 per trade + ₹400 AMC (includes TradingView equivalent)",
-      why_we_recommend: "Unmatched professional tools - but only if you'll actually use them. Pricing as of Jan 2025 - check for promotional AMC offers."
+      cost_summary: "Premium tools: ₹20 per trade + ₹0 AMC (includes TradingView integration)",
+      why_we_recommend: "Unmatched professional tools - but only if you'll actually use them. Pricing as of Jan 2025 - Lifetime FREE AMC promo active."
     },
     features: [
       "Advanced trading and charting tools",
@@ -209,7 +218,7 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
       intraday_brokerage: 20,
       delivery_brokerage: 0,
       fo_brokerage: 20,
-      amc_charges: 400
+      amc_charges: 0
     },
     scoring: {
       beginners: 3,
@@ -230,16 +239,16 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
     real_insights: {
       pros: [
         "Flat ₹20 brokerage across all segments - simplified pricing",
-        "₹0 AMC for BSDA accounts (holdings under ₹4 lakh)",
-        "Premium plans available: ₹10 brokerage with subscription (₹599-1199/month)",
-        "Tiered AMC structure: ₹0 (< ₹4L), ₹100/year (₹4-10L), ₹300/year (> ₹10L)",
-        "Simple transparent pricing - no confusion or hidden charges"
+        "Premium plans with ₹10 brokerage available (₹599-1199/month)",
+        "Tiered AMC: ₹0 for holdings <₹50k (good for small investors)",
+        "Among the lowest brokerage charges in the industry",
+        "Simple flat-fee pricing structure - easy to calculate costs"
       ],
       cons: [
-        "Standard ₹20 brokerage (not ₹10) unless on premium subscription",
-        "AMC charges apply for holdings above ₹4 lakh",
-        "Very basic platform - lacks advanced charting and technical analysis tools",
-        "Platform stability issues and technical glitches reported by users"
+        "Standard ₹20 brokerage per trade (₹10 only with premium ₹599-1199/month subscription - adds up for active traders)",
+        "Tiered AMC structure: ₹0 (<₹50k), ₹96/year (₹50k-2L), ₹300/year (>₹2L holdings) - can confuse users",
+        "Customer service quality concerns reported - average support with no toll-free number",
+        "Some users report occasional platform stability issues during peak market hours"
       ],
       perfect_for: "Extremely high-volume traders (100+ trades/month) prioritizing low cost",
       cost_summary: "Ultra-budget: ₹20 per trade + tiered AMC (₹0-300 based on holdings)",
@@ -285,9 +294,13 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
         "24/7 phone support available at 9108800000"
       ],
       cons: [
-        "Customer support rated 2.28/5 on MouthShut despite 24/7 phone availability",
-        "Delivery brokerage charged (₹20 or 0.1% whichever lower, min ₹5) while discount brokers offer free delivery",
-        "Platform can experience recurring technical glitches during peak trading periods"
+        "Poor customer support rated 1.8/5 on Trustpilot despite 24/7 phone availability",
+        "Delivery NOT free - charges ₹20 or 0.1% (whichever lower, min ₹5) while top discount brokers offer ₹0",
+        "Recurring technical glitches during peak market hours documented across 2024-2025",
+        "Frequent automatic logout issues - users forced to re-login multiple times per session",
+        "Order rejections without clear reasons requiring customer support contact",
+        "Major technical outages in Jan 2024 - users couldn't login or see balances for hours",
+        "Limited commodity trading - only 4 MCX commodities (Gold, Silver, Crude Oil, Natural Gas), no currency trading"
       ],
       perfect_for: "New investors who want simplicity and are okay with some delivery charges",
       cost_summary: "Beginner-friendly: ₹20 or 0.1% delivery (min ₹5) + ₹20 intraday + ₹0 AMC",
@@ -331,7 +344,11 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
         "Modern platform with advanced options chain and analytics"
       ],
       cons: [
-        // Excellent broker with no major verified cons for 2025!
+        "Advanced platform features may overwhelm absolute beginners (better suited for traders with some experience)",
+        "High call & trade charges at ₹50 per order (2.5× more expensive than ₹20 at most brokers)",
+        "No physical branches - account opening strictly online only, may be inconvenient for some users",
+        "No research reports, stock tips, or relationship managers for portfolio guidance - self-directed trading only",
+        "No insurance products available - focuses on stocks, F&O, mutual funds, and bonds only"
       ],
       perfect_for: "Cost-conscious traders who want Zerodha-level pricing with zero AMC",
       cost_summary: "Best value: ₹0 delivery + ₹20 intraday/F&O + ₹0 AMC (saves ₹300/year vs Zerodha)",
@@ -375,8 +392,12 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
         "SEBI-registered and properly regulated broker"
       ],
       cons: [
-        "No NRI accounts or commodity (MCX) trading - limited to equity and F&O only",
-        "Customer satisfaction rating 2.29/5 - users report account access and fund blocking issues"
+        "Restricted NRI trading - no commodity (MCX) or currency trading available for NRI accounts",
+        "No physical branches or call center - support only via email (feedback@paytmmoney.com) and app",
+        "Customer support concerns reported - some users face challenges reaching responsive assistance",
+        "Limited international investment options - primarily focuses on Indian financial instruments only",
+        "Overcrowded interface - app has become cluttered with features, can overwhelm new users",
+        "Delivery charges ₹20 per trade while top discount brokers offer ₹0"
       ],
       perfect_for: "Paytm users who want simple stock trading with familiar app experience",
       cost_summary: "Paytm ecosystem: ₹20 delivery + ₹20 intraday/F&O + ₹0 demat AMC, ₹300 trading AMC",
@@ -420,8 +441,14 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
         "Access to IPOs, bonds, and wide range of investment products"
       ],
       cons: [
-        "Low customer satisfaction (2.06/5 on MouthShut) with poor complaint resolution - only 35% of issues resolved",
-        "Significantly higher brokerage charges - 0.29% delivery (₹290 per ₹1L) vs discount brokers at ₹0-20"
+        "Poor customer satisfaction rated 2.06/5 on MouthShut with 93% complaint resolution (below industry average)",
+        "Significantly expensive - 0.29% delivery brokerage (₹290 per ₹1L) while top discount brokers charge ₹0-20",
+        "High AMC of ₹700/year (waived 1st year) - more than double most discount brokers",
+        "Platform stability issues during high volatility - order execution problems reported",
+        "Long wait times for customer support - no live chat, only phone and WhatsApp available",
+        "Poor service for small traders - prioritizes high-net-worth individuals over retail investors",
+        "Minimum ₹35 brokerage per trade challenging for small traders",
+        "Research quality described as \"generally good, not quite at level of top global brokerages\""
       ],
       perfect_for: "Existing ICICI Bank customers who want 3-in-1 convenience despite higher costs",
       cost_summary: "Full-service premium: 0.29% delivery (₹290 per ₹1L) + ₹700 AMC - expensive vs discount brokers",
@@ -465,9 +492,11 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
         "Access to wide range of investment products and IPOs"
       ],
       cons: [
-        "Platform experienced 30-40 minute outage during market hours in April 2025 - recurring technical issues reported",
+        "Platform experienced 30-40 minute outage during market hours on April 8, 2025 - users couldn't login or trade",
         "Lowest customer satisfaction among major brokers - rated 1.5/5 on MouthShut",
-        "Unauthorized trading complaints reported, particularly in F&O and intraday segments"
+        "No commodity trading available - cannot trade at MCX or NCDEX exchanges",
+        "High brokerage charges - significantly more expensive than discount brokers",
+        "BLINK terminal is fee-based unlike competitors offering free platforms"
       ],
       perfect_for: "HDFC Bank customers willing to overlook platform issues for 3-in-1 convenience",
       cost_summary: "Promo pricing: ₹0 delivery + ₹20 intraday/F&O + ₹750 AMC (standard 0.32% delivery after promo)",
@@ -511,8 +540,13 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
         "Multiple plan options for different trading needs"
       ],
       cons: [
-        "Lowest customer satisfaction among major brokers - rated 1.38/5 on MouthShut",
-        "Higher delivery charges (0.20% = ₹200 per ₹1L) compared to discount brokers at ₹0-20"
+        "Lowest customer satisfaction among all major brokers - rated 1.38/5 on MouthShut",
+        "High delivery charges 0.20% (₹200 per ₹1L) while top discount brokers offer ₹0-20",
+        "Zero Brokerage \"Trade Free Youth\" Plan ONLY available for traders aged 30 years or below",
+        "Very high AMC of ₹600/year - significantly higher than most discount brokers",
+        "Time-consuming account opening process - users report tedious and frustrating experience",
+        "Limited leverage offered - maximum 5× intraday margin vs higher leverage at some competitors",
+        "Poor customer service quality - users report issues remaining unresolved for weeks"
       ],
       perfect_for: "Traders under 30 years old with Trade Free Youth plan - otherwise very expensive",
       cost_summary: "Youth plan: ₹0 delivery (if <30 yrs) / Standard: 0.20% delivery (₹200 per ₹1L) + ₹600 AMC",
@@ -556,8 +590,13 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
         "Multiple channels for customer support"
       ],
       cons: [
-        "Cannot close account online - requires branch visit with physical forms and takes 7-15 working days to process",
-        "Hundreds of customers report continued AMC charges years after submitting closure request - keep closure proof"
+        "MAJOR ISSUE: Cannot close account online - requires branch visit with physical forms and 7-15 working days processing",
+        "Account closure billing issues reported - some users continue receiving AMC charges after submitting closure requests",
+        "Promotional ₹0 delivery pricing (current offer) - standard 0.30% delivery charges may apply after promotion ends",
+        "Zero fee transparency - no pricing information on website, must contact customer support for cost details",
+        "Limited payment options - only bank transfer available (no UPI, wallets, or digital payment methods)",
+        "No 3-in-1 account available (Sharekhan is not a bank, cannot offer integrated banking)",
+        "Mobile app glitches reported after updates - no biometric authentication login support"
       ],
       perfect_for: "Traders comfortable with traditional brokers and won't need to close account",
       cost_summary: "Promo: ₹0 delivery + ₹20 intraday/F&O + ₹400 AMC (free 1st year) - but difficult account closure",
@@ -601,8 +640,12 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
         "5 million+ trusted investors - large user base"
       ],
       cons: [
-        "Extremely low customer satisfaction (1.43/5 on MouthShut) despite SBI's trusted brand",
-        "App stability issues reported - crashes, frequent logouts, and order placement problems"
+        "Low customer satisfaction reported - among the lower-rated major brokers with customer service complaints",
+        "High account opening fees - charges ₹850 for 3-in-1 account compared to ₹0 at discount brokers",
+        "Time-consuming account opening process - takes 3-5 days with offline paperwork and documentation required",
+        "No live chat support - customer service limited to phone (8:45am-5:30pm Mon-Fri) and email only",
+        "Technology gap - platform features lag behind modern discount brokers in terms of innovation",
+        "User interface feels outdated - documented UX issues with cumbersome transaction processes on dated interfaces"
       ],
       perfect_for: "SBI Bank customers who prioritize trust and ₹0 delivery despite app issues",
       cost_summary: "Govt-backed value: ₹0 delivery + ₹20 intraday/F&O + ₹0 AMC - best pricing but app issues",
@@ -641,30 +684,31 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
         "FREE intraday trading for lifetime - significant savings for active traders",
         "Full-service broker with comprehensive research and advisory",
         "Delivery brokerage 0.20% - lower than other full-service brokers",
-        "Free AMC for first year - no initial maintenance charges",
+        "AMC ₹199/year (free 1st year) - lower than most full-service brokers",
         "Established brand with strong market research team",
         "Multiple investment products and services"
       ],
       cons: [
-        "Low customer rating (1.85/5) - advisors reported giving false commitments and unsuitable product recommendations",
-        "Aggressive telemarketing with persistent calls even after unsubscribe requests",
-        "Higher delivery charges (0.20%) compared to discount brokers offering ₹0-20"
+        "Poor customer ratings - advisors reported making false commitments and providing unsuitable product recommendations",
+        "Aggressive telemarketing - persistent calls every 10 minutes even after repeated unsubscribe requests",
+        "Higher delivery charges (0.20% = ₹200 per ₹1L) while top discount brokers offer ₹0-20",
+        "Hidden charges not explained during account opening - complaints about unexpected fees"
       ],
       perfect_for: "Active intraday traders who can handle aggressive marketing and advisor push",
-      cost_summary: "Mixed value: FREE intraday lifetime + 0.20% delivery (₹200 per ₹1L) - but low rating 1.85/5",
+      cost_summary: "Mixed value: FREE intraday lifetime + 0.20% delivery (₹200 per ₹1L) + ₹199 AMC - but low rating 1.85/5",
       why_we_recommend: "Free intraday attractive but caution on advisor recommendations and aggressive marketing. Pricing as of Jan 2025."
     },
     features: [
       "FREE intraday lifetime",
       "Full-service research",
       "Advisory services",
-      "Free AMC first year"
+      "AMC ₹199/year (free 1st year)"
     ],
     charges: {
       intraday_brokerage: 0,
       delivery_brokerage: 200,
       fo_brokerage: 20,
-      amc_charges: 400
+      amc_charges: 199
     },
     scoring: {
       beginners: 4,
@@ -692,8 +736,13 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
         "Strong technology platform with good reviews"
       ],
       cons: [
-        // Excellent broker with no major verified cons for 2025!
-        // SEBI ban was overturned by SAT in Dec 2023 - operating normally
+        "Past SEBI violations (2011-2017) - client fund misuse and account nomenclature issues (since resolved with ₹20L penalty)",
+        "SEBI ban on new clients (2023) was overturned by SAT in Dec 2023 - now operating normally",
+        "Higher brokerage than pure discount brokers - full-service pricing not the cheapest option",
+        "Free delivery only available on Z20 plan - standard plans charge brokerage fees",
+        "Customer service delays reported specifically on Z20 plan - slower than premium plan support",
+        "Time-consuming offline account opening process - requires branch visits and physical paperwork",
+        "Steep learning curve for beginners - advanced features can overwhelm new traders initially"
       ],
       perfect_for: "Traders wanting flexibility - choose from multiple plans based on trading style",
       cost_summary: "Flexible: Z20 plan ₹0 delivery / Super Trader 0.10% delivery + ₹250 AMC (free 1st year)",
@@ -737,8 +786,14 @@ export const BROKER_CONFIGS: Record<string, BrokerConfig> = {
         "Access to wide range of investment products"
       ],
       cons: [
-        "Trade@20 requires ₹75,000 average quarterly balance (or ₹250/month subscription) - high barrier for beginners",
-        "Automatically reverts to expensive 0.50% delivery brokerage if balance requirement not met or 1 trade per quarter missed"
+        "TRAP ALERT: Trade@20 plan requires ₹75,000 average quarterly balance OR ₹250/month subscription - very high barrier for small investors",
+        "Automatically reverts to expensive 0.50% delivery brokerage (₹500 per ₹1L) if balance requirement not met or you miss even 1 trade per quarter",
+        "High non-negotiable minimum ₹25 brokerage per trade - more expensive than ₹20 charged by most competitors",
+        "Very high AMC of ₹499/year - among the most expensive in the discount broking space",
+        "Terminal-based advanced platform requires paid subscription unlike free platforms offered by competitors",
+        "Poor customer service quality - users report multiple unresolved complaints and regret choosing Axis",
+        "Below-average complaint resolution rates reported",
+        "Missing essential reports like Option Turnover Report (critical for F&O traders' tax filing)"
       ],
       perfect_for: "Axis Bank customers with ₹75,000+ balance who trade regularly every quarter",
       cost_summary: "Conditional: ₹20 flat (with ₹75k AQB) / Trap: 0.50% delivery (₹500 per ₹1L) if requirements not met",

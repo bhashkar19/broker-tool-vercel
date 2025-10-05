@@ -26,6 +26,8 @@ export interface Question {
   placeholder?: string;
   helpText?: string;
   visualCard?: boolean; // Use large visual cards for 2-3 options (no scrolling)
+  gridLayout?: '2x2' | '2x3' | '3x2'; // Grid layout for checkbox questions (uses space better)
+  allowCustom?: boolean; // Show "Other (specify)" option with text input
 }
 
 export interface QuestionFlow {
@@ -44,8 +46,8 @@ export const QUESTION_FLOW_A: QuestionFlow = {
     {
       id: "contact_info",
       type: "custom",
-      label: "Almost done! Get your FREE recommendation",
-      helpText: "Trusted by 1,000+ Indian traders • Your data stays private 🔒",
+      label: "One last step to get your perfect match!",
+      helpText: "Get your personalized recommendation + exclusive broker links instantly",
       field_name: "contact",
       validation: {
         required: true,
@@ -58,12 +60,12 @@ export const QUESTION_FLOW_A: QuestionFlow = {
     {
       id: "demat_account_check",
       type: "radio",
-      label: "Do you currently trade stocks?",
+      label: "Do you have a demat/trading account?",
       helpText: "⏱️ Takes 60 seconds • Free personalized match",
       field_name: "hasAccount",
       options: [
-        { label: "✓ Yes, I already trade", value: "yes" },
-        { label: "✗ No, I'm new to trading", value: "no" }
+        { label: "Yes, I do", value: "yes" },
+        { label: "No, I don't", value: "no" }
       ],
       validation: { required: true },
       visualCard: true // 2 options - perfect for large visual cards
@@ -89,40 +91,44 @@ export const QUESTION_FLOW_A: QuestionFlow = {
     },
     {
       id: "user_type",
-      type: "radio",
-      label: "What's your PRIMARY goal?",
-      helpText: "Pick the one that fits best",
+      type: "checkbox",
+      label: "What best describes you?",
+      helpText: "Select all that apply",
       field_name: "userType",
       options: [
-        { label: "📊 Build wealth long-term", value: "investor" },
-        { label: "💰 Active trading for income", value: "trader" },
-        { label: "📚 Learning markets first", value: "learner" },
-        { label: "🎯 Already expert trader", value: "professional" }
+        { label: "📊 Long-term investor", value: "investor" },
+        { label: "💰 Active trader", value: "trader" },
+        { label: "📚 Still learning", value: "learner" },
+        { label: "🎯 Expert trader", value: "professional" }
       ],
       conditional: {
         showIf: "hasAccount",
         equals: "yes"
       },
-      validation: { required: true }
+      validation: { required: true },
+      gridLayout: "2x2" // Display in 2x2 grid for better space usage
     },
     {
       id: "main_challenge",
-      type: "radio",
-      label: "What's your BIGGEST frustration?",
-      helpText: "Select the most important one",
+      type: "checkbox",
+      label: "What frustrates you about your current broker?",
+      helpText: "Select all that apply",
       field_name: "mainChallenge",
       options: [
-        { label: "💸 High charges eating profits", value: "charges" },
-        { label: "📉 Platform crashes during trades", value: "reliability" },
-        { label: "😤 Poor customer support", value: "support" },
-        { label: "🔍 Need better research/tools", value: "research" },
-        { label: "✅ I'm actually quite happy", value: "satisfied" }
+        { label: "💸 High charges", value: "charges" },
+        { label: "📉 Platform crashes", value: "reliability" },
+        { label: "😤 Poor support", value: "support" },
+        { label: "🔍 Limited research", value: "research" },
+        { label: "🛠️ Basic tools", value: "tools" },
+        { label: "✅ I'm happy", value: "satisfied" }
       ],
       conditional: {
         showIf: "hasAccount",
         equals: "yes"
       },
-      validation: { required: true }
+      validation: { required: true },
+      gridLayout: "2x3", // Display in 2x3 grid (2 columns, 3 rows)
+      allowCustom: true // Allow "Other (specify)" option
     },
     {
       id: "trading_frequency",
@@ -143,22 +149,24 @@ export const QUESTION_FLOW_A: QuestionFlow = {
     },
     {
       id: "what_matters_most",
-      type: "radio",
-      label: "What matters MOST to you?",
-      helpText: "Choose your top priority",
+      type: "checkbox",
+      label: "What matters to you when choosing a broker?",
+      helpText: "Pick your priorities",
       field_name: "whatMattersMost",
       options: [
-        { label: "💰 Lowest possible charges", value: "cost" },
+        { label: "💰 Lowest charges", value: "cost" },
         { label: "⚡ Speed & reliability", value: "speed" },
-        { label: "📊 Research & stock picks", value: "research" },
-        { label: "🛠️ Advanced trading tools", value: "tools" },
-        { label: "🎓 Learning & education", value: "education" }
+        { label: "📊 Research & tools", value: "research" },
+        { label: "👍 Good support", value: "support" },
+        { label: "🎓 Learning resources", value: "education" }
       ],
       conditional: {
         showIf: "hasAccount",
         equals: "yes"
       },
-      validation: { required: true }
+      validation: { required: true },
+      gridLayout: "2x3", // Display in 2x3 grid
+      allowCustom: true // Allow "Other (specify)" option
     },
     // 🆕 NEW USER QUESTIONS (for hasAccount = "no") - ENHANCED FOR BETTER PERSONALIZATION
     {
@@ -236,22 +244,23 @@ export const QUESTION_FLOW_A: QuestionFlow = {
     },
     {
       id: "new_user_priority",
-      type: "radio",
-      label: "What matters MOST to you?",
+      type: "checkbox",
+      label: "What matters to you when choosing a broker?",
       field_name: "whatMattersMost",
-      helpText: "Choose your top priority",
+      helpText: "Pick your priorities",
       options: [
-        { label: "🎓 Best learning resources", value: "education" },
+        { label: "🎓 Learning resources", value: "education" },
         { label: "💰 Lowest charges", value: "cost" },
-        { label: "👍 Excellent support", value: "support" },
-        { label: "📱 Easy-to-use app", value: "ease_of_use" },
+        { label: "👍 Good support", value: "support" },
+        { label: "📱 Easy app", value: "ease_of_use" },
         { label: "🏆 Trusted brand", value: "trust" }
       ],
       conditional: {
         showIf: "hasAccount",
         equals: "no"
       },
-      validation: { required: true }
+      validation: { required: true },
+      gridLayout: "2x3" // Display in 2x3 grid
     }
   ]
 };
@@ -267,12 +276,12 @@ export const QUESTION_FLOW_B: QuestionFlow = {
     {
       id: "demat_account_check",
       type: "radio",
-      label: "Do you currently trade stocks?",
+      label: "Do you have a demat/trading account?",
       helpText: "⏱️ Takes 60 seconds • Free personalized match",
       field_name: "hasAccount",
       options: [
-        { label: "✓ Yes, I already trade", value: "yes" },
-        { label: "✗ No, I'm new to trading", value: "no" }
+        { label: "Yes, I do", value: "yes" },
+        { label: "No, I don't", value: "no" }
       ],
       validation: { required: true },
       visualCard: true // 2 options - perfect for large visual cards
@@ -297,40 +306,44 @@ export const QUESTION_FLOW_B: QuestionFlow = {
     },
     {
       id: "user_type",
-      type: "radio",
-      label: "What's your PRIMARY goal?",
-      helpText: "Pick the one that fits best",
+      type: "checkbox",
+      label: "What best describes you?",
+      helpText: "Select all that apply",
       field_name: "userType",
       options: [
-        { label: "📊 Build wealth long-term", value: "investor" },
-        { label: "💰 Active trading for income", value: "trader" },
-        { label: "📚 Learning markets first", value: "learner" },
-        { label: "🎯 Already expert trader", value: "professional" }
+        { label: "📊 Long-term investor", value: "investor" },
+        { label: "💰 Active trader", value: "trader" },
+        { label: "📚 Still learning", value: "learner" },
+        { label: "🎯 Expert trader", value: "professional" }
       ],
       conditional: {
         showIf: "hasAccount",
         equals: "yes"
       },
-      validation: { required: true }
+      validation: { required: true },
+      gridLayout: "2x2" // Display in 2x2 grid for better space usage
     },
     {
       id: "main_challenge",
-      type: "radio",
-      label: "What's your BIGGEST frustration?",
-      helpText: "Select the most important one",
+      type: "checkbox",
+      label: "What frustrates you about your current broker?",
+      helpText: "Select all that apply",
       field_name: "mainChallenge",
       options: [
-        { label: "💸 High charges eating profits", value: "charges" },
-        { label: "📉 Platform crashes during trades", value: "reliability" },
-        { label: "😤 Poor customer support", value: "support" },
-        { label: "🔍 Need better research/tools", value: "research" },
-        { label: "✅ I'm actually quite happy", value: "satisfied" }
+        { label: "💸 High charges", value: "charges" },
+        { label: "📉 Platform crashes", value: "reliability" },
+        { label: "😤 Poor support", value: "support" },
+        { label: "🔍 Limited research", value: "research" },
+        { label: "🛠️ Basic tools", value: "tools" },
+        { label: "✅ I'm happy", value: "satisfied" }
       ],
       conditional: {
         showIf: "hasAccount",
         equals: "yes"
       },
-      validation: { required: true }
+      validation: { required: true },
+      gridLayout: "2x3", // Display in 2x3 grid (2 columns, 3 rows)
+      allowCustom: true // Allow "Other (specify)" option
     },
     {
       id: "trading_frequency",
@@ -351,22 +364,24 @@ export const QUESTION_FLOW_B: QuestionFlow = {
     },
     {
       id: "most_important",
-      type: "radio",
-      label: "What matters MOST to you?",
-      helpText: "Choose your top priority",
-      field_name: "mostImportant",
+      type: "checkbox",
+      label: "What matters to you when choosing a broker?",
+      helpText: "Pick your priorities",
+      field_name: "whatMattersMost",
       options: [
-        { label: "💰 Lowest possible charges", value: "charges" },
+        { label: "💰 Lowest charges", value: "charges" },
         { label: "⚡ Speed & reliability", value: "speed" },
-        { label: "🛠️ Advanced trading tools", value: "tools" },
-        { label: "👍 Good customer support", value: "support" },
-        { label: "🎓 Learning & education", value: "education" }
+        { label: "🛠️ Advanced tools", value: "tools" },
+        { label: "👍 Good support", value: "support" },
+        { label: "🎓 Learning resources", value: "education" }
       ],
       conditional: {
         showIf: "hasAccount",
         equals: "yes"
       },
-      validation: { required: true }
+      validation: { required: true },
+      gridLayout: "2x3", // Display in 2x3 grid
+      allowCustom: true // Allow "Other (specify)" option
     },
     {
       id: "new_user_type",
@@ -445,8 +460,8 @@ export const QUESTION_FLOW_B: QuestionFlow = {
     {
       id: "contact_info",
       type: "custom",
-      label: "Almost done! Get your FREE recommendation",
-      helpText: "Trusted by 1,000+ Indian traders • Your data stays private 🔒",
+      label: "One last step to get your perfect match!",
+      helpText: "Get your personalized recommendation + exclusive broker links instantly",
       field_name: "contact",
       validation: {
         required: true,

@@ -43,21 +43,21 @@ const VisualCardQuestion: React.FC<VisualCardQuestionProps> = ({
 
   return (
     <div>
-      <h2 className="text-lg font-semibold text-gray-800 mb-2 text-center">
+      <h2 className="text-xl font-bold text-gray-900 mb-2.5 text-center leading-tight">
         {question.label}
       </h2>
       {question.helpText && (
-        <p className="text-xs text-gray-500 mb-4 text-center">{question.helpText}</p>
+        <p className="text-sm text-blue-600 mb-5 text-center font-medium">{question.helpText}</p>
       )}
 
-      <div className={`grid gap-3 ${question.options && question.options.length === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+      <div className={`grid gap-4 ${question.options && question.options.length === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
         {question.options?.map((option) => (
           <button
             key={option.value}
             onClick={() => onAnswerSelect(option.value)}
             className={`
-              relative overflow-hidden rounded-xl border-3 transition-all
-              ${question.options && question.options.length === 2 ? 'p-4' : 'p-5'}
+              relative overflow-hidden rounded-xl border-3 transition-all min-h-[140px] flex flex-col items-center justify-center
+              ${question.options && question.options.length === 2 ? 'px-5 py-6' : 'px-6 py-7'}
               ${selectedValue === option.value
                 ? 'border-blue-600 bg-blue-50 shadow-lg scale-105'
                 : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50 hover:scale-102'
@@ -65,13 +65,13 @@ const VisualCardQuestion: React.FC<VisualCardQuestionProps> = ({
             `}
           >
             {/* Icon */}
-            <div className={`text-center mb-2 ${question.options && question.options.length === 2 ? 'text-4xl' : 'text-5xl'}`}>
+            <div className={`text-center mb-3 ${question.options && question.options.length === 2 ? 'text-5xl' : 'text-6xl'}`}>
               {getIcon(option.value)}
             </div>
 
             {/* Label */}
-            <p className={`font-bold text-center ${
-              question.options && question.options.length === 2 ? 'text-sm' : 'text-base'
+            <p className={`font-bold text-center leading-snug ${
+              question.options && question.options.length === 2 ? 'text-base' : 'text-lg'
             } ${selectedValue === option.value ? 'text-blue-900' : 'text-gray-900'}`}>
               {option.label.replace(/^[✓✗📊💰📚🎯🌱📈🚀]\s*/, '')}
             </p>

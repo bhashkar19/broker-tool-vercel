@@ -17,6 +17,7 @@ import {
   type UserProfile
 } from '@/config/recommendationEngine';
 import { getBrokerById } from '@/lib/broker-repository';
+import { UNIFIED_BROKER_CONFIGS } from '@/config/unifiedBrokerConfig';
 import BrokerComparisonWidget from './BrokerComparisonWidget';
 import ProgressIndicator from './quiz/ProgressIndicator';
 import ContactForm from './quiz/ContactForm';
@@ -463,6 +464,19 @@ const ModularBrokerTool = () => {
                  currentQuestionIndex >= visibleQuestions.length - 2 ? 'Almost There! Continue →' :
                  'Next Question →'}
               </motion.button>
+
+              {/* Consent Text - Only show on contact form question */}
+              {currentQuestion?.id === 'contact_info' && (
+                <p className="text-xs text-gray-500 text-center mt-3 leading-relaxed">
+                  By clicking above, you agree to our{' '}
+                  <a
+                    href="/privacy-policy"
+                    className="text-blue-600 hover:underline"
+                  >
+                    Privacy Policy
+                  </a>
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -1131,6 +1145,7 @@ const RecommendationSection = ({
   const [showBeginnerGuide, setShowBeginnerGuide] = useState(false); // Collapsed by default
   const [showStickyButton, setShowStickyButton] = useState(false); // Sticky CTA visibility
   const [showWhatNextModal, setShowWhatNextModal] = useState(false); // Preview modal
+  const [redirectCountdown, setRedirectCountdown] = useState(2); // Countdown timer
 
   // Scroll listener for sticky CTA button
   useEffect(() => {
@@ -1144,6 +1159,9 @@ const RecommendationSection = ({
   }, []);
 
   const handleConversion = async () => {
+    // Check if user is new (no demat account)
+    const isNewUser = recommendation.recommendationType === 'new_account';
+
     // Track Facebook InitiateCheckout with enhanced parameters
     if (typeof window !== 'undefined' && window.fbq) {
       // Standard InitiateCheckout event (critical for conversion optimization)
@@ -1244,15 +1262,45 @@ const RecommendationSection = ({
       }
     }
 
-    // Show "What Happens Next" modal instead of immediate redirect
-    setShowWhatNextModal(true);
+    // For new users: Show modal with 2-second auto-redirect
+    // For existing users: Redirect immediately
+    if (isNewUser) {
+      // Show "What Happens Next" modal
+      setShowWhatNextModal(true);
 
-    // Track modal view
-    if (typeof window !== 'undefined' && window.fbq) {
-      window.fbq('trackCustom', 'WhatNextModalShown', {
-        broker: recommendation.primary.brokerId,
-        session_id: userData.sessionId
-      });
+      // Track modal view
+      if (typeof window !== 'undefined' && window.fbq) {
+        window.fbq('trackCustom', 'WhatNextModalShown', {
+          broker: recommendation.primary.brokerId,
+          session_id: userData.sessionId,
+          user_type: 'new_account'
+        });
+      }
+
+      // Countdown timer: 2 -> 1 -> redirect
+      const countdownInterval = setInterval(() => {
+        setRedirectCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      // Auto-redirect after 2 seconds
+      setTimeout(() => {
+        if (typeof window !== 'undefined' && window.fbq) {
+          window.fbq('trackCustom', 'AutoRedirectTriggered', {
+            broker: recommendation.primary.brokerId,
+            session_id: userData.sessionId
+          });
+        }
+        window.location.href = recommendation.primary.affiliate_url;
+      }, 2000);
+    } else {
+      // Existing users: Direct redirect (no modal)
+      window.location.href = recommendation.primary.affiliate_url;
     }
   };
 
@@ -1282,81 +1330,6 @@ const RecommendationSection = ({
         Your Perfect Broker Match
       </h2>
 
-      {/* VALIDATION SECTION - Show we understand their problems (COLLAPSIBLE) */}
-      {recommendation.validation && recommendation.validation.challenges.length > 0 && (
-        <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-5 mb-6 text-left">
-          <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-            <span className="text-xl">🔍</span>
-            Issues with {recommendation.validation.currentBrokerName}
-          </h3>
-
-          {/* Brief Summary (Always Visible) */}
-          <div className="mb-3">
-            {recommendation.validation.challenges.map((challengeData, idx) => (
-              <div key={idx} className="mb-2 last:mb-0">
-                <div className="flex items-start gap-2">
-                  <span className="text-red-500 font-bold text-sm mt-0.5">⚠️</span>
-                  <p className="text-gray-800 text-sm font-medium">
-                    {challengeData.label}: {challengeData.issues[0].split('.')[0]}...
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Read More Button */}
-          <button
-            onClick={() => setShowValidationDetails(!showValidationDetails)}
-            className="w-full text-center py-2 px-4 bg-amber-100 hover:bg-amber-200 rounded-lg border border-amber-300 text-amber-900 font-medium text-sm transition-colors"
-          >
-            {showValidationDetails ? '▲ Hide Details' : '▼ Read Full Details'}
-          </button>
-
-          {/* Detailed Information (Collapsible) */}
-          {showValidationDetails && (
-            <div className="mt-4 pt-4 border-t border-amber-300">
-              {recommendation.validation.challenges.map((challengeData, idx) => (
-                <div key={idx} className="mb-4 last:mb-0">
-                  <h4 className="font-semibold text-amber-900 mb-2">
-                    {challengeData.label}:
-                  </h4>
-
-                  {/* Show all documented issues */}
-                  <div className="space-y-1.5 mb-2">
-                    {challengeData.issues.map((issue, issueIdx) => (
-                      <div key={issueIdx} className="flex items-start gap-2">
-                        <span className="text-red-500 font-bold text-sm mt-0.5">❌</span>
-                        <p className="text-gray-700 text-sm">{issue}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Show impact */}
-                  {challengeData.impact && (
-                    <p className="text-amber-800 text-xs italic ml-6">
-                      Impact: {challengeData.impact}
-                    </p>
-                  )}
-
-                  {/* Show user quotes if available */}
-                  {challengeData.userQuotes && (
-                    <p className="text-gray-600 text-xs mt-2 ml-6 bg-white/50 rounded p-2 border-l-2 border-amber-400">
-                      💬 {challengeData.userQuotes}
-                    </p>
-                  )}
-                </div>
-              ))}
-
-              <div className="mt-4 pt-3 border-t border-amber-300">
-                <p className="text-gray-700 text-sm">
-                  <strong>You&apos;re not alone</strong> - these are real, documented issues that thousands of traders face.
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* User Profile Summary */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 text-left">
         <h4 className="font-semibold text-blue-800 mb-2">Your Profile:</h4>
@@ -1365,19 +1338,21 @@ const RecommendationSection = ({
         </p>
       </div>
 
-      {/* Primary Recommendation */}
-      <div className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl p-6 mb-6">
-        <div className="flex items-center justify-center gap-2 mb-2">
+      {/* Primary Recommendation - Entire card is clickable */}
+      <button
+        onClick={handleConversion}
+        className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl p-6 mb-6 transition-all hover:shadow-2xl hover:scale-[1.02] hover:from-green-600 hover:to-green-700 cursor-pointer"
+      >
+        <div className="flex items-center justify-center gap-2 mb-3">
           <TrendingUp className="w-6 h-6" />
-          <h3 className="text-2xl font-bold">Recommended: {primaryBroker?.name}</h3>
+          <h3 className="text-xl font-bold">Your Perfect Match</h3>
         </div>
-        <div className="text-green-100 mb-2">
-          {recommendation.primary.matchPercentage}% match for your needs
+        <div className="text-center">
+          <p className="text-white text-3xl font-bold">
+            {primaryBroker?.name}
+          </p>
         </div>
-        <p className="text-green-100 text-sm">
-          {primaryBroker?.real_insights.perfect_for}
-        </p>
-      </div>
+      </button>
 
       {/* Trust & Stats Bar - Real Numbers */}
       <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl p-5 mb-6">
@@ -1394,7 +1369,7 @@ const RecommendationSection = ({
           </div>
           <div className="flex flex-col">
             <span className="text-3xl font-bold text-green-600">
-              {primaryBroker?.charges.delivery_brokerage === 0 ? '₹0' : `₹${primaryBroker?.charges.delivery_brokerage}`}
+              {UNIFIED_BROKER_CONFIGS[primaryBroker?.brokerId]?.charges.delivery.formula || (primaryBroker?.charges.delivery_brokerage === 0 ? '₹0' : `₹${primaryBroker?.charges.delivery_brokerage}`)}
             </span>
             <span className="text-xs text-gray-600 mt-1">Delivery Fee</span>
           </div>
@@ -1410,19 +1385,26 @@ const RecommendationSection = ({
         </div>
       </div>
 
-      {/* EARLY CTA - Above the Fold (Captures immediate decisions) */}
+      {/* MAIN CTA - Primary action button with clear instruction */}
       {!showComparison && (
         <motion.button
           onClick={handleConversion}
-          className="w-full py-5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-lg shadow-lg transition-all hover:shadow-2xl mb-6 hover:from-green-600 hover:to-green-700"
+          className="w-full py-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-xl shadow-lg transition-all hover:shadow-2xl mb-2 hover:from-green-600 hover:to-green-700"
           whileHover={{ scale: 1.03, y: -2 }}
           whileTap={{ scale: 0.98 }}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          Open FREE {primaryBroker?.name} Account →
+          Click Here to Open FREE {primaryBroker?.name} Account →
         </motion.button>
+      )}
+
+      {/* Helper text below main CTA */}
+      {!showComparison && (
+        <p className="text-center text-sm text-gray-600 mb-6">
+          ✓ 100% Free Account Opening • ✓ 5 Minute Setup • ✓ Instant Activation
+        </p>
       )}
 
       {/* FIRST-TIME USER GUIDE - Only for new_account users - ZERODHA SPECIFIC */}
@@ -1547,118 +1529,169 @@ const RecommendationSection = ({
         </div>
       )}
 
-      {/* Why We Recommend - Simplified */}
+      {/* Broker Strengths - Point-wise (Universal for all 56 brokers) */}
       <div className="bg-white border-2 border-green-200 rounded-xl p-5 mb-6 text-left">
         <h4 className="font-bold text-gray-800 mb-4 text-base flex items-center gap-2">
           <CheckCircle className="w-5 h-5 text-green-600" />
-          Why {primaryBroker?.name} is Perfect for You
+          {primaryBroker?.name} Strengths
         </h4>
 
-        {/* Top 3 Benefits Only */}
-        <div className="space-y-2.5 mb-4">
-          {primaryBroker?.real_insights.pros.slice(0, 3).map((pro, index) => (
+        {/* Show all pros as simple bullet points */}
+        <div className="space-y-2.5">
+          {primaryBroker?.real_insights.pros.map((pro, index) => (
             <div key={index} className="flex items-start gap-2">
               <span className="text-green-600 font-bold text-base mt-0.5">✓</span>
               <p className="text-gray-800 text-sm">{pro}</p>
             </div>
           ))}
         </div>
-
-        {/* Cost Savings - Prominent */}
-        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-lg p-4">
-          <p className="font-bold text-gray-800 text-sm mb-1">
-            💰 {primaryBroker?.real_insights.cost_summary}
-          </p>
-          {primaryBroker?.id === 'zerodha' && (
-            <p className="text-green-700 font-semibold text-xs mt-1">
-              Save up to ₹10,000/year vs traditional brokers
-            </p>
-          )}
-          {primaryBroker?.id === 'upstox' && (
-            <p className="text-green-700 font-semibold text-xs mt-1">
-              Best uptime during market volatility
-            </p>
-          )}
-        </div>
       </div>
 
-      {/* SOLUTION FRAMING - How recommended broker solves their issues */}
-      {recommendation.solutionFraming && recommendation.solutionFraming.solutions.length > 0 && (
-        <div className="bg-green-50 border-2 border-green-200 rounded-xl p-5 mb-6 text-left">
-          <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <span className="text-xl">✅</span>
-            How {primaryBroker?.name} Solves Your Issues
-          </h3>
+      {/* Complete Pricing Table - Universal for all brokers */}
+      {/* TODO: Future feature - Only show comparison when recommended broker has better pricing */}
+      {/* For now: Always show the table when user has current brokers */}
+      <div className="bg-white border-2 border-blue-200 rounded-xl p-5 mb-6 text-left overflow-x-auto">
+        <h4 className="font-bold text-gray-800 mb-4 text-base flex items-center gap-2">
+          <span className="text-xl">💰</span>
+          Complete Pricing Breakdown
+        </h4>
 
-          {recommendation.solutionFraming.solutions.map((solutionData, idx) => (
-            <div key={idx} className="mb-3 last:mb-0">
-              <h4 className="font-semibold text-green-900 mb-1.5 text-sm">
-                For your &quot;{solutionData.label}&quot; concern:
-              </h4>
-              <p className="text-gray-700 text-sm ml-4 leading-relaxed">
-                → {solutionData.solution}
-              </p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b-2 border-gray-300">
+                <th className="text-left py-2 pr-4 font-semibold text-gray-700">Charges</th>
+                {/* Recommended broker ONLY - hiding current broker to avoid showing their good points */}
+                <th className="text-center py-2 px-3 font-semibold text-green-700 whitespace-nowrap bg-green-50">
+                  {primaryBroker?.name}
+                </th>
+                {/* Current brokers - HIDDEN for strategic conversion optimization */}
+                {/* Keeping code for future use if needed - just comment out the map */}
+                {/* {userData.brokerInfo?.brokers && userData.brokerInfo.brokers.map((brokerId: string) => {
+                  const broker = UNIFIED_BROKER_CONFIGS[brokerId];
+                  return broker ? (
+                    <th key={brokerId} className="text-center py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
+                      {broker.name} (Current)
+                    </th>
+                  ) : null;
+                })} */}
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-gray-200">
+                <td className="py-2 pr-4 text-gray-700">Equity Delivery</td>
+                {/* Recommended broker ONLY */}
+                <td className="text-center py-2 px-3 font-semibold text-green-700 bg-green-50">
+                  {UNIFIED_BROKER_CONFIGS[primaryBroker?.brokerId]?.charges.delivery.formula || `₹${primaryBroker?.charges.delivery_brokerage}`}
+                </td>
+                {/* Current brokers - HIDDEN */}
+                {/* {userData.brokerInfo?.brokers && userData.brokerInfo.brokers.map((brokerId: string) => {
+                  const broker = UNIFIED_BROKER_CONFIGS[brokerId];
+                  return broker ? (
+                    <td key={brokerId} className="text-center py-2 px-3 text-gray-600">
+                      {broker.charges.delivery.formula}
+                    </td>
+                  ) : null;
+                })} */}
+              </tr>
+              <tr className="border-b border-gray-200">
+                <td className="py-2 pr-4 text-gray-700">Equity Intraday</td>
+                {/* Recommended broker ONLY */}
+                <td className="text-center py-2 px-3 font-semibold text-green-700 bg-green-50">
+                  {UNIFIED_BROKER_CONFIGS[primaryBroker?.brokerId]?.charges.intraday.formula || `₹${primaryBroker?.charges.intraday_brokerage}`}
+                </td>
+                {/* Current brokers - HIDDEN */}
+                {/* {userData.brokerInfo?.brokers && userData.brokerInfo.brokers.map((brokerId: string) => {
+                  const broker = UNIFIED_BROKER_CONFIGS[brokerId];
+                  return broker ? (
+                    <td key={brokerId} className="text-center py-2 px-3 text-gray-600">
+                      {broker.charges.intraday.formula}
+                    </td>
+                  ) : null;
+                })} */}
+              </tr>
+              <tr className="border-b border-gray-200">
+                <td className="py-2 pr-4 text-gray-700">F&O (Futures/Options)</td>
+                {/* Recommended broker ONLY */}
+                <td className="text-center py-2 px-3 font-semibold text-green-700 bg-green-50">
+                  {UNIFIED_BROKER_CONFIGS[primaryBroker?.brokerId]?.charges.fo.formula || `₹${primaryBroker?.charges.fo_brokerage}`}
+                </td>
+                {/* Current brokers - HIDDEN */}
+                {/* {userData.brokerInfo?.brokers && userData.brokerInfo.brokers.map((brokerId: string) => {
+                  const broker = UNIFIED_BROKER_CONFIGS[brokerId];
+                  return broker ? (
+                    <td key={brokerId} className="text-center py-2 px-3 text-gray-600">
+                      {broker.charges.fo.formula}
+                    </td>
+                  ) : null;
+                })} */}
+              </tr>
+              <tr className="border-b border-gray-200 bg-gray-50">
+                <td className="py-2 pr-4 text-gray-700 font-medium">AMC (Annual)</td>
+                {/* Recommended broker ONLY */}
+                <td className="text-center py-2 px-3 font-semibold text-green-700 bg-green-100">
+                  {UNIFIED_BROKER_CONFIGS[primaryBroker?.brokerId]?.charges.amc.formula || `₹${primaryBroker?.charges.amc_charges}/year`}
+                </td>
+                {/* Current brokers - HIDDEN */}
+                {/* {userData.brokerInfo?.brokers && userData.brokerInfo.brokers.map((brokerId: string) => {
+                  const broker = UNIFIED_BROKER_CONFIGS[brokerId];
+                  return broker ? (
+                    <td key={brokerId} className="text-center py-2 px-3 text-gray-600 font-medium">
+                      {broker.charges.amc.formula}
+                    </td>
+                  ) : null;
+                })} */}
+              </tr>
+              <tr>
+                <td className="py-2 pr-4 text-gray-700">Account Opening</td>
+                {/* Recommended broker ONLY */}
+                <td className="text-center py-2 px-3 font-semibold text-green-700 bg-green-50">
+                  FREE
+                </td>
+                {/* Current brokers - HIDDEN */}
+                {/* {userData.brokerInfo?.brokers && userData.brokerInfo.brokers.map((brokerId: string) => {
+                  return (
+                    <td key={brokerId} className="text-center py-2 px-3 text-gray-600">
+                      FREE
+                    </td>
+                  );
+                })} */}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Show pricing table even if user has no current brokers */}
+        {(!userData.brokerInfo?.brokers || userData.brokerInfo.brokers.length === 0) && (
+          <div className="space-y-2 mt-4">
+            <div className="flex justify-between py-2 border-b border-gray-200">
+              <span className="text-gray-700">Equity Delivery</span>
+              <span className="font-semibold text-green-700">{UNIFIED_BROKER_CONFIGS[primaryBroker?.brokerId]?.charges.delivery.formula || `₹${primaryBroker?.charges.delivery_brokerage}`}</span>
             </div>
-          ))}
-        </div>
-      )}
-
-      {/* Bonus Benefits */}
-      {recommendation.solutionFraming && recommendation.solutionFraming.bonusBenefits.length > 0 && (
-        <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-5 mb-6 text-left">
-          <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-            <span className="text-xl">🎁</span>
-            Bonus Benefits You&apos;ll Get
-          </h4>
-          <div className="space-y-2">
-            {recommendation.solutionFraming.bonusBenefits.map((benefit, index) => (
-              <div key={index} className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 mt-1 text-purple-600 flex-shrink-0" />
-                <span className="text-gray-700 text-sm">{benefit}</span>
-              </div>
-            ))}
+            <div className="flex justify-between py-2 border-b border-gray-200">
+              <span className="text-gray-700">Equity Intraday</span>
+              <span className="font-semibold text-green-700">{UNIFIED_BROKER_CONFIGS[primaryBroker?.brokerId]?.charges.intraday.formula || `₹${primaryBroker?.charges.intraday_brokerage}`}</span>
+            </div>
+            <div className="flex justify-between py-2 border-b border-gray-200">
+              <span className="text-gray-700">F&O (Futures/Options)</span>
+              <span className="font-semibold text-green-700">{UNIFIED_BROKER_CONFIGS[primaryBroker?.brokerId]?.charges.fo.formula || `₹${primaryBroker?.charges.fo_brokerage}`}</span>
+            </div>
+            <div className="flex justify-between py-2 border-b border-gray-200 bg-gray-50">
+              <span className="text-gray-700 font-medium">AMC (Annual)</span>
+              <span className="font-semibold text-green-700">{UNIFIED_BROKER_CONFIGS[primaryBroker?.brokerId]?.charges.amc.formula || `₹${primaryBroker?.charges.amc_charges}/year`}</span>
+            </div>
+            <div className="flex justify-between py-2">
+              <span className="text-gray-700">Account Opening</span>
+              <span className="font-semibold text-green-700">{UNIFIED_BROKER_CONFIGS[primaryBroker?.brokerId]?.charges.demat_opening.formula || 'FREE'}</span>
+            </div>
           </div>
-        </div>
-      )}
-
-      {/* Specific Reasons Based on User Profile (Backup if no solution framing) */}
-      {!recommendation.solutionFraming && recommendation.primary.reasons.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6 text-left">
-          <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
-            <Star className="w-5 h-5 text-blue-600" />
-            Personalized Benefits for Your Trading Style:
-          </h4>
-          <ul className="text-blue-800 space-y-2">
-            {recommendation.primary.reasons.map((reason, index) => (
-              <li key={index} className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 mt-1 text-green-600 flex-shrink-0" />
-                <span className="text-sm">{reason}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Removed alternatives - single recommendation only per business requirement */}
-
-      {/* SMART COMPARISON WIDGET - Replaces old chargesComparison feature */}
-      {userData.currentBrokers && Array.isArray(userData.currentBrokers) && userData.currentBrokers.length > 0 && !showComparison && (
-        <div className="mb-6">
-          <motion.button
-            onClick={() => setShowComparison(true)}
-            className="w-full py-5 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-bold text-lg shadow-lg transition-all hover:shadow-2xl hover:from-blue-600 hover:to-purple-700"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            🔍 Compare with Your Current Broker
-          </motion.button>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Show comparison widget when requested */}
-      {showComparison && userData.currentBrokers && Array.isArray(userData.currentBrokers) && userData.currentBrokers.length > 0 && (
+      {showComparison && userData.brokerInfo?.brokers && Array.isArray(userData.brokerInfo.brokers) && userData.brokerInfo.brokers.length > 0 && (
         <BrokerComparisonWidget
-          currentBrokerId={userData.currentBrokers[0]}
+          currentBrokerId={userData.brokerInfo.brokers[0]}
           recommendedBrokerId={recommendation.primary.brokerId}
           onSwitchConfirm={handleConversion}
           onViewAlternatives={() => setViewAlternatives(true)}
@@ -1706,26 +1739,175 @@ const RecommendationSection = ({
         </div>
       )}
 
-      {/* Primary CTA Button - Only show if not in comparison mode */}
+      {/* Secondary CTA Button - Different text to avoid confusion */}
       {!showComparison && (
         <motion.button
           onClick={handleConversion}
-          className="w-full py-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-xl shadow-lg transition-all hover:shadow-2xl mb-3 hover:from-green-600 hover:to-green-700"
+          className="w-full py-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-lg shadow-lg transition-all hover:shadow-2xl mb-3 hover:from-green-600 hover:to-green-700"
           whileHover={{ scale: 1.03, y: -2 }}
           whileTap={{ scale: 0.98 }}
         >
-          Open FREE {primaryBroker?.name} Account →
+          Start Your FREE {primaryBroker?.name} Account Now →
         </motion.button>
       )}
 
+      {/* Trust Badges - Below CTA */}
+      <p className="text-center text-gray-600 text-xs mb-4">
+        ✓ FREE Account Opening • ✓ SEBI Registered • ✓ Bank-grade Security • ✓ Instant Activation
+      </p>
+
       {/* Referral Disclosure */}
-      <p className="text-[10px] text-gray-400 text-center mt-4 leading-relaxed">
+      <p className="text-[10px] text-gray-400 text-center mt-2 leading-relaxed">
         Free service · We earn from broker partnerships
       </p>
 
-      <p className="text-center text-gray-600 text-sm mb-4 font-medium">
-        ✓ Takes 5 minutes • ✓ No hidden costs • ✓ Start today
-      </p>
+      {/* VALIDATION SECTION - Moved to bottom to lead with positives (SHOWS ALL SELECTED BROKERS) */}
+      {recommendation.validation && recommendation.validation.brokerData.length > 0 && (
+        <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-5 mb-6 mt-8 text-left">
+          <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+            <span className="text-xl">📋</span>
+            {recommendation.validation.multipleBrokers
+              ? "Important Things to Know About Your Current Brokers"
+              : `Important Things to Know About ${recommendation.validation.brokerData[0].brokerName}`
+            }
+          </h3>
+
+          {/* Brief Summary (Always Visible) - Group by challenge type to avoid duplicates */}
+          <div className="mb-3">
+            {(() => {
+              // Group issues by challenge type (not by broker)
+              const issuesByChallenge: Record<string, Array<{broker: string, issue: string}>> = {};
+
+              recommendation.validation.brokerData.forEach((broker) => {
+                broker.issues.forEach((issueData) => {
+                  if (!issuesByChallenge[issueData.label]) {
+                    issuesByChallenge[issueData.label] = [];
+                  }
+                  issuesByChallenge[issueData.label].push({
+                    broker: broker.brokerName,
+                    issue: issueData.issues[0].split('.')[0]
+                  });
+                });
+              });
+
+              return Object.entries(issuesByChallenge).map(([label, brokerIssues]) => (
+                <div key={label} className="mb-2 last:mb-0">
+                  <div className="flex items-start gap-2">
+                    <span className="text-red-500 font-bold text-sm mt-0.5">⚠️</span>
+                    <div className="text-gray-800 text-sm font-medium">
+                      <span className="font-semibold">{label}:</span>
+                      {recommendation.validation?.multipleBrokers ? (
+                        <span className="ml-1">
+                          {brokerIssues.map((item, idx) => (
+                            <span key={idx}>
+                              {item.broker}: {item.issue}
+                              {idx < brokerIssues.length - 1 ? '; ' : ''}
+                            </span>
+                          ))}...
+                        </span>
+                      ) : (
+                        <span className="ml-1">{brokerIssues[0].issue}...</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ));
+            })()}
+          </div>
+
+          {/* Read More Button */}
+          <button
+            onClick={() => setShowValidationDetails(!showValidationDetails)}
+            className="w-full text-center py-2 px-4 bg-amber-100 hover:bg-amber-200 rounded-lg border border-amber-300 text-amber-900 font-medium text-sm transition-colors"
+          >
+            {showValidationDetails ? '▲ Hide Details' : '▼ Read Full Details'}
+          </button>
+
+          {/* Detailed Information (Collapsible) - Group by challenge to avoid showing same issue type multiple times */}
+          {showValidationDetails && (
+            <div className="mt-4 pt-4 border-t border-amber-300">
+              {(() => {
+                // Group issues by challenge label to avoid duplication
+                const detailedIssuesByChallenge: Record<string, Array<{
+                  broker: string;
+                  brokerId: string;
+                  issues: string[];
+                  impact?: string;
+                  userQuotes?: string;
+                }>> = {};
+
+                recommendation.validation.brokerData.forEach((broker) => {
+                  broker.issues.forEach((issueData) => {
+                    if (!detailedIssuesByChallenge[issueData.label]) {
+                      detailedIssuesByChallenge[issueData.label] = [];
+                    }
+                    detailedIssuesByChallenge[issueData.label].push({
+                      broker: broker.brokerName,
+                      brokerId: broker.brokerId,
+                      issues: issueData.issues,
+                      impact: issueData.impact,
+                      userQuotes: issueData.userQuotes
+                    });
+                  });
+                });
+
+                return (
+                  <>
+                    {Object.entries(detailedIssuesByChallenge).map(([label, brokerDataList]) => (
+                      <div key={label} className="mb-6 last:mb-0">
+                        <h5 className="font-semibold text-amber-900 mb-3 text-sm">
+                          {label}:
+                        </h5>
+
+                        {brokerDataList.map((brokerData, brokerIdx) => (
+                          <div key={`${brokerData.brokerId}-${brokerIdx}`} className="mb-4 last:mb-0">
+                            {/* Show broker name if multiple brokers have this issue */}
+                            {recommendation.validation?.multipleBrokers && (
+                              <h6 className="font-medium text-gray-900 mb-2 text-xs">
+                                📊 {brokerData.broker}
+                              </h6>
+                            )}
+
+                            {/* Show all documented issues */}
+                            <div className="space-y-1.5 mb-2 ml-4">
+                              {brokerData.issues.map((issue, issueIdx) => (
+                                <div key={issueIdx} className="flex items-start gap-2">
+                                  <span className="text-red-500 font-bold text-sm mt-0.5">❌</span>
+                                  <p className="text-gray-700 text-sm">{issue}</p>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Show impact */}
+                            {brokerData.impact && (
+                              <p className="text-amber-800 text-xs italic ml-10">
+                                Impact: {brokerData.impact}
+                              </p>
+                            )}
+
+                            {/* Show user quotes if available */}
+                            {brokerData.userQuotes && (
+                              <p className="text-gray-600 text-xs mt-2 ml-10 bg-white/50 rounded p-2 border-l-2 border-amber-400">
+                                💬 {brokerData.userQuotes}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+
+                    <div className="mt-4 pt-3 border-t border-amber-300">
+                      <p className="text-gray-700 text-sm">
+                        <strong>You&apos;re not alone</strong> - these are real, documented issues that thousands of traders face.
+                      </p>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* API Success/Error Notifications */}
       {apiError && (
@@ -1738,6 +1920,41 @@ const RecommendationSection = ({
         <div className="mt-4 p-3 bg-green-50 border border-green-300 rounded-lg text-sm text-green-800 flex items-start gap-2">
           <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
           <span>Your details have been saved successfully!</span>
+        </div>
+      )}
+
+      {/* Secondary Account Recommendation - ONLY when user has EXACTLY 1 broker (at the very end) */}
+      {!showComparison && userData.brokerInfo?.brokers && userData.brokerInfo.brokers.length === 1 && (
+        <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 mb-6 mt-8 text-left">
+          <h4 className="font-semibold text-purple-900 mb-2 text-sm flex items-center gap-2">
+            <span className="text-base">💡</span>
+            Consider a Secondary Broker
+          </h4>
+          <p className="text-purple-800 text-xs mb-2">
+            You currently use: <span className="font-semibold">
+              {BROKER_CONFIGS[userData.brokerInfo.brokers[0]]?.name}
+            </span>
+          </p>
+          <p className="text-purple-700 text-xs">
+            Many traders add <span className="font-semibold">{primaryBroker?.name}</span> as a backup broker for:
+          </p>
+          <div className="mt-2 space-y-1">
+            <p className="text-purple-700 text-xs flex items-start gap-1">
+              <span className="mt-0.5">✓</span>
+              <span>Backup when your primary broker is down</span>
+            </p>
+            <p className="text-purple-700 text-xs flex items-start gap-1">
+              <span className="mt-0.5">✓</span>
+              <span>Access to different features and tools</span>
+            </p>
+            <p className="text-purple-700 text-xs flex items-start gap-1">
+              <span className="mt-0.5">✓</span>
+              <span>Additional IPO application opportunities</span>
+            </p>
+          </div>
+          <p className="text-purple-600 text-[10px] mt-2 italic">
+            Optional - Can be opened as secondary account alongside {BROKER_CONFIGS[userData.brokerInfo.brokers[0]]?.name}
+          </p>
         </div>
       )}
 
@@ -1778,7 +1995,7 @@ const RecommendationSection = ({
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                Open FREE {primaryBroker?.name} Account →
+                Open Your FREE {primaryBroker?.name} Account (5 Min) →
               </motion.button>
             </div>
           </motion.div>
@@ -1802,9 +2019,14 @@ const RecommendationSection = ({
               className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <span className="text-3xl">🚀</span>
-                What Happens Next?
+              <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <span className="text-3xl">🚀</span>
+                  What Happens Next?
+                </span>
+                <span className="text-lg font-bold text-green-600">
+                  Redirecting in {redirectCountdown}s...
+                </span>
               </h3>
 
               {/* 4-Step Process */}

@@ -1,7 +1,38 @@
 // 🧠 RECOMMENDATION ENGINE - Smart broker matching logic
 
-import { BROKER_CONFIGS, BROKER_SOLUTIONS, BROKER_BUSINESS_PRIORITY, PARTNER_BROKER_IDS } from './brokerConfigs';
-import { BROKER_VALIDATION_MESSAGES } from './brokerValidationMessages';
+import { UNIFIED_BROKER_CONFIGS, PARTNER_BROKER_IDS, isPartnerBroker } from './unifiedBrokerConfig';
+import { BROKER_SOLUTIONS, BROKER_BUSINESS_PRIORITY } from './brokerConfigs';
+
+// Create compatible exports for legacy code
+const BROKER_CONFIGS = Object.fromEntries(
+  Object.entries(UNIFIED_BROKER_CONFIGS).map(([id, config]) => [
+    id,
+    {
+      id: config.id,
+      name: config.name,
+      logo_url: config.logo_url,
+      affiliate_url: config.affiliate_url,
+      priority: config.priority,
+      best_for: config.best_for,
+      real_insights: config.insights,
+      features: config.features,
+      charges: {
+        intraday_brokerage: config.charges.intraday.amount,
+        delivery_brokerage: config.charges.delivery.amount,
+        fo_brokerage: config.charges.fo.amount,
+        amc_charges: config.charges.amc.amount
+      },
+      scoring: config.scoring
+    }
+  ])
+);
+
+const BROKER_VALIDATION_MESSAGES = Object.fromEntries(
+  Object.entries(UNIFIED_BROKER_CONFIGS).map(([id, config]) => [
+    id,
+    config.validation_issues
+  ])
+);
 import { getSolutionForChallenge, getBonusBenefits as getFramingBenefits } from './recommendationFraming';
 import { PRIORITY_BROKER_CONFIG, shouldForcePriorityBroker } from './priorityBroker';
 
@@ -55,14 +86,17 @@ export interface BrokerRecommendation {
 }
 
 export interface ValidationData {
-  currentBroker: string;
-  currentBrokerName: string;
-  challenges: Array<{
-    challenge: string;
-    label: string;
-    issues: string[];
-    impact: string;
-    userQuotes?: string;
+  multipleBrokers: boolean;
+  brokerData: Array<{
+    brokerId: string;
+    brokerName: string;
+    issues: Array<{
+      challenge: string;
+      label: string;
+      issues: string[];
+      impact: string;
+      userQuotes?: string;
+    }>;
   }>;
 }
 
@@ -577,13 +611,10 @@ const generateIssueBasedReasoning = (currentBrokers: string[], recommendedBroker
 Complete your trading toolkit with the missing piece.`;
 };
 
-// 🎯 NEW VALIDATION SYSTEM - Show we understand their problems
+// 🎯 NEW VALIDATION SYSTEM - Show we understand their problems (FIXED: Shows ALL brokers)
 const generateValidationData = (currentBrokers: string[], userProfile: UserProfile): ValidationData | undefined => {
   // Only show validation if user has current broker
   if (currentBrokers.length === 0) return undefined;
-
-  const currentBroker = currentBrokers[0];
-  const brokerName = BROKER_CONFIGS[currentBroker]?.name || currentBroker;
 
   // Get user's challenges
   const challenges = getArrayFromField(userProfile.mainChallenge) || [];
@@ -598,29 +629,42 @@ const generateValidationData = (currentBrokers: string[], userProfile: UserProfi
     satisfied: 'General Trading Needs'
   };
 
-  // Get validation messages for each challenge
-  const validationIssues = challenges.map(challenge => {
-    const brokerData = BROKER_VALIDATION_MESSAGES[currentBroker];
-    const issueData = brokerData?.[challenge as keyof typeof brokerData];
+  // Process ALL brokers (not just first one)
+  const allBrokerIssues = currentBrokers.map(brokerId => {
+    const brokerName = BROKER_CONFIGS[brokerId]?.name || brokerId;
 
-    // Type guard: only process if issueData has 'issues' property (not positive_aspects)
-    if (!issueData || typeof issueData === 'string' || Array.isArray(issueData) || !('issues' in issueData)) {
-      return null;
-    }
+    // Get validation messages for each challenge for THIS broker
+    const validationIssues = challenges.map(challenge => {
+      const brokerData = BROKER_VALIDATION_MESSAGES[brokerId];
+      const issueData = brokerData?.[challenge as keyof typeof brokerData];
+
+      // Type guard: only process if issueData has 'issues' property (not positive_aspects)
+      if (!issueData || typeof issueData === 'string' || Array.isArray(issueData) || !('issues' in issueData)) {
+        return null;
+      }
+
+      return {
+        challenge,
+        label: CHALLENGE_LABELS[challenge] || challenge,
+        issues: issueData.issues || [],
+        impact: issueData.impact || '',
+        userQuotes: issueData.userQuotes
+      };
+    }).filter((item): item is NonNullable<typeof item> => item !== null && item.issues.length > 0);
 
     return {
-      challenge,
-      label: CHALLENGE_LABELS[challenge] || challenge,
-      issues: issueData.issues || [],
-      impact: issueData.impact || '',
-      userQuotes: issueData.userQuotes
+      brokerId,
+      brokerName,
+      issues: validationIssues
     };
-  }).filter((item): item is NonNullable<typeof item> => item !== null && item.issues.length > 0);
+  }).filter(broker => broker.issues.length > 0); // Only include brokers that have issues
+
+  // Don't show validation section if no issues found for any broker
+  if (allBrokerIssues.length === 0) return undefined;
 
   return {
-    currentBroker,
-    currentBrokerName: brokerName,
-    challenges: validationIssues
+    multipleBrokers: currentBrokers.length > 1,
+    brokerData: allBrokerIssues
   };
 };
 
