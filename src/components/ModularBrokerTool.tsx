@@ -119,14 +119,12 @@ const ModularBrokerTool = () => {
     }));
 
     // Track Facebook pixel event
-    if (typeof window !== 'undefined' && window.fbq) {
-      window.fbq('trackCustom', 'QuestionAnswered', {
-        question_id: currentQuestion.id,
-        question_number: currentQuestionIndex + 1,
-        answer: value,
-        session_id: userData.sessionId
-      });
-    }
+    trackCustomEvent('QuestionAnswered', {
+      question_id: currentQuestion.id,
+      question_number: currentQuestionIndex + 1,
+      answer: value,
+      session_id: userData.sessionId
+    });
 
     // Track Google Analytics event
     if (typeof window !== 'undefined' && 'gtag' in window) {
@@ -302,13 +300,11 @@ const ModularBrokerTool = () => {
     }
 
     // Track progress (FB + Supabase)
-    if (typeof window !== 'undefined' && window.fbq) {
-      window.fbq('trackCustom', 'QuestionProgressed', {
-        completed_questions: currentQuestionIndex + 1,
-        total_questions: totalQuestionsToShow,
-        session_id: userData.sessionId
-      });
-    }
+    trackCustomEvent('QuestionProgressed', {
+      completed_questions: currentQuestionIndex + 1,
+      total_questions: totalQuestionsToShow,
+      session_id: userData.sessionId
+    });
     fetch('/api/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -329,13 +325,11 @@ const ModularBrokerTool = () => {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
 
       // Track back navigation
-      if (typeof window !== 'undefined' && window.fbq) {
-        window.fbq('trackCustom', 'QuestionBackNavigated', {
-          from_question: currentQuestionIndex + 1,
-          to_question: currentQuestionIndex,
-          session_id: userData.sessionId
-        });
-      }
+      trackCustomEvent('QuestionBackNavigated', {
+        from_question: currentQuestionIndex + 1,
+        to_question: currentQuestionIndex,
+        session_id: userData.sessionId
+      });
     }
   };
 
@@ -1264,13 +1258,11 @@ const RecommendationSection = ({
       setShowWhatNextModal(true);
 
       // Track modal view
-      if (typeof window !== 'undefined' && window.fbq) {
-        window.fbq('trackCustom', 'WhatNextModalShown', {
-          broker: recommendation.primary.brokerId,
-          session_id: userData.sessionId,
-          user_type: 'new_account'
-        });
-      }
+      trackCustomEvent('WhatNextModalShown', {
+        broker: recommendation.primary.brokerId,
+        session_id: userData.sessionId,
+        user_type: 'new_account'
+      });
 
       // Countdown timer: 2 -> 1 -> redirect
       const countdownInterval = setInterval(() => {
@@ -1285,12 +1277,10 @@ const RecommendationSection = ({
 
       // Auto-redirect after 2 seconds
       setTimeout(() => {
-        if (typeof window !== 'undefined' && window.fbq) {
-          window.fbq('trackCustom', 'AutoRedirectTriggered', {
-            broker: recommendation.primary.brokerId,
-            session_id: userData.sessionId
-          });
-        }
+        trackCustomEvent('AutoRedirectTriggered', {
+          broker: recommendation.primary.brokerId,
+          session_id: userData.sessionId
+        });
         window.location.href = recommendation.primary.affiliate_url;
       }, 2000);
     } else {
@@ -1302,12 +1292,10 @@ const RecommendationSection = ({
   // Handle final redirect after modal preview
   const handleFinalRedirect = () => {
     // Track modal confirmation
-    if (typeof window !== 'undefined' && window.fbq) {
-      window.fbq('trackCustom', 'WhatNextModalConfirmed', {
-        broker: recommendation.primary.brokerId,
-        session_id: userData.sessionId
-      });
-    }
+    trackCustomEvent('WhatNextModalConfirmed', {
+      broker: recommendation.primary.brokerId,
+      session_id: userData.sessionId
+    });
 
     // Redirect in same tab (not new tab)
     window.location.href = recommendation.primary.affiliate_url;
@@ -1414,13 +1402,11 @@ const RecommendationSection = ({
               onClick={() => {
                 setShowBeginnerGuide(!showBeginnerGuide);
                 // Track expand/collapse
-                if (typeof window !== 'undefined' && window.fbq) {
-                  window.fbq('trackCustom', 'BeginnerGuideToggled', {
-                    action: showBeginnerGuide ? 'collapsed' : 'expanded',
-                    broker: recommendation.primary.brokerId,
-                    session_id: userData.sessionId
-                  });
-                }
+                trackCustomEvent('BeginnerGuideToggled', {
+                  action: showBeginnerGuide ? 'collapsed' : 'expanded',
+                  broker: recommendation.primary.brokerId,
+                  session_id: userData.sessionId
+                });
               }}
               className="text-indigo-700 hover:text-indigo-900 font-medium text-sm transition-colors flex items-center gap-1"
             >
