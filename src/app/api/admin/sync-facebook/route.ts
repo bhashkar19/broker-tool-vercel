@@ -1,22 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-database';
-import { sendPurchaseEvent } from '@/lib/facebook-conversions-api';
+import { sendPurchaseEvent, sendCompleteRegistrationEvent } from '@/lib/facebook-conversions-api';
 
 /**
  * POST /api/admin/sync-facebook
  *
- * Sync pending conversions to Facebook Conversions API
+ * Sync pending conversions AND leads to Facebook Conversions API
  * Can be triggered manually or via cron job
  */
 export async function POST(request: NextRequest) {
   try {
-    // Fetch all submissions with pending Facebook sync
+    // Fetch all submissions with pending Facebook sync (both leads and conversions)
     const { data: pendingSubmissions, error } = await supabaseAdmin
       .from('user_submissions')
       .select('*')
-      .eq('conversion_status', 'converted')
+      .in('conversion_status', ['lead', 'converted'])
       .eq('fb_sync_status', 'pending')
-      .not('broker_client_id', 'is', null)
       .not('conversion_date', 'is', null)
       .limit(100); // Process max 100 at a time
 
@@ -44,15 +43,35 @@ export async function POST(request: NextRequest) {
 
     for (const submission of pendingSubmissions) {
       try {
-        const result = await sendPurchaseEvent({
-          name: submission.name,
-          phone: submission.mobile,
-          brokerId: submission.recommended_broker,
-          brokerClientId: submission.broker_client_id!,
-          conversionDate: new Date(submission.conversion_date!),
-          fbclid: submission.fb_click_id || undefined,
-          value: 500 // Estimated commission value
-        });
+        let result;
+
+        // Determine if user is new or existing based on their initial answer
+        const isNewUser = submission.has_account === 'no';
+
+        if (submission.conversion_status === 'lead') {
+          // Send CompleteRegistration event for leads (signup started)
+          result = await sendCompleteRegistrationEvent({
+            name: submission.name,
+            phone: submission.mobile,
+            brokerId: submission.recommended_broker,
+            signupDate: new Date(submission.conversion_date!),
+            fbclid: submission.fb_click_id || undefined,
+            value: isNewUser ? 165 : 145, // New users worth more
+            contentCategory: isNewUser ? 'new_user_lead' : 'existing_user_lead'
+          });
+        } else {
+          // Send Purchase event for conversions (account opened)
+          result = await sendPurchaseEvent({
+            name: submission.name,
+            phone: submission.mobile,
+            brokerId: submission.recommended_broker,
+            brokerClientId: submission.broker_client_id!,
+            conversionDate: new Date(submission.conversion_date!),
+            fbclid: submission.fb_click_id || undefined,
+            value: isNewUser ? 350 : 300, // New users worth more (higher conversion rate)
+            contentCategory: isNewUser ? 'new_user_conversion' : 'existing_user_conversion'
+          });
+        }
 
         if (result.success) {
           // Update sync status to 'synced'
@@ -98,7 +117,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Synced ${synced} conversions, ${failed} failed`,
+      message: `Synced ${synced} events, ${failed} failed`,
       synced,
       failed,
       total: pendingSubmissions.length,
@@ -120,15 +139,15 @@ export async function POST(request: NextRequest) {
 /**
  * GET /api/admin/sync-facebook
  *
- * Get sync status
+ * Get sync status for both leads and conversions
  */
 export async function GET(request: NextRequest) {
   try {
-    // Count pending, synced, and failed
+    // Count pending, synced, and failed (both leads and conversions)
     const { data: stats, error } = await supabaseAdmin
       .from('user_submissions')
       .select('fb_sync_status, conversion_status')
-      .eq('conversion_status', 'converted');
+      .in('conversion_status', ['lead', 'converted']);
 
     if (error) {
       console.error('Error fetching sync stats:', error);
@@ -142,13 +161,21 @@ export async function GET(request: NextRequest) {
     const synced = stats?.filter(s => s.fb_sync_status === 'synced').length || 0;
     const failed = stats?.filter(s => s.fb_sync_status === 'failed').length || 0;
 
+    // Breakdown by type
+    const leads = stats?.filter(s => s.conversion_status === 'lead').length || 0;
+    const conversions = stats?.filter(s => s.conversion_status === 'converted').length || 0;
+
     return NextResponse.json({
       success: true,
       stats: {
         pending,
         synced,
         failed,
-        total: stats?.length || 0
+        total: stats?.length || 0,
+        breakdown: {
+          leads,
+          conversions
+        }
       }
     });
 

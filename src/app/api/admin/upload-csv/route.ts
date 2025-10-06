@@ -252,12 +252,27 @@ export async function POST(request: NextRequest) {
         match.input.brokerDate
       );
 
+      // Smart detection: Lead vs Conversion
+      let conversionStatus: 'lead' | 'converted' = 'converted';
+
+      // Method 1: File type based (e.g., Zerodha with separate CSV files)
+      if (fileType === 'leads') {
+        conversionStatus = 'lead';
+      }
+      // Method 2: Status column based (e.g., Angel One with combined CSV)
+      else if (match.input.csvRowData?.status) {
+        const status = String(match.input.csvRowData.status).toLowerCase();
+        if (status.includes('lead') || status.includes('pending') || status.includes('initiated')) {
+          conversionStatus = 'lead';
+        }
+      }
+
       // Update user_submissions with conversion data
       await supabaseAdmin
         .from('user_submissions')
         .update({
           broker_client_id: match.input.brokerClientId,
-          conversion_status: 'converted',
+          conversion_status: conversionStatus,
           conversion_date: match.input.brokerDate,
           match_confidence: match.confidence,
           import_hash: importHash,

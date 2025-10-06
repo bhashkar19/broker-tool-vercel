@@ -242,6 +242,49 @@ export async function sendConversionEvent(params: {
 }
 
 /**
+ * Send CompleteRegistration event for lead (signup started but not completed)
+ *
+ * This should be called AFTER CSV confirms the user started signup but hasn't completed KYC.
+ */
+export async function sendCompleteRegistrationEvent(params: {
+  name: string;
+  phone: string;
+  email?: string;
+  brokerId: string;
+  signupDate: Date;
+  fbclid?: string;
+  value?: number;
+  contentCategory?: string;
+}): Promise<{ success: boolean; error?: string }> {
+
+  // Split name into first and last name
+  const nameParts = params.name.trim().split(' ');
+  const firstName = nameParts[0];
+  const lastName = nameParts.slice(1).join(' ') || '';
+
+  return sendConversionEvent({
+    eventName: 'CompleteRegistration',
+    eventTime: params.signupDate,
+    userData: {
+      phone: params.phone,
+      email: params.email,
+      firstName,
+      lastName,
+      country: 'in' // India
+    },
+    fbclid: params.fbclid,
+    customData: {
+      value: params.value || 165, // Default value for new user lead
+      currency: 'INR',
+      contentName: params.brokerId,
+      contentCategory: params.contentCategory || 'broker_signup_started',
+      brokerId: params.brokerId
+    },
+    eventId: `registration_${params.phone}_${params.signupDate.getTime()}`
+  });
+}
+
+/**
  * Send Purchase event for confirmed conversion
  *
  * This should be called AFTER CSV confirms the user actually opened an account.
@@ -255,6 +298,7 @@ export async function sendPurchaseEvent(params: {
   conversionDate: Date;
   fbclid?: string;
   value?: number; // Commission value
+  contentCategory?: string; // 'new_user_conversion' or 'existing_user_conversion'
 }): Promise<{ success: boolean; error?: string }> {
 
   // Split name into first and last name
@@ -274,10 +318,10 @@ export async function sendPurchaseEvent(params: {
     },
     fbclid: params.fbclid,
     customData: {
-      value: params.value || 500, // Default estimated commission
+      value: params.value || 350, // Default value for new user conversion
       currency: 'INR',
       contentName: params.brokerId,
-      contentCategory: 'broker_account_opening',
+      contentCategory: params.contentCategory || 'broker_account_opening',
       brokerId: params.brokerId
     },
     eventId: `purchase_${params.brokerClientId}_${params.conversionDate.getTime()}`

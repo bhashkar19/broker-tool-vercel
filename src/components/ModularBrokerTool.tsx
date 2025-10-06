@@ -146,14 +146,6 @@ const ModularBrokerTool = () => {
       ...prev,
       [field]: value
     }));
-
-    // Track Contact event when user starts filling form (Facebook standard event)
-    if (field === 'name' && value.length === 1 && typeof window !== 'undefined' && window.fbq) {
-      window.fbq('track', 'Contact', {
-        content_name: 'broker_recommendation_form',
-        content_category: 'lead_form'
-      });
-    }
   };
 
   // Validate current question
@@ -229,11 +221,14 @@ const ModularBrokerTool = () => {
     if (currentQuestionIndex === 0) {
       // Track lead capture (FB Standard + Custom + Supabase)
       if (typeof window !== 'undefined' && window.fbq) {
+        // Detect if user is new or existing
+        const isNewUser = userData.hasAccount === 'no';
+
         // Standard Lead event (helps Facebook optimize for lead generation)
         window.fbq('track', 'Lead', {
           content_name: 'broker_finder_lead',
-          content_category: 'financial_services',
-          value: 100, // Estimated value of a lead
+          content_category: isNewUser ? 'new_user_lead' : 'existing_user_lead',
+          value: isNewUser ? 70 : 45, // Higher value for new users
           currency: 'INR'
         });
 
@@ -272,19 +267,15 @@ const ModularBrokerTool = () => {
 
       // Track recommendation view (FB Standard + Custom + Supabase)
       if (typeof window !== 'undefined' && window.fbq) {
-        // Standard AddToCart (user received recommendation)
-        window.fbq('track', 'AddToCart', {
-          content_name: recommendation.primary.brokerId,
-          content_category: 'broker_recommendation',
-          value: 300, // Estimated value of engaged user
-          currency: 'INR'
-        });
+        // Detect if user is new or existing
+        const isNewUser = userData.hasAccount === 'no';
 
         // Standard ViewContent for better tracking
         window.fbq('track', 'ViewContent', {
           content_name: `broker_${recommendation.primary.brokerId}`,
           content_type: 'recommendation',
-          value: 300,
+          content_category: isNewUser ? 'new_user_recommendation' : 'existing_user_recommendation',
+          value: isNewUser ? 95 : 60, // Higher value for new users
           currency: 'INR'
         });
 
@@ -1176,10 +1167,10 @@ const RecommendationSection = ({
     if (typeof window !== 'undefined' && window.fbq) {
       // Standard InitiateCheckout event (critical for conversion optimization)
       window.fbq('track', 'InitiateCheckout', {
-        value: 500, // Estimated conversion value
+        value: isNewUser ? 110 : 90, // Higher value for new users
         currency: 'INR',
         content_name: recommendation.primary.brokerId,
-        content_category: 'broker_recommendation',
+        content_category: isNewUser ? 'new_user_affiliate_click' : 'existing_user_affiliate_click',
         content_ids: [recommendation.primary.brokerId],
         num_items: 1
       });
