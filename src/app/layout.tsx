@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import FacebookPixelInit from "@/components/FacebookPixelInit";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -110,7 +111,6 @@ export default function RootLayout({
                   s.parentNode.insertBefore(t,s)}(window, document,'script',
                   'https://connect.facebook.net/en_US/fbevents.js');
                   fbq('init', '${process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID}');
-                  fbq('track', 'PageView');
                 `,
               }}
             />
@@ -129,6 +129,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <FacebookPixelInit />
         {children}
       </body>
     </html>

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Target, CheckCircle, TrendingUp, Star, ChevronLeft } from 'lucide-react';
+import { trackEvent, trackCustomEvent } from '@/lib/facebook-pixel';
 
 // Import our modular configurations
 import {
@@ -71,14 +72,12 @@ const ModularBrokerTool = () => {
   // Facebook Pixel + Supabase Backup Tracking
   useEffect(() => {
     // Facebook Pixel
-    if (typeof window !== 'undefined' && window.fbq) {
-      window.fbq('trackCustom', 'ToolStarted', {
-        session_id: userData.sessionId,
-        config_version: questionConfig.name,
-        ab_test_version: abTestVersion || 'A',
-        timestamp: new Date().toISOString()
-      });
-    }
+    trackCustomEvent('ToolStarted', {
+      session_id: userData.sessionId,
+      config_version: questionConfig.name,
+      ab_test_version: abTestVersion || 'A',
+      timestamp: new Date().toISOString()
+    });
 
     // Supabase Backup Tracking
     fetch('/api/track', {
@@ -220,34 +219,33 @@ const ModularBrokerTool = () => {
   const nextQuestion = () => {
     if (currentQuestionIndex === 0) {
       // Track lead capture (FB Standard + Custom + Supabase)
-      if (typeof window !== 'undefined' && window.fbq) {
-        // Detect if user is new or existing
-        const isNewUser = userData.hasAccount === 'no';
+      // Detect if user is new or existing
+      const isNewUser = userData.hasAccount === 'no';
 
-        // Standard Lead event (helps Facebook optimize for lead generation)
-        window.fbq('track', 'Lead', {
-          content_name: 'broker_finder_lead',
-          content_category: isNewUser ? 'new_user_lead' : 'existing_user_lead',
-          value: isNewUser ? 70 : 45, // Higher value for new users
-          currency: 'INR'
-        });
+      // Standard Lead event (helps Facebook optimize for lead generation)
+      trackEvent('Lead', {
+        content_name: 'broker_finder_lead',
+        content_category: isNewUser ? 'new_user_lead' : 'existing_user_lead',
+        value: isNewUser ? 70 : 45, // Higher value for new users
+        currency: 'INR'
+      });
 
-        // Google Analytics Lead event
-        if ('gtag' in window) {
-          const gtag = (window as Window & { gtag: (...args: unknown[]) => void }).gtag;
-          gtag('event', 'generate_lead', {
-            currency: 'INR',
-            value: 100
-          });
-        }
-
-        // Custom event for detailed tracking
-        window.fbq('trackCustom', 'LeadCaptured', {
-          session_id: userData.sessionId,
-          name_length: userData.name?.length || 0,
-          has_mobile: !!userData.mobile
+      // Google Analytics Lead event
+      if (typeof window !== 'undefined' && 'gtag' in window) {
+        const gtag = (window as Window & { gtag: (...args: unknown[]) => void }).gtag;
+        gtag('event', 'generate_lead', {
+          currency: 'INR',
+          value: 100
         });
       }
+
+      // Custom event for detailed tracking
+      trackCustomEvent('LeadCaptured', {
+        session_id: userData.sessionId,
+        name_length: userData.name?.length || 0,
+        has_mobile: !!userData.mobile
+      });
+
       fetch('/api/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -266,28 +264,26 @@ const ModularBrokerTool = () => {
       const recommendation = generateRecommendation(userData);
 
       // Track recommendation view (FB Standard + Custom + Supabase)
-      if (typeof window !== 'undefined' && window.fbq) {
-        // Detect if user is new or existing
-        const isNewUser = userData.hasAccount === 'no';
+      // Detect if user is new or existing
+      const isNewUser = userData.hasAccount === 'no';
 
-        // Standard ViewContent for better tracking
-        window.fbq('track', 'ViewContent', {
-          content_name: `broker_${recommendation.primary.brokerId}`,
-          content_type: 'recommendation',
-          content_category: isNewUser ? 'new_user_recommendation' : 'existing_user_recommendation',
-          value: isNewUser ? 95 : 60, // Higher value for new users
-          currency: 'INR'
-        });
+      // Standard ViewContent for better tracking
+      trackEvent('ViewContent', {
+        content_name: `broker_${recommendation.primary.brokerId}`,
+        content_type: 'recommendation',
+        content_category: isNewUser ? 'new_user_recommendation' : 'existing_user_recommendation',
+        value: isNewUser ? 95 : 60, // Higher value for new users
+        currency: 'INR'
+      });
 
-        // Custom event for detailed tracking
-        window.fbq('trackCustom', 'RecommendationViewed', {
-          recommended_broker: recommendation.primary.brokerId,
-          current_broker: userData.currentBroker,
-          should_switch: recommendation.shouldSwitch,
-          match_percentage: recommendation.primary.matchPercentage,
-          session_id: userData.sessionId
-        });
-      }
+      // Custom event for detailed tracking
+      trackCustomEvent('RecommendationViewed', {
+        recommended_broker: recommendation.primary.brokerId,
+        current_broker: userData.currentBroker,
+        should_switch: recommendation.shouldSwitch,
+        match_percentage: recommendation.primary.matchPercentage,
+        session_id: userData.sessionId
+      });
       fetch('/api/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1164,41 +1160,39 @@ const RecommendationSection = ({
     const isNewUser = recommendation.recommendationType === 'new_account';
 
     // Track Facebook InitiateCheckout with enhanced parameters
-    if (typeof window !== 'undefined' && window.fbq) {
-      // Standard InitiateCheckout event (critical for conversion optimization)
-      window.fbq('track', 'InitiateCheckout', {
-        value: isNewUser ? 110 : 90, // Higher value for new users
+    // Standard InitiateCheckout event (critical for conversion optimization)
+    trackEvent('InitiateCheckout', {
+      value: isNewUser ? 110 : 90, // Higher value for new users
+      currency: 'INR',
+      content_name: recommendation.primary.brokerId,
+      content_category: isNewUser ? 'new_user_affiliate_click' : 'existing_user_affiliate_click',
+      content_ids: [recommendation.primary.brokerId],
+      num_items: 1
+    });
+
+    // Google Analytics begin_checkout event
+    if (typeof window !== 'undefined' && 'gtag' in window) {
+      const gtag = (window as Window & { gtag: (...args: unknown[]) => void }).gtag;
+      gtag('event', 'begin_checkout', {
         currency: 'INR',
-        content_name: recommendation.primary.brokerId,
-        content_category: isNewUser ? 'new_user_affiliate_click' : 'existing_user_affiliate_click',
-        content_ids: [recommendation.primary.brokerId],
-        num_items: 1
-      });
-
-      // Google Analytics begin_checkout event
-      if ('gtag' in window) {
-        const gtag = (window as Window & { gtag: (...args: unknown[]) => void }).gtag;
-        gtag('event', 'begin_checkout', {
-          currency: 'INR',
-          value: 500,
-          items: [{
-            item_id: recommendation.primary.brokerId,
-            item_name: recommendation.primary.brokerId,
-            item_category: 'broker_recommendation'
-          }]
-        });
-      }
-
-      // Custom event for detailed tracking
-      window.fbq('trackCustom', 'AffiliateClicked', {
-        broker: recommendation.primary.brokerId,
-        switching_from: userData.currentBroker,
-        match_percentage: recommendation.primary.matchPercentage,
-        should_switch: recommendation.shouldSwitch,
-        session_id: userData.sessionId,
-        user_type: userData.tradingExperience || 'unknown'
+        value: 500,
+        items: [{
+          item_id: recommendation.primary.brokerId,
+          item_name: recommendation.primary.brokerId,
+          item_category: 'broker_recommendation'
+        }]
       });
     }
+
+    // Custom event for detailed tracking
+    trackCustomEvent('AffiliateClicked', {
+      broker: recommendation.primary.brokerId,
+      switching_from: userData.currentBroker,
+      match_percentage: recommendation.primary.matchPercentage,
+      should_switch: recommendation.shouldSwitch,
+      session_id: userData.sessionId,
+      user_type: userData.tradingExperience || 'unknown'
+    });
 
     // Supabase Backup Tracking for CTA click
     fetch('/api/track', {
