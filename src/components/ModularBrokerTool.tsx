@@ -69,16 +69,8 @@ const ModularBrokerTool = () => {
   // Progress calculation
   const progressPercentage = showRecommendation ? 100 : ((currentQuestionIndex + 1) / totalQuestionsToShow) * 100;
 
-  // Facebook Pixel + Supabase Backup Tracking
+  // Supabase Backup Tracking (PageView handled by FacebookPixelInit component)
   useEffect(() => {
-    // Facebook Pixel
-    trackCustomEvent('ToolStarted', {
-      session_id: userData.sessionId,
-      config_version: questionConfig.name,
-      ab_test_version: abTestVersion || 'A',
-      timestamp: new Date().toISOString()
-    });
-
     // Supabase Backup Tracking
     fetch('/api/track', {
       method: 'POST',
@@ -117,14 +109,6 @@ const ModularBrokerTool = () => {
       ...prev,
       [currentQuestion.field_name]: processedValue
     }));
-
-    // Track Facebook pixel event
-    trackCustomEvent('QuestionAnswered', {
-      question_id: currentQuestion.id,
-      question_number: currentQuestionIndex + 1,
-      answer: value,
-      session_id: userData.sessionId
-    });
 
     // Track Google Analytics event
     if (typeof window !== 'undefined' && 'gtag' in window) {
@@ -274,14 +258,6 @@ const ModularBrokerTool = () => {
         currency: 'INR'
       });
 
-      // Custom event for detailed tracking
-      trackCustomEvent('RecommendationViewed', {
-        recommended_broker: recommendation.primary.brokerId,
-        current_broker: userData.currentBroker,
-        should_switch: recommendation.shouldSwitch,
-        match_percentage: recommendation.primary.matchPercentage,
-        session_id: userData.sessionId
-      });
       fetch('/api/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -299,12 +275,7 @@ const ModularBrokerTool = () => {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
 
-    // Track progress (FB + Supabase)
-    trackCustomEvent('QuestionProgressed', {
-      completed_questions: currentQuestionIndex + 1,
-      total_questions: totalQuestionsToShow,
-      session_id: userData.sessionId
-    });
+    // Track progress to Supabase
     fetch('/api/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -323,13 +294,6 @@ const ModularBrokerTool = () => {
   const goBack = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
-
-      // Track back navigation
-      trackCustomEvent('QuestionBackNavigated', {
-        from_question: currentQuestionIndex + 1,
-        to_question: currentQuestionIndex,
-        session_id: userData.sessionId
-      });
     }
   };
 
@@ -1178,16 +1142,6 @@ const RecommendationSection = ({
       });
     }
 
-    // Custom event for detailed tracking
-    trackCustomEvent('AffiliateClicked', {
-      broker: recommendation.primary.brokerId,
-      switching_from: userData.currentBroker,
-      match_percentage: recommendation.primary.matchPercentage,
-      should_switch: recommendation.shouldSwitch,
-      session_id: userData.sessionId,
-      user_type: userData.tradingExperience || 'unknown'
-    });
-
     // Supabase Backup Tracking for CTA click
     fetch('/api/track', {
       method: 'POST',
@@ -1257,13 +1211,6 @@ const RecommendationSection = ({
       // Show "What Happens Next" modal
       setShowWhatNextModal(true);
 
-      // Track modal view
-      trackCustomEvent('WhatNextModalShown', {
-        broker: recommendation.primary.brokerId,
-        session_id: userData.sessionId,
-        user_type: 'new_account'
-      });
-
       // Countdown timer: 2 -> 1 -> redirect
       const countdownInterval = setInterval(() => {
         setRedirectCountdown((prev) => {
@@ -1277,10 +1224,6 @@ const RecommendationSection = ({
 
       // Auto-redirect after 2 seconds
       setTimeout(() => {
-        trackCustomEvent('AutoRedirectTriggered', {
-          broker: recommendation.primary.brokerId,
-          session_id: userData.sessionId
-        });
         window.location.href = recommendation.primary.affiliate_url;
       }, 2000);
     } else {
@@ -1291,12 +1234,6 @@ const RecommendationSection = ({
 
   // Handle final redirect after modal preview
   const handleFinalRedirect = () => {
-    // Track modal confirmation
-    trackCustomEvent('WhatNextModalConfirmed', {
-      broker: recommendation.primary.brokerId,
-      session_id: userData.sessionId
-    });
-
     // Redirect in same tab (not new tab)
     window.location.href = recommendation.primary.affiliate_url;
   };
@@ -1399,15 +1336,7 @@ const RecommendationSection = ({
               Starting Your Investment Journey with Zerodha
             </h3>
             <button
-              onClick={() => {
-                setShowBeginnerGuide(!showBeginnerGuide);
-                // Track expand/collapse
-                trackCustomEvent('BeginnerGuideToggled', {
-                  action: showBeginnerGuide ? 'collapsed' : 'expanded',
-                  broker: recommendation.primary.brokerId,
-                  session_id: userData.sessionId
-                });
-              }}
+              onClick={() => setShowBeginnerGuide(!showBeginnerGuide)}
               className="text-indigo-700 hover:text-indigo-900 font-medium text-sm transition-colors flex items-center gap-1"
             >
               {showBeginnerGuide ? '▲ Hide' : '▼ Show Guide'}
