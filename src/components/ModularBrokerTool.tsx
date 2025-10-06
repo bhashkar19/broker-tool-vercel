@@ -359,6 +359,16 @@ const ModularBrokerTool = () => {
     <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-5 text-center">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <Image
+            src="/paisowala-logo.ico"
+            alt="Paisowala"
+            width={24}
+            height={24}
+            className="rounded"
+          />
+          <span className="text-sm font-semibold">Paisowala</span>
+        </div>
         <h1 className="text-xl font-bold mb-1 flex items-center justify-center gap-2">
           <Target className="w-5 h-5" />
           Find Your Perfect Broker
@@ -1369,7 +1379,7 @@ const RecommendationSection = ({
           </div>
           <div className="flex flex-col">
             <span className="text-3xl font-bold text-green-600">
-              {UNIFIED_BROKER_CONFIGS[primaryBroker?.brokerId]?.charges.delivery.formula || (primaryBroker?.charges.delivery_brokerage === 0 ? '₹0' : `₹${primaryBroker?.charges.delivery_brokerage}`)}
+              {(primaryBroker?.id && UNIFIED_BROKER_CONFIGS[primaryBroker.id]?.charges.delivery.formula) || (primaryBroker?.charges.delivery_brokerage === 0 ? '₹0' : `₹${primaryBroker?.charges.delivery_brokerage}`)}
             </span>
             <span className="text-xs text-gray-600 mt-1">Delivery Fee</span>
           </div>
@@ -1582,7 +1592,7 @@ const RecommendationSection = ({
                 <td className="py-2 pr-4 text-gray-700">Equity Delivery</td>
                 {/* Recommended broker ONLY */}
                 <td className="text-center py-2 px-3 font-semibold text-green-700 bg-green-50">
-                  {UNIFIED_BROKER_CONFIGS[primaryBroker?.brokerId]?.charges.delivery.formula || `₹${primaryBroker?.charges.delivery_brokerage}`}
+                  {(primaryBroker?.id && UNIFIED_BROKER_CONFIGS[primaryBroker.id]?.charges.delivery.formula) || `₹${primaryBroker?.charges.delivery_brokerage}`}
                 </td>
                 {/* Current brokers - HIDDEN */}
                 {/* {userData.brokerInfo?.brokers && userData.brokerInfo.brokers.map((brokerId: string) => {
@@ -1598,7 +1608,7 @@ const RecommendationSection = ({
                 <td className="py-2 pr-4 text-gray-700">Equity Intraday</td>
                 {/* Recommended broker ONLY */}
                 <td className="text-center py-2 px-3 font-semibold text-green-700 bg-green-50">
-                  {UNIFIED_BROKER_CONFIGS[primaryBroker?.brokerId]?.charges.intraday.formula || `₹${primaryBroker?.charges.intraday_brokerage}`}
+                  {(primaryBroker?.id && UNIFIED_BROKER_CONFIGS[primaryBroker.id]?.charges.intraday.formula) || `₹${primaryBroker?.charges.intraday_brokerage}`}
                 </td>
                 {/* Current brokers - HIDDEN */}
                 {/* {userData.brokerInfo?.brokers && userData.brokerInfo.brokers.map((brokerId: string) => {
@@ -1614,7 +1624,7 @@ const RecommendationSection = ({
                 <td className="py-2 pr-4 text-gray-700">F&O (Futures/Options)</td>
                 {/* Recommended broker ONLY */}
                 <td className="text-center py-2 px-3 font-semibold text-green-700 bg-green-50">
-                  {UNIFIED_BROKER_CONFIGS[primaryBroker?.brokerId]?.charges.fo.formula || `₹${primaryBroker?.charges.fo_brokerage}`}
+                  {(primaryBroker?.id && UNIFIED_BROKER_CONFIGS[primaryBroker.id]?.charges.fo.formula) || `₹${primaryBroker?.charges.fo_brokerage}`}
                 </td>
                 {/* Current brokers - HIDDEN */}
                 {/* {userData.brokerInfo?.brokers && userData.brokerInfo.brokers.map((brokerId: string) => {
@@ -1630,7 +1640,7 @@ const RecommendationSection = ({
                 <td className="py-2 pr-4 text-gray-700 font-medium">AMC (Annual)</td>
                 {/* Recommended broker ONLY */}
                 <td className="text-center py-2 px-3 font-semibold text-green-700 bg-green-100">
-                  {UNIFIED_BROKER_CONFIGS[primaryBroker?.brokerId]?.charges.amc.formula || `₹${primaryBroker?.charges.amc_charges}/year`}
+                  {(primaryBroker?.id && UNIFIED_BROKER_CONFIGS[primaryBroker.id]?.charges.amc.formula) || `₹${primaryBroker?.charges.amc_charges}/year`}
                 </td>
                 {/* Current brokers - HIDDEN */}
                 {/* {userData.brokerInfo?.brokers && userData.brokerInfo.brokers.map((brokerId: string) => {
@@ -1666,23 +1676,23 @@ const RecommendationSection = ({
           <div className="space-y-2 mt-4">
             <div className="flex justify-between py-2 border-b border-gray-200">
               <span className="text-gray-700">Equity Delivery</span>
-              <span className="font-semibold text-green-700">{UNIFIED_BROKER_CONFIGS[primaryBroker?.brokerId]?.charges.delivery.formula || `₹${primaryBroker?.charges.delivery_brokerage}`}</span>
+              <span className="font-semibold text-green-700">{(primaryBroker?.id && UNIFIED_BROKER_CONFIGS[primaryBroker.id]?.charges.delivery.formula) || `₹${primaryBroker?.charges.delivery_brokerage}`}</span>
             </div>
             <div className="flex justify-between py-2 border-b border-gray-200">
               <span className="text-gray-700">Equity Intraday</span>
-              <span className="font-semibold text-green-700">{UNIFIED_BROKER_CONFIGS[primaryBroker?.brokerId]?.charges.intraday.formula || `₹${primaryBroker?.charges.intraday_brokerage}`}</span>
+              <span className="font-semibold text-green-700">{(primaryBroker?.id && UNIFIED_BROKER_CONFIGS[primaryBroker.id]?.charges.intraday.formula) || `₹${primaryBroker?.charges.intraday_brokerage}`}</span>
             </div>
             <div className="flex justify-between py-2 border-b border-gray-200">
               <span className="text-gray-700">F&O (Futures/Options)</span>
-              <span className="font-semibold text-green-700">{UNIFIED_BROKER_CONFIGS[primaryBroker?.brokerId]?.charges.fo.formula || `₹${primaryBroker?.charges.fo_brokerage}`}</span>
+              <span className="font-semibold text-green-700">{(primaryBroker?.id && UNIFIED_BROKER_CONFIGS[primaryBroker.id]?.charges.fo.formula) || `₹${primaryBroker?.charges.fo_brokerage}`}</span>
             </div>
             <div className="flex justify-between py-2 border-b border-gray-200 bg-gray-50">
               <span className="text-gray-700 font-medium">AMC (Annual)</span>
-              <span className="font-semibold text-green-700">{UNIFIED_BROKER_CONFIGS[primaryBroker?.brokerId]?.charges.amc.formula || `₹${primaryBroker?.charges.amc_charges}/year`}</span>
+              <span className="font-semibold text-green-700">{(primaryBroker?.id && UNIFIED_BROKER_CONFIGS[primaryBroker.id]?.charges.amc.formula) || `₹${primaryBroker?.charges.amc_charges}/year`}</span>
             </div>
             <div className="flex justify-between py-2">
               <span className="text-gray-700">Account Opening</span>
-              <span className="font-semibold text-green-700">{UNIFIED_BROKER_CONFIGS[primaryBroker?.brokerId]?.charges.demat_opening.formula || 'FREE'}</span>
+              <span className="font-semibold text-green-700">{(primaryBroker?.id && UNIFIED_BROKER_CONFIGS[primaryBroker.id]?.charges.demat_opening.formula) || 'FREE'}</span>
             </div>
           </div>
         )}
@@ -1928,32 +1938,27 @@ const RecommendationSection = ({
         <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 mb-6 mt-8 text-left">
           <h4 className="font-semibold text-purple-900 mb-2 text-sm flex items-center gap-2">
             <span className="text-base">💡</span>
-            Consider a Secondary Broker
+            Make {primaryBroker?.name} Your Primary Broker
           </h4>
           <p className="text-purple-800 text-xs mb-2">
-            You currently use: <span className="font-semibold">
-              {BROKER_CONFIGS[userData.brokerInfo.brokers[0]]?.name}
-            </span>
-          </p>
-          <p className="text-purple-700 text-xs">
-            Many traders add <span className="font-semibold">{primaryBroker?.name}</span> as a backup broker for:
+            Switch to <span className="font-semibold">{primaryBroker?.name}</span> as your primary broker and keep <span className="font-semibold">{UNIFIED_BROKER_CONFIGS[userData.brokerInfo.brokers[0]]?.name}</span> as backup for:
           </p>
           <div className="mt-2 space-y-1">
             <p className="text-purple-700 text-xs flex items-start gap-1">
               <span className="mt-0.5">✓</span>
-              <span>Backup when your primary broker is down</span>
+              <span>Uninterrupted trading when one broker has technical issues</span>
             </p>
             <p className="text-purple-700 text-xs flex items-start gap-1">
               <span className="mt-0.5">✓</span>
-              <span>Access to different features and tools</span>
+              <span>Access to different trading platforms and tools</span>
             </p>
             <p className="text-purple-700 text-xs flex items-start gap-1">
               <span className="mt-0.5">✓</span>
-              <span>Additional IPO application opportunities</span>
+              <span>Better risk management with diversified accounts</span>
             </p>
           </div>
           <p className="text-purple-600 text-[10px] mt-2 italic">
-            Optional - Can be opened as secondary account alongside {BROKER_CONFIGS[userData.brokerInfo.brokers[0]]?.name}
+            Smart traders maintain 2 broker accounts for reliability and flexibility
           </p>
         </div>
       )}
