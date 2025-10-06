@@ -255,11 +255,18 @@ export async function POST(request: NextRequest) {
       // Smart detection: Lead vs Conversion
       let conversionStatus: 'lead' | 'converted' = 'converted';
 
-      // Method 1: File type based (e.g., Zerodha with separate CSV files)
+      // Method 1: Zerodha leads CSV - check for client_id presence
+      // In Zerodha's leads CSV, status is always "Lead" for all rows
+      // The real indicator is: client_id populated = converted, empty = lead
       if (fileType === 'leads') {
-        conversionStatus = 'lead';
+        if (match.input.brokerClientId && match.input.brokerClientId.trim() !== '') {
+          conversionStatus = 'converted';
+        } else {
+          conversionStatus = 'lead';
+        }
       }
       // Method 2: Status column based (e.g., Angel One with combined CSV)
+      // Angel One uses account_status column with values like 'lead', 'pending', 'active', etc.
       else if (match.input.csvRowData?.status) {
         const status = String(match.input.csvRowData.status).toLowerCase();
         if (status.includes('lead') || status.includes('pending') || status.includes('initiated')) {

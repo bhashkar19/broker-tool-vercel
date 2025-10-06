@@ -111,12 +111,12 @@ const angelOneConfig: BrokerCSVConfig = {
 
   fileTypes: {
     conversions: {
-      description: 'Angel One Account Openings',
+      description: 'Angel One Combined Report (Leads + Conversions)',
       columns: {
         name: 'client_name',
         clientId: 'account_id',
         date: 'registration_date',
-        status: 'account_status'
+        status: 'account_status' // Used to detect: 'lead'/'pending' = lead, others = converted
       },
       dateFormat: 'DD/MM/YYYY',
       skipRows: 0
