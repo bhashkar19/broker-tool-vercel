@@ -60,8 +60,8 @@ const VisualCardQuestion: React.FC<VisualCardQuestionProps> = ({
             key={option.value}
             onClick={() => onAnswerSelect(option.value)}
             className={`
-              relative overflow-hidden rounded-xl border-2 transition-all flex items-center
-              ${option.description ? 'py-4 px-4' : 'py-5 px-5 flex-col justify-center'}
+              relative overflow-hidden rounded-xl border-2 transition-all flex flex-col items-center justify-center
+              ${option.description ? 'py-6 px-5' : 'py-6 px-5'}
               ${question.options && question.options.length === 2 ? '' : ''}
               ${selectedValue === option.value
                 ? 'border-blue-600 bg-blue-50 shadow-md'
@@ -69,28 +69,24 @@ const VisualCardQuestion: React.FC<VisualCardQuestionProps> = ({
               }
             `}
           >
-            {/* Icon - Left aligned when description exists */}
-            <div className={`flex-shrink-0 ${
-              option.description
-                ? 'text-4xl mr-3'
-                : `text-center mb-2 ${question.options && question.options.length === 2 ? 'text-4xl' : 'text-5xl'}`
-            }`}>
+            {/* Icon - Centered on top */}
+            <div className="flex-shrink-0 text-5xl mb-3 text-center">
               {getIcon(option)}
             </div>
 
             {/* Text content */}
-            <div className={`flex-1 ${option.description ? 'text-left' : 'text-center'}`}>
+            <div className="flex-1 text-center w-full">
               {/* Label */}
-              <p className={`font-bold leading-tight ${
-                option.description ? 'text-base mb-1' : 'text-base'
+              <p className={`font-bold leading-snug ${
+                option.description ? 'text-lg mb-2' : 'text-lg'
               } ${selectedValue === option.value ? 'text-blue-900' : 'text-gray-900'}`}>
                 {option.label.replace(/^[✓✗📊💰📚🎯🌱📈🚀⚡🎓]\s*/, '')}
               </p>
 
               {/* Description (if provided) */}
               {option.description && (
-                <p className={`text-xs leading-snug ${
-                  selectedValue === option.value ? 'text-blue-700' : 'text-gray-600'
+                <p className={`text-sm leading-relaxed ${
+                  selectedValue === option.value ? 'text-blue-700' : 'text-gray-700'
                 }`}>
                   {option.description}
                 </p>
