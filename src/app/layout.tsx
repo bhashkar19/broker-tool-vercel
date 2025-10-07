@@ -89,10 +89,10 @@ export default function RootLayout({
           }}
         />
 
-        {/* Google Analytics 4 - G-VWS8RVQ18T */}
+        {/* Google tag (gtag.js) */}
         <script
           async
-          src="https://www.googletagmanager.com/gtag/js?id=G-VWS8RVQ18T"
+          src="https://www.googletagmanager.com/gtag/js?id=G-6KWP5N6SSX"
         />
         <script
           dangerouslySetInnerHTML={{
@@ -100,9 +100,7 @@ export default function RootLayout({
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', 'G-VWS8RVQ18T', {
-                page_path: window.location.pathname,
-              });
+              gtag('config', 'G-6KWP5N6SSX');
             `,
           }}
         />
