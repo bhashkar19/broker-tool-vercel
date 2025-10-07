@@ -90,18 +90,18 @@ export default function SentryTestPage() {
               <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
                 <li>Error appears in Sentry dashboard within 60 seconds</li>
                 <li>Error includes stack trace</li>
-                <li>Environment is set to "production"</li>
+                <li>Environment is set to &quot;production&quot;</li>
                 <li>User context is captured (session ID)</li>
               </ul>
             </div>
 
             <div className="text-center pt-4">
-              <a
-                href="/"
-                className="text-blue-600 hover:text-blue-800 underline text-sm"
+              <button
+                onClick={() => window.location.href = '/'}
+                className="text-blue-600 hover:text-blue-800 underline text-sm cursor-pointer bg-transparent border-none"
               >
                 ← Back to Home
-              </a>
+              </button>
             </div>
           </div>
         </div>

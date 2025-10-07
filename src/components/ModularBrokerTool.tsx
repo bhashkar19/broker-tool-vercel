@@ -33,7 +33,6 @@ const ModularBrokerTool = () => {
   const [showRecommendation, setShowRecommendation] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [apiSuccess, setApiSuccess] = useState<boolean>(false);
-  const [isConverting, setIsConverting] = useState<boolean>(false);
   const [userData, setUserData] = useState<UserProfile>({
     name: '',
     mobile: '',
