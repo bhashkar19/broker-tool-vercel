@@ -4,9 +4,9 @@ import { getQuizAnalytics } from '@/lib/supabase-database';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const timeRange = (searchParams.get('timeRange') || '10d') as '24h' | '7d' | '10d';
 
-    const result = await getQuizAnalytics(limit);
+    const result = await getQuizAnalytics(timeRange);
 
     if (!result.success) {
       return NextResponse.json(

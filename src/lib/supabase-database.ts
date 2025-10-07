@@ -444,41 +444,75 @@ export async function getAnalyticsSummary() {
 }
 
 // 🎯 GET QUIZ ANALYTICS - Track partial and completed quiz attempts
-export async function getQuizAnalytics(limit: number = 50) {
+export async function getQuizAnalytics(timeRange: '24h' | '7d' | '10d' = '10d') {
   try {
-    // Get all sessions that started
+    // Calculate time threshold
+    const now = new Date();
+    let hoursAgo = 240; // 10 days default
+    if (timeRange === '24h') hoursAgo = 24;
+    else if (timeRange === '7d') hoursAgo = 168;
+
+    const timeThreshold = new Date(now.getTime() - (hoursAgo * 60 * 60 * 1000)).toISOString();
+
+    // Get all sessions that started within time range
     const { data: sessionsStarted } = await supabaseAdmin
       .from('tracking_events')
       .select('session_id, created_at, event_data, user_agent, ip_address')
       .eq('event_name', 'tool_started')
-      .order('created_at', { ascending: false })
-      .limit(limit);
+      .gte('created_at', timeThreshold)
+      .order('created_at', { ascending: false });
 
-    // Get all completed sessions
+    // Get session IDs to filter other queries
+    const sessionIds = sessionsStarted?.map(s => s.session_id) || [];
+
+    if (sessionIds.length === 0) {
+      return {
+        success: true,
+        data: {
+          summary: {
+            totalSessions: 0,
+            completed: 0,
+            droppedOff: 0,
+            completionRate: 0,
+            dropOffRate: 0,
+          },
+          funnel: { started: 0, q1: 0, q2: 0, q3: 0, q4: 0, completed: 0 },
+          recentSessions: [],
+          trafficSources: []
+        }
+      };
+    }
+
+    // Get all completed sessions (only from our session IDs)
     const { data: sessionsCompleted } = await supabaseAdmin
       .from('tracking_events')
       .select('session_id')
-      .eq('event_name', 'recommendation_viewed');
+      .eq('event_name', 'recommendation_viewed')
+      .in('session_id', sessionIds);
 
     const completedSessionIds = new Set(sessionsCompleted?.map(s => s.session_id) || []);
 
-    // Get all question progress events
+    // Get all question progress events (only from our session IDs)
     const { data: questionEvents } = await supabaseAdmin
       .from('tracking_events')
       .select('session_id, event_data, created_at')
       .eq('event_name', 'question_progressed')
+      .in('session_id', sessionIds)
       .order('created_at', { ascending: false });
 
-    // Group questions by session
-    const sessionQuestions: Record<string, number> = {};
+    // Track max question index reached per session
+    const sessionMaxQuestion: Record<string, number> = {};
     questionEvents?.forEach(event => {
-      if (!sessionQuestions[event.session_id]) {
-        sessionQuestions[event.session_id] = 0;
+      const eventData = event.event_data as { questionIndex?: number } || {};
+      const questionIndex = eventData.questionIndex ?? -1;
+
+      if (questionIndex >= 0) {
+        const currentMax = sessionMaxQuestion[event.session_id] ?? -1;
+        sessionMaxQuestion[event.session_id] = Math.max(currentMax, questionIndex);
       }
-      sessionQuestions[event.session_id]++;
     });
 
-    // Calculate drop-off funnel
+    // Calculate drop-off funnel based on max question index reached
     const funnelData = {
       started: sessionsStarted?.length || 0,
       q1: 0,
@@ -488,17 +522,19 @@ export async function getQuizAnalytics(limit: number = 50) {
       completed: completedSessionIds.size
     };
 
-    Object.values(sessionQuestions).forEach(count => {
-      if (count >= 1) funnelData.q1++;
-      if (count >= 2) funnelData.q2++;
-      if (count >= 3) funnelData.q3++;
-      if (count >= 4) funnelData.q4++;
+    // Count sessions that reached each question (questionIndex is 0-based)
+    Object.values(sessionMaxQuestion).forEach(maxIndex => {
+      if (maxIndex >= 0) funnelData.q1++; // Reached Q1 (index 0)
+      if (maxIndex >= 1) funnelData.q2++; // Reached Q2 (index 1)
+      if (maxIndex >= 2) funnelData.q3++; // Reached Q3 (index 2)
+      if (maxIndex >= 3) funnelData.q4++; // Reached Q4 (index 3)
     });
 
     // Build recent sessions with details
     const recentSessions = (sessionsStarted || []).map(session => {
       const isCompleted = completedSessionIds.has(session.session_id);
-      const questionsAnswered = sessionQuestions[session.session_id] || 0;
+      const maxQuestionIndex = sessionMaxQuestion[session.session_id] ?? -1;
+      const questionsAnswered = maxQuestionIndex >= 0 ? maxQuestionIndex + 1 : 0;
       const utmData = session.event_data as Record<string, unknown> || {};
 
       return {

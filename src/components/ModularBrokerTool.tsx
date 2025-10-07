@@ -102,12 +102,14 @@ const ModularBrokerTool = () => {
             completed_at: data.completedAt
           });
 
+          // 🐛 FIX: Restore FULL userData to ensure recommendation matches original
           return {
             ...prev,
             name: data.name || prev.name,
             mobile: data.mobile || prev.mobile,
-            // Load basic data so recommendation can be generated
-            hasAccount: 'yes', // Assume they had account (doesn't matter much)
+            // Restore all quiz answers (not just hasAccount)
+            ...(data.userData || {}),
+            sessionId: prev.sessionId // Keep new session ID for tracking
           };
         });
 
@@ -1282,7 +1284,24 @@ const RecommendationSection = ({
               broker: recommendation.primary.brokerId,
               brokerName: primaryBroker?.name || recommendation.primary.brokerId,
               mobile: userData.mobile,
-              name: userData.name
+              name: userData.name,
+              // 🐛 FIX: Save full userData to restore exact recommendation on refresh
+              userData: {
+                hasAccount: userData.hasAccount,
+                brokerInfo: userData.brokerInfo,
+                brokerCount: userData.brokerCount,
+                currentBrokers: userData.currentBrokers,
+                userType: userData.userType,
+                mainChallenge: userData.mainChallenge,
+                tradingFrequency: userData.tradingFrequency,
+                whatMattersMost: userData.whatMattersMost,
+                // Legacy fields for compatibility
+                investmentPurpose: userData.investmentPurpose,
+                currentBroker: userData.currentBroker,
+                experienceLevel: userData.experienceLevel,
+                mainIssue: userData.mainIssue,
+                tradingPriority: userData.tradingPriority
+              }
             }));
           }
         } else {

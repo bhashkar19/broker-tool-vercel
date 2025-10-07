@@ -118,6 +118,9 @@ export default function AdminDashboard() {
   // Mark as uploaded state
   const [markingUploaded, setMarkingUploaded] = useState<string | null>(null);
 
+  // Traffic time range filter
+  const [trafficTimeRange, setTrafficTimeRange] = useState<'24h' | '7d' | '10d'>('10d');
+
   const fetchAnalytics = async () => {
     try {
       const response = await fetch('/api/admin/submissions?analytics=true');
@@ -130,9 +133,9 @@ export default function AdminDashboard() {
     }
   };
 
-  const fetchQuizAnalytics = async () => {
+  const fetchQuizAnalytics = async (timeRange: '24h' | '7d' | '10d' = trafficTimeRange) => {
     try {
-      const response = await fetch('/api/admin/quiz-analytics');
+      const response = await fetch(`/api/admin/quiz-analytics?timeRange=${timeRange}`);
       const data = await response.json();
       if (data.success) {
         setQuizAnalytics(data.analytics);
@@ -608,6 +611,54 @@ export default function AdminDashboard() {
         {/* Traffic & Drop-offs Section */}
         {view === 'traffic' && quizAnalytics && (
           <div className="space-y-6">
+            {/* Time Range Filter */}
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">Time Range</h3>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setTrafficTimeRange('24h');
+                      fetchQuizAnalytics('24h');
+                    }}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      trafficTimeRange === '24h'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Last 24 Hours
+                  </button>
+                  <button
+                    onClick={() => {
+                      setTrafficTimeRange('7d');
+                      fetchQuizAnalytics('7d');
+                    }}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      trafficTimeRange === '7d'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Last 7 Days
+                  </button>
+                  <button
+                    onClick={() => {
+                      setTrafficTimeRange('10d');
+                      fetchQuizAnalytics('10d');
+                    }}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      trafficTimeRange === '10d'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Last 10 Days
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="bg-white rounded-lg shadow p-6">
