@@ -5,6 +5,8 @@ export interface QuestionOption {
   label: string;
   value: string;
   id?: number;
+  description?: string; // Optional subtitle/description for visual cards
+  icon?: string; // Optional custom icon (emoji or icon name)
 }
 
 export interface Question {
@@ -93,7 +95,7 @@ export const QUESTION_FLOW_A: QuestionFlow = {
       id: "user_type",
       type: "checkbox",
       label: "What best describes you?",
-      helpText: "Select all that apply",
+      helpText: "👆 Click all that apply",
       field_name: "userType",
       options: [
         { label: "📊 Long-term investor", value: "investor" },
@@ -112,7 +114,7 @@ export const QUESTION_FLOW_A: QuestionFlow = {
       id: "main_challenge",
       type: "checkbox",
       label: "What frustrates you about your current broker?",
-      helpText: "Select all that apply",
+      helpText: "👆 Click all that frustrate you",
       field_name: "mainChallenge",
       options: [
         { label: "💸 High charges", value: "charges" },
@@ -134,6 +136,7 @@ export const QUESTION_FLOW_A: QuestionFlow = {
       id: "trading_frequency",
       type: "radio",
       label: "How often do you trade?",
+      helpText: "👆 Choose one",
       field_name: "tradingFrequency",
       options: [
         { label: "Daily (multiple trades per day)", value: "daily" },
@@ -151,7 +154,7 @@ export const QUESTION_FLOW_A: QuestionFlow = {
       id: "what_matters_most",
       type: "checkbox",
       label: "What matters to you when choosing a broker?",
-      helpText: "Pick your priorities",
+      helpText: "👆 Click your top priorities",
       field_name: "whatMattersMost",
       options: [
         { label: "💰 Lowest charges", value: "cost" },
@@ -172,13 +175,28 @@ export const QUESTION_FLOW_A: QuestionFlow = {
     {
       id: "new_user_type",
       type: "radio",
-      label: "What's your PRIMARY goal?",
+      label: "What brings you here today?",
       field_name: "userType",
-      helpText: "Pick the one that fits best",
+      helpText: "Choose your primary investment goal",
       options: [
-        { label: "📊 Build wealth long-term", value: "investor" },
-        { label: "💰 Learn active trading", value: "trader" },
-        { label: "📚 Just exploring markets", value: "learner" }
+        {
+          label: "Long-term Wealth Building",
+          value: "investor",
+          icon: "📈",
+          description: "Invest for retirement, financial goals & freedom"
+        },
+        {
+          label: "Active Trading",
+          value: "trader",
+          icon: "⚡",
+          description: "Day trading, swing trading & technical analysis"
+        },
+        {
+          label: "Learning & Exploring",
+          value: "learner",
+          icon: "🎓",
+          description: "Understand markets before committing capital"
+        }
       ],
       conditional: {
         showIf: "hasAccount",
@@ -194,28 +212,63 @@ export const QUESTION_FLOW_A: QuestionFlow = {
       field_name: "investmentAmount",
       helpText: "This helps us recommend the right platform for your budget",
       options: [
-        { label: "Just exploring (under ₹10,000)", value: "exploring" },
-        { label: "Small start (₹10,000 - ₹50,000)", value: "small" },
-        { label: "Moderate (₹50,000 - ₹2,00,000)", value: "medium" },
-        { label: "Serious investment (₹2,00,000+)", value: "large" }
+        {
+          label: "Just Exploring",
+          value: "exploring",
+          icon: "👀",
+          description: "Under ₹10,000 - Testing the waters"
+        },
+        {
+          label: "Small Start",
+          value: "small",
+          icon: "🌱",
+          description: "₹10,000 - ₹50,000 - Beginning my journey"
+        },
+        {
+          label: "Moderate Investment",
+          value: "medium",
+          icon: "💼",
+          description: "₹50,000 - ₹2,00,000 - Building portfolio"
+        },
+        {
+          label: "Serious Investment",
+          value: "large",
+          icon: "💰",
+          description: "₹2,00,000+ - Long-term wealth building"
+        }
       ],
       conditional: {
         showIf: "hasAccount",
         equals: "no"
       },
-      validation: { required: true }
-      // 4 options - keep compact radio boxes
+      validation: { required: true },
+      visualCard: true // Now using visual cards for consistency
     },
     {
       id: "new_user_knowledge_level",
       type: "radio",
-      label: "What's your current knowledge about stock markets?",
+      label: "What's your experience with stock markets?",
       field_name: "experienceLevel",
       helpText: "Be honest - this helps us recommend the right learning resources",
       options: [
-        { label: "Complete beginner - know nothing", value: "beginner" },
-        { label: "Some basic understanding", value: "intermediate" },
-        { label: "Good understanding, ready to trade", value: "advanced" }
+        {
+          label: "Complete Beginner",
+          value: "beginner",
+          icon: "🌱",
+          description: "New to investing, need guidance & education"
+        },
+        {
+          label: "Some Understanding",
+          value: "intermediate",
+          icon: "📊",
+          description: "Know the basics, ready to learn more"
+        },
+        {
+          label: "Ready to Trade",
+          value: "advanced",
+          icon: "🚀",
+          description: "Understand markets, need the right platform"
+        }
       ],
       conditional: {
         showIf: "hasAccount",
@@ -231,16 +284,37 @@ export const QUESTION_FLOW_A: QuestionFlow = {
       field_name: "tradingFrequency",
       helpText: "This affects which broker saves you the most money",
       options: [
-        { label: "Very rarely - long-term holdings only", value: "rarely" },
-        { label: "Few times a month", value: "monthly" },
-        { label: "Weekly - active trading", value: "weekly" },
-        { label: "Daily - day trading", value: "daily" }
+        {
+          label: "Long-term Holder",
+          value: "rarely",
+          icon: "🐢",
+          description: "Very rarely - Buy and hold for years"
+        },
+        {
+          label: "Occasional Trader",
+          value: "monthly",
+          icon: "📅",
+          description: "Few times a month - Balanced approach"
+        },
+        {
+          label: "Active Trader",
+          value: "weekly",
+          icon: "📊",
+          description: "Weekly trades - Regular activity"
+        },
+        {
+          label: "Day Trader",
+          value: "daily",
+          icon: "⚡",
+          description: "Daily trades - High frequency trading"
+        }
       ],
       conditional: {
         showIf: "hasAccount",
         equals: "no"
       },
-      validation: { required: true }
+      validation: { required: true },
+      visualCard: true // Consistent visual cards throughout
     },
     {
       id: "new_user_priority",
@@ -280,8 +354,18 @@ export const QUESTION_FLOW_B: QuestionFlow = {
       helpText: "⏱️ Takes 60 seconds • Free personalized match",
       field_name: "hasAccount",
       options: [
-        { label: "Yes, I do", value: "yes" },
-        { label: "No, I don't", value: "no" }
+        {
+          label: "Yes, I have an account",
+          value: "yes",
+          icon: "✅",
+          description: "I'm already trading or investing"
+        },
+        {
+          label: "No, I'm just starting",
+          value: "no",
+          icon: "🆕",
+          description: "Help me choose my first broker"
+        }
       ],
       validation: { required: true },
       visualCard: true // 2 options - perfect for large visual cards
@@ -308,7 +392,7 @@ export const QUESTION_FLOW_B: QuestionFlow = {
       id: "user_type",
       type: "checkbox",
       label: "What best describes you?",
-      helpText: "Select all that apply",
+      helpText: "👆 Click all that apply",
       field_name: "userType",
       options: [
         { label: "📊 Long-term investor", value: "investor" },
@@ -327,7 +411,7 @@ export const QUESTION_FLOW_B: QuestionFlow = {
       id: "main_challenge",
       type: "checkbox",
       label: "What frustrates you about your current broker?",
-      helpText: "Select all that apply",
+      helpText: "👆 Click all that frustrate you",
       field_name: "mainChallenge",
       options: [
         { label: "💸 High charges", value: "charges" },
@@ -366,7 +450,7 @@ export const QUESTION_FLOW_B: QuestionFlow = {
       id: "most_important",
       type: "checkbox",
       label: "What matters to you when choosing a broker?",
-      helpText: "Pick your priorities",
+      helpText: "👆 Click your top priorities",
       field_name: "whatMattersMost",
       options: [
         { label: "💰 Lowest charges", value: "charges" },
@@ -386,13 +470,28 @@ export const QUESTION_FLOW_B: QuestionFlow = {
     {
       id: "new_user_type",
       type: "radio",
-      label: "What's your PRIMARY goal?",
+      label: "What brings you here today?",
       field_name: "userType",
-      helpText: "Pick the one that fits best",
+      helpText: "Choose your primary investment goal",
       options: [
-        { label: "📊 Build wealth long-term", value: "investor" },
-        { label: "💰 Learn active trading", value: "trader" },
-        { label: "📚 Just exploring markets", value: "learner" }
+        {
+          label: "Long-term Wealth Building",
+          value: "investor",
+          icon: "📈",
+          description: "Invest for retirement, financial goals & freedom"
+        },
+        {
+          label: "Active Trading",
+          value: "trader",
+          icon: "⚡",
+          description: "Day trading, swing trading & technical analysis"
+        },
+        {
+          label: "Learning & Exploring",
+          value: "learner",
+          icon: "🎓",
+          description: "Understand markets before committing capital"
+        }
       ],
       conditional: {
         showIf: "hasAccount",
@@ -408,28 +507,63 @@ export const QUESTION_FLOW_B: QuestionFlow = {
       field_name: "investmentAmount",
       helpText: "This helps us recommend the right account type",
       options: [
-        { label: "Under ₹50,000 - starting small", value: "small" },
-        { label: "₹50,000 - ₹2,00,000 - moderate amount", value: "medium" },
-        { label: "₹2,00,000 - ₹10,00,000 - significant capital", value: "large" },
-        { label: "Over ₹10,00,000 - serious investment", value: "very_large" }
+        {
+          label: "Starting Small",
+          value: "small",
+          icon: "🌱",
+          description: "Under ₹50,000 - Beginning journey"
+        },
+        {
+          label: "Moderate Amount",
+          value: "medium",
+          icon: "💼",
+          description: "₹50,000 - ₹2,00,000 - Building portfolio"
+        },
+        {
+          label: "Significant Capital",
+          value: "large",
+          icon: "💰",
+          description: "₹2,00,000 - ₹10,00,000 - Serious investing"
+        },
+        {
+          label: "Major Investment",
+          value: "very_large",
+          icon: "💎",
+          description: "Over ₹10,00,000 - Large capital"
+        }
       ],
       conditional: {
         showIf: "hasAccount",
         equals: "no"
       },
-      validation: { required: true }
-      // 4 options - keep compact radio boxes
+      validation: { required: true },
+      visualCard: true // Now using visual cards for consistency
     },
     {
       id: "new_user_experience",
       type: "radio",
-      label: "Your experience with stock markets?",
+      label: "What's your experience with stock markets?",
       field_name: "experienceLevel",
       helpText: "Be honest - this helps us recommend the right learning resources",
       options: [
-        { label: "Complete beginner - know nothing", value: "beginner" },
-        { label: "Some basic understanding", value: "intermediate" },
-        { label: "Good understanding, ready to trade", value: "advanced" }
+        {
+          label: "Complete Beginner",
+          value: "beginner",
+          icon: "🌱",
+          description: "New to investing, need guidance & education"
+        },
+        {
+          label: "Some Understanding",
+          value: "intermediate",
+          icon: "📊",
+          description: "Know the basics, ready to learn more"
+        },
+        {
+          label: "Ready to Trade",
+          value: "advanced",
+          icon: "🚀",
+          description: "Understand markets, need the right platform"
+        }
       ],
       conditional: {
         showIf: "hasAccount",
@@ -445,16 +579,37 @@ export const QUESTION_FLOW_B: QuestionFlow = {
       field_name: "tradingFrequency",
       helpText: "This affects which broker saves you the most money",
       options: [
-        { label: "Very rarely - long-term holdings only", value: "rarely" },
-        { label: "Few times a month", value: "monthly" },
-        { label: "Weekly - active trading", value: "weekly" },
-        { label: "Daily - day trading", value: "daily" }
+        {
+          label: "Long-term Holder",
+          value: "rarely",
+          icon: "🐢",
+          description: "Very rarely - Buy and hold for years"
+        },
+        {
+          label: "Occasional Trader",
+          value: "monthly",
+          icon: "📅",
+          description: "Few times a month - Balanced approach"
+        },
+        {
+          label: "Active Trader",
+          value: "weekly",
+          icon: "📊",
+          description: "Weekly trades - Regular activity"
+        },
+        {
+          label: "Day Trader",
+          value: "daily",
+          icon: "⚡",
+          description: "Daily trades - High frequency trading"
+        }
       ],
       conditional: {
         showIf: "hasAccount",
         equals: "no"
       },
-      validation: { required: true }
+      validation: { required: true },
+      visualCard: true // Consistent visual cards throughout
     },
     // ⭐ CONTACT FORM - MOVED TO SECOND-TO-LAST POSITION
     {

@@ -302,25 +302,38 @@ const ModularBrokerTool = () => {
 
   return (
     <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-5 text-center">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <Image
-            src="/paisowala-logo.ico"
-            alt="Paisowala"
-            width={24}
-            height={24}
-            className="rounded"
-          />
-          <span className="text-sm font-semibold">Paisowala</span>
+      {/* Header - Clean & Professional */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-6">
+        {/* Logo & Brand - Centered, Clean */}
+        <div className="flex flex-col items-center gap-4">
+          {/* Logo with Name - Single Row */}
+          <div className="flex items-center gap-3">
+            <div className="bg-white rounded-xl p-2.5 shadow-lg">
+              <Image
+                src="/paisowala-logo.ico"
+                alt="Paisowala"
+                width={44}
+                height={44}
+                className="rounded-lg"
+              />
+            </div>
+            <div className="text-left">
+              <h2 className="text-xl font-bold leading-tight">Paisowala</h2>
+              <p className="text-xs text-blue-100 leading-tight">Smart Broker Comparison Platform</p>
+            </div>
+          </div>
+
+          {/* Main Heading - Below Logo */}
+          <div className="text-center border-t border-white/20 pt-4 w-full">
+            <h1 className="text-lg font-semibold mb-1 flex items-center justify-center gap-2">
+              <Target className="w-5 h-5" />
+              Find Your Perfect Broker
+            </h1>
+            <p className="text-blue-100 text-sm">
+              {questionConfig.description}
+            </p>
+          </div>
         </div>
-        <h1 className="text-xl font-bold mb-1 flex items-center justify-center gap-2">
-          <Target className="w-5 h-5" />
-          Find Your Perfect Broker
-        </h1>
-        <p className="text-blue-100 text-sm">
-          {questionConfig.description}
-        </p>
       </div>
 
       {/* Progress Indicator */}
@@ -637,12 +650,11 @@ const SmartBrokerSelection = ({
   return (
     <div>
       <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">
-        Select exactly {expectedCount} broker{expectedCount > 1 ? 's' : ''}
+        👆 Click to select your {expectedCount} broker{expectedCount > 1 ? 's' : ''}
       </h2>
 
       <p className="text-sm text-gray-600 mb-6 text-center">
-        You mentioned you use {expectedCount} broker{expectedCount > 1 ? 's' : ''}.
-        Please select them below.
+        Tap each broker logo you currently use
       </p>
 
       {/* Progress indicator */}
@@ -1245,32 +1257,44 @@ const RecommendationSection = ({
       transition={{ duration: 0.5 }}
       className="text-center"
     >
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center justify-center gap-2">
-        <Star className="w-6 h-6 text-yellow-500" />
-        Your Perfect Broker Match
-      </h2>
-
-      {/* User Profile Summary */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 text-left">
-        <h4 className="font-semibold text-blue-800 mb-2">Your Profile:</h4>
-        <p className="text-blue-700 text-sm">
-          {recommendation.userProfile.type} • {recommendation.userProfile.priority} priority • {recommendation.userProfile.frequency} trading
-        </p>
-      </div>
-
-      {/* Primary Recommendation - Entire card is clickable */}
+      {/* Merged: Personalized Header + Primary Recommendation - Entire section is clickable */}
       <button
         onClick={handleConversion}
         className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl p-6 mb-6 transition-all hover:shadow-2xl hover:scale-[1.02] hover:from-green-600 hover:to-green-700 cursor-pointer"
       >
+        {/* Personalized Header with User Name */}
         <div className="flex items-center justify-center gap-2 mb-3">
-          <TrendingUp className="w-6 h-6" />
-          <h3 className="text-xl font-bold">Your Perfect Match</h3>
+          <Star className="w-7 h-7 text-white" />
+          <h2 className="text-xl font-bold text-white">
+            {userData.name ? `${userData.name}, Your Perfect Match` : 'Your Perfect Broker Match'}
+          </h2>
         </div>
-        <div className="text-center">
-          <p className="text-white text-3xl font-bold">
-            {primaryBroker?.name}
-          </p>
+        <p className="text-green-50 text-sm mb-4">Based on intelligent analysis of your preferences</p>
+
+        {/* Broker Logo + Name */}
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <TrendingUp className="w-6 h-6" />
+          <h3 className="text-lg font-semibold">Your Ideal Broker</h3>
+        </div>
+
+        {/* Broker Logo and Name in a card */}
+        <div className="bg-white rounded-xl p-5 mt-3">
+          <div className="flex flex-col items-center gap-4">
+            {primaryBroker?.id && UNIFIED_BROKER_CONFIGS[primaryBroker.id]?.logo_url && (
+              <div className="bg-gray-50 rounded-lg p-4 border-2 border-gray-200">
+                <Image
+                  src={UNIFIED_BROKER_CONFIGS[primaryBroker.id].logo_url}
+                  alt={primaryBroker.name}
+                  width={100}
+                  height={100}
+                  className="object-contain"
+                />
+              </div>
+            )}
+            <p className="text-gray-800 text-3xl font-bold">
+              {primaryBroker?.name}
+            </p>
+          </div>
         </div>
       </button>
 
@@ -1289,7 +1313,7 @@ const RecommendationSection = ({
           </div>
           <div className="flex flex-col">
             <span className="text-3xl font-bold text-green-600">
-              {(primaryBroker?.id && UNIFIED_BROKER_CONFIGS[primaryBroker.id]?.charges.delivery.formula) || (primaryBroker?.charges.delivery_brokerage === 0 ? '₹0' : `₹${primaryBroker?.charges.delivery_brokerage}`)}
+              {(primaryBroker?.id && (UNIFIED_BROKER_CONFIGS[primaryBroker.id]?.charges.delivery.shortFormula || UNIFIED_BROKER_CONFIGS[primaryBroker.id]?.charges.delivery.formula)) || (primaryBroker?.charges.delivery_brokerage === 0 ? '₹0' : `₹${primaryBroker?.charges.delivery_brokerage}`)}
             </span>
             <span className="text-xs text-gray-600 mt-1">Delivery Fee</span>
           </div>
@@ -1305,6 +1329,33 @@ const RecommendationSection = ({
         </div>
       </div>
 
+      {/* CLEAR PRICING EXPLANATION - Shows what the charges actually mean */}
+      {primaryBroker?.id === 'zerodha' && (
+        <p className="text-center text-xs text-gray-600 mb-4 px-4 leading-relaxed">
+          📝 Delivery: ₹0 (FREE forever) • Intraday/F&O: ₹20 per trade or 0.03% (whichever lower)
+        </p>
+      )}
+      {primaryBroker?.id === 'angel_one' && (
+        <p className="text-center text-xs text-gray-600 mb-4 px-4 leading-relaxed">
+          📝 All trades: ₹20 or 0.1% per trade (whichever lower) • Delivery NO LONGER FREE since Nov 2024
+        </p>
+      )}
+      {primaryBroker?.id === 'upstox' && (
+        <p className="text-center text-xs text-gray-600 mb-4 px-4 leading-relaxed">
+          📝 Delivery: ₹20 or 2.5% per trade (whichever lower) • Intraday/F&O: ₹20 or 0.05% (whichever lower)
+        </p>
+      )}
+      {primaryBroker?.id === 'fyers' && (
+        <p className="text-center text-xs text-gray-600 mb-4 px-4 leading-relaxed">
+          📝 Delivery: ₹0 FREE (promotional offer - verify before opening) • Intraday/F&O: ₹20 per trade or 0.03%
+        </p>
+      )}
+      {primaryBroker?.id === '5paisa' && (
+        <p className="text-center text-xs text-gray-600 mb-4 px-4 leading-relaxed">
+          📝 All segments: ₹20 per trade (standard) or ₹10 per trade (premium plan ₹599-1199/month)
+        </p>
+      )}
+
       {/* MAIN CTA - Primary action button with clear instruction */}
       {!showComparison && (
         <motion.button
@@ -1316,16 +1367,10 @@ const RecommendationSection = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          Click Here to Open FREE {primaryBroker?.name} Account →
+          Click For {primaryBroker?.name} Free A/C →
         </motion.button>
       )}
 
-      {/* Helper text below main CTA */}
-      {!showComparison && (
-        <p className="text-center text-sm text-gray-600 mb-6">
-          ✓ 100% Free Account Opening • ✓ 5 Minute Setup • ✓ Instant Activation
-        </p>
-      )}
 
       {/* FIRST-TIME USER GUIDE - Only for new_account users - ZERODHA SPECIFIC */}
       {recommendation.recommendationType === 'new_account' && (
@@ -1570,32 +1615,6 @@ const RecommendationSection = ({
             </tbody>
           </table>
         </div>
-
-        {/* Show pricing table even if user has no current brokers */}
-        {(!userData.brokerInfo?.brokers || userData.brokerInfo.brokers.length === 0) && (
-          <div className="space-y-2 mt-4">
-            <div className="flex justify-between py-2 border-b border-gray-200">
-              <span className="text-gray-700">Equity Delivery</span>
-              <span className="font-semibold text-green-700">{(primaryBroker?.id && UNIFIED_BROKER_CONFIGS[primaryBroker.id]?.charges.delivery.formula) || `₹${primaryBroker?.charges.delivery_brokerage}`}</span>
-            </div>
-            <div className="flex justify-between py-2 border-b border-gray-200">
-              <span className="text-gray-700">Equity Intraday</span>
-              <span className="font-semibold text-green-700">{(primaryBroker?.id && UNIFIED_BROKER_CONFIGS[primaryBroker.id]?.charges.intraday.formula) || `₹${primaryBroker?.charges.intraday_brokerage}`}</span>
-            </div>
-            <div className="flex justify-between py-2 border-b border-gray-200">
-              <span className="text-gray-700">F&O (Futures/Options)</span>
-              <span className="font-semibold text-green-700">{(primaryBroker?.id && UNIFIED_BROKER_CONFIGS[primaryBroker.id]?.charges.fo.formula) || `₹${primaryBroker?.charges.fo_brokerage}`}</span>
-            </div>
-            <div className="flex justify-between py-2 border-b border-gray-200 bg-gray-50">
-              <span className="text-gray-700 font-medium">AMC (Annual)</span>
-              <span className="font-semibold text-green-700">{(primaryBroker?.id && UNIFIED_BROKER_CONFIGS[primaryBroker.id]?.charges.amc.formula) || `₹${primaryBroker?.charges.amc_charges}/year`}</span>
-            </div>
-            <div className="flex justify-between py-2">
-              <span className="text-gray-700">Account Opening</span>
-              <span className="font-semibold text-green-700">{(primaryBroker?.id && UNIFIED_BROKER_CONFIGS[primaryBroker.id]?.charges.demat_opening.formula) || 'FREE'}</span>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Show comparison widget when requested */}
@@ -1636,19 +1655,6 @@ const RecommendationSection = ({
         </div>
       )}
 
-      {/* Trust Reassurance */}
-      {!showComparison && (
-        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-4 text-center">
-          <p className="text-blue-800 font-semibold text-sm mb-1">✓ 100% Free Account Opening</p>
-          <p className="text-blue-700 text-xs">
-            {primaryBroker?.id === 'zerodha' ? 'Trusted by 1.6 Crore+ traders • SEBI registered' :
-            primaryBroker?.id === 'upstox' ? 'Trusted by 1.3 Crore+ traders • SEBI registered' :
-            primaryBroker?.id === 'angel_one' ? 'Trusted by 2 Crore+ traders • SEBI registered' :
-            'SEBI registered • Bank-grade security'}
-          </p>
-        </div>
-      )}
-
       {/* Secondary CTA Button - Different text to avoid confusion */}
       {!showComparison && (
         <motion.button
@@ -1663,7 +1669,7 @@ const RecommendationSection = ({
 
       {/* Trust Badges - Below CTA */}
       <p className="text-center text-gray-600 text-xs mb-4">
-        ✓ FREE Account Opening • ✓ SEBI Registered • ✓ Bank-grade Security • ✓ Instant Activation
+        FREE Account Opening • SEBI Registered • Bank-grade Security • Instant Activation
       </p>
 
       {/* Referral Disclosure */}
@@ -1863,26 +1869,6 @@ const RecommendationSection = ({
         </div>
       )}
 
-      {/* Trust Indicators */}
-      <div className="mt-6 text-sm text-gray-600 flex flex-wrap items-center justify-center gap-4">
-        <span className="flex items-center gap-1">
-          <CheckCircle className="w-4 h-4 text-green-500" />
-          FREE Account Opening
-        </span>
-        <span className="flex items-center gap-1">
-          <CheckCircle className="w-4 h-4 text-green-500" />
-          SEBI Registered
-        </span>
-        <span className="flex items-center gap-1">
-          <CheckCircle className="w-4 h-4 text-green-500" />
-          Bank-grade Security
-        </span>
-        <span className="flex items-center gap-1">
-          <CheckCircle className="w-4 h-4 text-green-500" />
-          Instant Activation
-        </span>
-      </div>
-
       {/* STICKY CTA BUTTON - Shows after scrolling past hero */}
       <AnimatePresence>
         {showStickyButton && !showComparison && (
@@ -1900,7 +1886,7 @@ const RecommendationSection = ({
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                Open Your FREE {primaryBroker?.name} Account (5 Min) →
+                Click For {primaryBroker?.name} Free A/C →
               </motion.button>
             </div>
           </motion.div>

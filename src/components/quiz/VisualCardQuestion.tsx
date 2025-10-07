@@ -23,22 +23,26 @@ const VisualCardQuestion: React.FC<VisualCardQuestionProps> = ({
   const selectedValue = userData[question.field_name as keyof UserProfile] as string;
 
   // Icons for different question types
-  const getIcon = (value: string) => {
+  const getIcon = (option: { value: string; icon?: string }) => {
+    // If custom icon provided, use it
+    if (option.icon) return option.icon;
+
+    // Otherwise use default icon mapping
     const iconMap: Record<string, string> = {
       // "Do you trade?" question
       'yes': '✅',
       'no': '🆕',
       // "What's your goal?" question
-      'investor': '📊',
-      'trader': '💰',
-      'learner': '📚',
+      'investor': '📈',
+      'trader': '⚡',
+      'learner': '🎓',
       'professional': '🎯',
       // "Knowledge level" question
       'beginner': '🌱',
-      'intermediate': '📈',
+      'intermediate': '📊',
       'advanced': '🚀'
     };
-    return iconMap[value] || '⭐';
+    return iconMap[option.value] || '⭐';
   };
 
   return (
@@ -50,36 +54,53 @@ const VisualCardQuestion: React.FC<VisualCardQuestionProps> = ({
         <p className="text-sm text-blue-600 mb-5 text-center font-medium">{question.helpText}</p>
       )}
 
-      <div className={`grid gap-4 ${question.options && question.options.length === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+      <div className={`grid gap-3 ${question.options && question.options.length === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
         {question.options?.map((option) => (
           <button
             key={option.value}
             onClick={() => onAnswerSelect(option.value)}
             className={`
-              relative overflow-hidden rounded-xl border-3 transition-all min-h-[140px] flex flex-col items-center justify-center
-              ${question.options && question.options.length === 2 ? 'px-5 py-6' : 'px-6 py-7'}
+              relative overflow-hidden rounded-xl border-2 transition-all flex items-center
+              ${option.description ? 'py-4 px-4' : 'py-5 px-5 flex-col justify-center'}
+              ${question.options && question.options.length === 2 ? '' : ''}
               ${selectedValue === option.value
-                ? 'border-blue-600 bg-blue-50 shadow-lg scale-105'
-                : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50 hover:scale-102'
+                ? 'border-blue-600 bg-blue-50 shadow-md'
+                : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50'
               }
             `}
           >
-            {/* Icon */}
-            <div className={`text-center mb-3 ${question.options && question.options.length === 2 ? 'text-5xl' : 'text-6xl'}`}>
-              {getIcon(option.value)}
+            {/* Icon - Left aligned when description exists */}
+            <div className={`flex-shrink-0 ${
+              option.description
+                ? 'text-4xl mr-3'
+                : `text-center mb-2 ${question.options && question.options.length === 2 ? 'text-4xl' : 'text-5xl'}`
+            }`}>
+              {getIcon(option)}
             </div>
 
-            {/* Label */}
-            <p className={`font-bold text-center leading-snug ${
-              question.options && question.options.length === 2 ? 'text-base' : 'text-lg'
-            } ${selectedValue === option.value ? 'text-blue-900' : 'text-gray-900'}`}>
-              {option.label.replace(/^[✓✗📊💰📚🎯🌱📈🚀]\s*/, '')}
-            </p>
+            {/* Text content */}
+            <div className={`flex-1 ${option.description ? 'text-left' : 'text-center'}`}>
+              {/* Label */}
+              <p className={`font-bold leading-tight ${
+                option.description ? 'text-base mb-1' : 'text-base'
+              } ${selectedValue === option.value ? 'text-blue-900' : 'text-gray-900'}`}>
+                {option.label.replace(/^[✓✗📊💰📚🎯🌱📈🚀⚡🎓]\s*/, '')}
+              </p>
+
+              {/* Description (if provided) */}
+              {option.description && (
+                <p className={`text-xs leading-snug ${
+                  selectedValue === option.value ? 'text-blue-700' : 'text-gray-600'
+                }`}>
+                  {option.description}
+                </p>
+              )}
+            </div>
 
             {/* Selected indicator */}
             {selectedValue === option.value && (
-              <div className="absolute top-2 right-2 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="absolute top-2 right-2 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
+                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
