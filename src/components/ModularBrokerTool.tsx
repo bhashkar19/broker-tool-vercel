@@ -1293,6 +1293,27 @@ const RecommendationSection = ({
       }
     }
 
+    // 🎯 TRACK CTA CLICK (before redirect)
+    try {
+      await fetch('/api/track-click', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: userData.sessionId,
+          broker_id: recommendation.primary.brokerId,
+          user_mobile: userData.mobile,
+          user_name: userData.name,
+          utm_source: new URLSearchParams(window.location.search).get('utm_source'),
+          utm_medium: new URLSearchParams(window.location.search).get('utm_medium'),
+          utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign'),
+          fb_click_id: new URLSearchParams(window.location.search).get('fbclid')
+        })
+      });
+    } catch (error) {
+      console.error('Click tracking error:', error);
+      // Don't block redirect if tracking fails
+    }
+
     // For new users: Show modal with 2-second auto-redirect
     // For existing users: Redirect immediately
     if (isNewUser) {

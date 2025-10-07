@@ -7,15 +7,16 @@ const RATE_LIMIT_WINDOW = 60000; // 1 minute
 const MAX_SUBMISSIONS_PER_MINUTE = 3;
 const MIN_TIME_BETWEEN_SUBMISSIONS = 10000; // 10 seconds
 
-// Clean up old entries every 5 minutes
-setInterval(() => {
+// Clean up function (called inline, no setInterval in serverless)
+function cleanupOldTracking() {
   const now = Date.now();
+  const threshold = RATE_LIMIT_WINDOW * 5;
   for (const [key, data] of submissionTracker.entries()) {
-    if (now - data.lastSubmission > RATE_LIMIT_WINDOW * 5) {
+    if (now - data.lastSubmission > threshold) {
       submissionTracker.delete(key);
     }
   }
-}, 300000);
+}
 
 interface SubmissionData {
   // Contact info
@@ -37,6 +38,8 @@ interface SubmissionData {
   mainChallenge?: string[] | string;
   tradingFrequency?: string;
   whatMattersMost?: string[] | string;
+  investmentAmount?: string;
+  experienceLevel?: string;
 
   // LEGACY single fields (for compatibility)
   currentBroker?: string;
@@ -94,6 +97,9 @@ function mapNewFieldsToOld(data: SubmissionData) {
 export async function POST(request: NextRequest) {
   try {
     const data: SubmissionData = await request.json();
+
+    // Clean up old tracking data (replaces setInterval for serverless)
+    cleanupOldTracking();
 
     // Get client IP for spam protection
     const ip = request.headers.get('x-forwarded-for') ||
@@ -192,15 +198,26 @@ export async function POST(request: NextRequest) {
     // 🔄 FIELD MAPPING: Convert new multi-select to old single fields
     const mappedData = mapNewFieldsToOld(data);
 
-    // Save to database
+    // Save to database (with BOTH old mapped fields AND new complete quiz data)
     const submissionData = {
       name: data.name,
       mobile: data.mobile,
+      // OLD MAPPED FIELDS (for backward compatibility)
       current_broker: mappedData.currentBroker,
       execution_issues: mappedData.executionIssues,
       tools_satisfaction: mappedData.toolsSatisfaction,
       support_experience: mappedData.supportExperience,
       charges_concern: mappedData.chargesConcern,
+      // NEW COMPLETE QUIZ DATA (stored as JSONB)
+      has_account: data.hasAccount,
+      broker_info: data.brokerInfo,
+      user_type: data.userType,
+      main_challenge: data.mainChallenge,
+      trading_frequency: data.tradingFrequency,
+      what_matters_most: data.whatMattersMost,
+      investment_amount: data.investmentAmount,
+      experience_level: data.experienceLevel,
+      // TRACKING DATA
       session_id: data.sessionId,
       recommended_broker: data.recommended_broker,
       user_agent: data.user_agent,
@@ -232,32 +249,41 @@ export async function POST(request: NextRequest) {
 
       console.error('🚨 CRITICAL: Database save failed:', errorDetails);
 
-      // Still log to console as backup for lead recovery
-      console.log('📋 User submission received (database save failed - backup log):', {
-        ...data,
-        ip,
-        submittedAt: new Date().toISOString()
+      // Log full data as backup for manual recovery
+      console.log('📋 BACKUP LOG - User submission (DB failed):', {
+        ...submissionData,
+        timestamp: new Date().toISOString()
       });
 
       // In production, you could send this to external monitoring service:
       // await sendToMonitoringService(errorDetails);
 
-    } else {
-      // 📊 SUCCESS MONITORING - Track successful conversions
-      const successDetails = {
-        event_type: 'successful_submission',
-        user_data: {
-          id: dbResult.data?.id,
-          sessionId: data.sessionId,
-          recommendedBroker: data.recommended_broker
+      // RETURN ERROR - Don't pretend success when data wasn't saved
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Failed to save your information. Please try again or contact support.',
+          errorId: data.sessionId // For support tracking
         },
-        timestamp: new Date().toISOString(),
-        ip: ip
-      };
-
-      console.log('✅ SUCCESS: User submission saved to database:', successDetails);
+        { status: 500 }
+      );
     }
 
+    // 📊 SUCCESS MONITORING - Track successful conversions
+    const successDetails = {
+      event_type: 'successful_submission',
+      user_data: {
+        id: dbResult.data?.id,
+        sessionId: data.sessionId,
+        recommendedBroker: data.recommended_broker
+      },
+      timestamp: new Date().toISOString(),
+      ip: ip
+    };
+
+    console.log('✅ SUCCESS: User submission saved to database:', successDetails);
+
+    // Only return success if DB save actually succeeded
     return NextResponse.json({
       success: true,
       sessionId: data.sessionId,

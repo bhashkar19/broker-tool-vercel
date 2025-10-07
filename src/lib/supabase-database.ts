@@ -1,12 +1,38 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+// Validate required environment variables on startup
+function validateEnvVars() {
+  const required = {
+    'NEXT_PUBLIC_SUPABASE_URL': process.env.NEXT_PUBLIC_SUPABASE_URL,
+    'NEXT_PUBLIC_SUPABASE_ANON_KEY': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    'SUPABASE_SERVICE_ROLE_KEY': process.env.SUPABASE_SERVICE_ROLE_KEY
+  };
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error('Missing Supabase environment variables');
+  const missing = Object.entries(required)
+    .filter(([_, value]) => !value || value.trim() === '')
+    .map(([key]) => key);
+
+  if (missing.length > 0) {
+    const errorMsg = `🚨 CRITICAL: Missing required environment variables: ${missing.join(', ')}`;
+    console.error(errorMsg);
+    throw new Error(errorMsg);
+  }
+
+  // Validate format
+  const url = required['NEXT_PUBLIC_SUPABASE_URL'];
+  if (url && !url.startsWith('https://')) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL must start with https://');
+  }
+
+  console.log('✅ Environment variables validated successfully');
 }
+
+// Run validation
+validateEnvVars();
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 // Client for public operations (with anon key)
 export const supabase = createClient(supabaseUrl, supabaseKey);
@@ -18,11 +44,22 @@ export interface UserSubmission {
   id?: number;
   name: string;
   mobile: string;
+  // OLD FIELDS (mapped for backward compatibility)
   current_broker: string;
   execution_issues: string;
   tools_satisfaction: string;
   support_experience: string;
   charges_concern: string;
+  // NEW COMPLETE QUIZ DATA FIELDS
+  has_account?: string;
+  broker_info?: unknown; // JSONB
+  user_type?: unknown; // JSONB
+  main_challenge?: unknown; // JSONB
+  trading_frequency?: string;
+  what_matters_most?: unknown; // JSONB
+  investment_amount?: string;
+  experience_level?: string;
+  // TRACKING FIELDS
   session_id: string;
   recommended_broker: string;
   user_agent: string;
@@ -32,7 +69,9 @@ export interface UserSubmission {
   utm_medium?: string;
   utm_campaign?: string;
   created_at?: string;
-
+  // CLICK TRACKING
+  cta_clicked?: boolean;
+  cta_clicked_at?: string;
   // Conversion tracking fields
   broker_client_id?: string;
   conversion_status?: 'pending' | 'converted' | 'rejected';
@@ -111,13 +150,25 @@ export async function saveUserSubmission(data: UserSubmission) {
     const { data: result, error } = await supabaseAdmin
       .from('user_submissions')
       .insert([{
+        // Basic info
         name: data.name,
         mobile: data.mobile,
+        // OLD mapped fields
         current_broker: data.current_broker,
         execution_issues: data.execution_issues,
         tools_satisfaction: data.tools_satisfaction,
         support_experience: data.support_experience,
         charges_concern: data.charges_concern,
+        // NEW complete quiz data
+        has_account: data.has_account,
+        broker_info: data.broker_info,
+        user_type: data.user_type,
+        main_challenge: data.main_challenge,
+        trading_frequency: data.trading_frequency,
+        what_matters_most: data.what_matters_most,
+        investment_amount: data.investment_amount,
+        experience_level: data.experience_level,
+        // Tracking
         session_id: data.session_id,
         recommended_broker: data.recommended_broker,
         user_agent: data.user_agent,
