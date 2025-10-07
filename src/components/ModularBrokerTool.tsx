@@ -33,13 +33,6 @@ const ModularBrokerTool = () => {
   const [showRecommendation, setShowRecommendation] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [apiSuccess, setApiSuccess] = useState<boolean>(false);
-  const [showAlreadyCompleted, setShowAlreadyCompleted] = useState(false);
-  const [completedData, setCompletedData] = useState<{
-    broker: string;
-    completedAt: string;
-    name?: string;
-    mobile?: string;
-  } | null>(null);
   const [userData, setUserData] = useState<UserProfile>({
     name: '',
     mobile: '',
@@ -98,15 +91,26 @@ const ModularBrokerTool = () => {
     if (stored) {
       try {
         const data = JSON.parse(stored);
-        setShowAlreadyCompleted(true);
-        setCompletedData(data);
 
-        // Track retake attempt
-        trackCustomEvent('RetakeAttemptBlocked', {
-          session_id: userData.sessionId,
-          original_broker: data.broker,
-          completed_at: data.completedAt
+        // Load their previous data and show recommendation directly
+        setUserData(prev => {
+          // Track retake attempt
+          trackCustomEvent('RetakeAttemptBlocked', {
+            session_id: prev.sessionId,
+            original_broker: data.broker,
+            completed_at: data.completedAt
+          });
+
+          return {
+            ...prev,
+            name: data.name || prev.name,
+            mobile: data.mobile || prev.mobile,
+            // Load basic data so recommendation can be generated
+            hasAccount: 'yes', // Assume they had account (doesn't matter much)
+          };
         });
+
+        setShowRecommendation(true); // Jump straight to recommendation
       } catch (error) {
         console.error('Error parsing completion data:', error);
         // If data is corrupted, remove it
@@ -230,8 +234,37 @@ const ModularBrokerTool = () => {
   };
 
   // Move to next question
-  const nextQuestion = () => {
+  const nextQuestion = async () => {
     if (currentQuestionIndex === 0) {
+      // 🔒 CHECK IF MOBILE NUMBER ALREADY COMPLETED QUIZ (Database check)
+      try {
+        const response = await fetch('/api/check-completion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mobile: userData.mobile })
+        });
+
+        const result = await response.json();
+
+        if (result.completed) {
+          // User already completed - show their original recommendation
+          setShowRecommendation(true);
+
+          // Track database-blocked retake attempt
+          trackCustomEvent('RetakeAttemptBlockedByDatabase', {
+            session_id: userData.sessionId,
+            mobile: userData.mobile,
+            original_broker: result.broker,
+            completed_at: result.completedAt
+          });
+
+          return; // Stop quiz progression
+        }
+      } catch (error) {
+        console.error('Error checking completion:', error);
+        // Continue with quiz if API fails (fail open)
+      }
+
       // Track lead capture (FB Standard + Custom + Supabase)
       // Detect if user is new or existing
       const isNewUser = userData.hasAccount === 'no';
@@ -1232,6 +1265,17 @@ const RecommendationSection = ({
           submitSuccess = true;
           setApiSuccess(true);
           setApiError(null);
+
+          // 🔒 SAVE COMPLETION TO LOCALSTORAGE (Prevent retakes)
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('brokerQuizCompleted', JSON.stringify({
+              completedAt: new Date().toISOString(),
+              broker: recommendation.primary.brokerId,
+              brokerName: primaryBroker?.name || recommendation.primary.brokerId,
+              mobile: userData.mobile,
+              name: userData.name
+            }));
+          }
         } else {
           throw new Error(`API returned ${response.status}`);
         }
