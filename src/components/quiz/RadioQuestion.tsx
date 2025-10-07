@@ -35,13 +35,18 @@ const RadioQuestion: React.FC<RadioQuestionProps> = ({
           <button
             key={option.value}
             onClick={() => onAnswerSelect(option.value)}
-            className={`w-full px-3.5 py-2.5 border-2 rounded-lg text-left text-sm font-medium transition-all flex items-center ${
+            className={`w-full px-3.5 py-2.5 border-2 rounded-lg text-left text-sm font-medium transition-all flex items-center justify-between ${
               selectedValue === option.value
                 ? 'border-blue-600 bg-blue-50 text-blue-900'
                 : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50 text-gray-900'
             }`}
           >
-            {option.label}
+            <span>{option.label}</span>
+            {selectedValue === option.value && (
+              <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 ml-2">
+                <div className="w-2 h-2 rounded-full bg-white"></div>
+              </div>
+            )}
           </button>
         ))}
       </div>

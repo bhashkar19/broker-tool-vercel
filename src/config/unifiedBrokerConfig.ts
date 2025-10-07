@@ -9,6 +9,7 @@
 export interface ChargeDetail {
   amount: number;          // Simplified amount for calculations (0, 10, 20, 200, etc.)
   formula: string;         // Full formula shown to users ("₹20 or 0.03% whichever lower")
+  shortFormula?: string;   // Short version for mobile cards (max 15 chars, e.g. "₹20/0.1%")
   notes?: string;          // Additional context ("First 30 days free", "Promotional pricing")
 }
 
@@ -86,6 +87,7 @@ export const UNIFIED_BROKER_CONFIGS: Record<string, UnifiedBrokerConfig> = {
       delivery: {
         amount: 0,
         formula: '₹0',
+        shortFormula: '₹0',
         notes: 'FREE equity delivery - best for long-term investors'
       },
       intraday: {
@@ -224,6 +226,7 @@ export const UNIFIED_BROKER_CONFIGS: Record<string, UnifiedBrokerConfig> = {
       delivery: {
         amount: 20,
         formula: '₹20 or 2.5% (whichever lower)',
+        shortFormula: '₹20/2.5%',
         notes: 'Per order or SEBI limit - verified Jan 2025'
       },
       intraday: {
@@ -363,6 +366,7 @@ export const UNIFIED_BROKER_CONFIGS: Record<string, UnifiedBrokerConfig> = {
       delivery: {
         amount: 20,
         formula: '₹20 or 0.1% (whichever is lower)',
+        shortFormula: '₹20/0.1%',
         notes: 'Delivery NO LONGER FREE since Nov 1, 2024. First 30 days promotional pricing only'
       },
       intraday: {
@@ -502,6 +506,7 @@ export const UNIFIED_BROKER_CONFIGS: Record<string, UnifiedBrokerConfig> = {
       delivery: {
         amount: 0,
         formula: '₹0 (promotional FREE delivery)',
+        shortFormula: '₹0 (promo)',
         notes: 'FREE delivery brokerage - promotional offer active. Verify current offer before opening'
       },
       intraday: {
@@ -637,6 +642,7 @@ export const UNIFIED_BROKER_CONFIGS: Record<string, UnifiedBrokerConfig> = {
       delivery: {
         amount: 20,
         formula: '₹20 flat (standard plan) or ₹10 (premium ₹599-1199/mo)',
+        shortFormula: '₹20 or ₹10*',
         notes: 'Standard: ₹20 flat. Premium plans with ₹10 brokerage require monthly subscription'
       },
       intraday: {
