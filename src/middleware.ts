@@ -11,8 +11,9 @@ export function middleware(request: NextRequest) {
       const authValue = basicAuth.split(' ')[1]
       const [user, pwd] = atob(authValue).split(':')
 
-      const validUser = process.env.ADMIN_USERNAME || 'admin'
-      const validPassword = process.env.ADMIN_PASSWORD || 'Paisowala@123'
+      // Trim environment variables to remove any newlines/whitespace
+      const validUser = (process.env.ADMIN_USERNAME || 'admin').trim()
+      const validPassword = (process.env.ADMIN_PASSWORD || 'Paisowala@123').trim()
 
       if (user === validUser && pwd === validPassword) {
         return NextResponse.next()
