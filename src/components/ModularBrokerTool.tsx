@@ -33,6 +33,7 @@ const ModularBrokerTool = () => {
   const [showRecommendation, setShowRecommendation] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [apiSuccess, setApiSuccess] = useState<boolean>(false);
+  const [isConverting, setIsConverting] = useState<boolean>(false);
   const [userData, setUserData] = useState<UserProfile>({
     name: '',
     mobile: '',
@@ -81,7 +82,8 @@ const ModularBrokerTool = () => {
         event_data: { config_version: questionConfig.name }
       })
     }).catch(err => console.error('Tracking error:', err));
-  }, [userData.sessionId, questionConfig.name]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userData.sessionId]); // Only depend on sessionId to prevent duplicate fires
 
   // 🔒 CHECK IF USER ALREADY COMPLETED QUIZ (localStorage)
   useEffect(() => {
@@ -1191,6 +1193,13 @@ const RecommendationSection = ({
   }, []);
 
   const handleConversion = async () => {
+    // 🔒 PREVENT DUPLICATE CLICKS - Exit if already converting
+    if (isConverting) {
+      console.log('⚠️ Conversion already in progress, ignoring duplicate click');
+      return;
+    }
+    setIsConverting(true);
+
     // Check if user is new (no demat account)
     const isNewUser = recommendation.recommendationType === 'new_account';
 
@@ -1357,7 +1366,8 @@ const RecommendationSection = ({
       {/* Merged: Personalized Header + Primary Recommendation - Entire section is clickable */}
       <button
         onClick={handleConversion}
-        className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl p-6 mb-6 transition-all hover:shadow-2xl hover:scale-[1.02] hover:from-green-600 hover:to-green-700 cursor-pointer"
+        disabled={isConverting}
+        className={`w-full bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl p-6 mb-6 transition-all hover:shadow-2xl hover:scale-[1.02] hover:from-green-600 hover:to-green-700 ${isConverting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
       >
         {/* Personalized Header with User Name */}
         <div className="flex items-center justify-center gap-2 mb-3">
@@ -1457,9 +1467,10 @@ const RecommendationSection = ({
       {!showComparison && (
         <motion.button
           onClick={handleConversion}
-          className="w-full py-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-xl shadow-lg transition-all hover:shadow-2xl mb-2 hover:from-green-600 hover:to-green-700"
-          whileHover={{ scale: 1.03, y: -2 }}
-          whileTap={{ scale: 0.98 }}
+          disabled={isConverting}
+          className={`w-full py-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-xl shadow-lg transition-all hover:shadow-2xl mb-2 hover:from-green-600 hover:to-green-700 ${isConverting ? 'opacity-50 cursor-not-allowed' : ''}`}
+          whileHover={isConverting ? undefined : { scale: 1.03, y: -2 }}
+          whileTap={isConverting ? undefined : { scale: 0.98 }}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
@@ -1774,9 +1785,10 @@ const RecommendationSection = ({
       {!showComparison && (
         <motion.button
           onClick={handleConversion}
-          className="w-full py-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-lg shadow-lg transition-all hover:shadow-2xl mb-3 hover:from-green-600 hover:to-green-700"
-          whileHover={{ scale: 1.03, y: -2 }}
-          whileTap={{ scale: 0.98 }}
+          disabled={isConverting}
+          className={`w-full py-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-lg shadow-lg transition-all hover:shadow-2xl mb-3 hover:from-green-600 hover:to-green-700 ${isConverting ? 'opacity-50 cursor-not-allowed' : ''}`}
+          whileHover={isConverting ? undefined : { scale: 1.03, y: -2 }}
+          whileTap={isConverting ? undefined : { scale: 0.98 }}
         >
           Start Your FREE {primaryBroker?.name} Account Now →
         </motion.button>
@@ -1997,9 +2009,10 @@ const RecommendationSection = ({
             <div className="max-w-4xl mx-auto">
               <motion.button
                 onClick={handleConversion}
-                className="w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-lg shadow-lg transition-all hover:shadow-2xl hover:from-green-600 hover:to-green-700"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                disabled={isConverting}
+                className={`w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-lg shadow-lg transition-all hover:shadow-2xl hover:from-green-600 hover:to-green-700 ${isConverting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                whileHover={isConverting ? undefined : { scale: 1.02 }}
+                whileTap={isConverting ? undefined : { scale: 0.98 }}
               >
                 Click For {primaryBroker?.name} Free A/C →
               </motion.button>
