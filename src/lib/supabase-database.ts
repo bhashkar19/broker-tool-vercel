@@ -44,22 +44,11 @@ export interface UserSubmission {
   id?: number;
   name: string;
   mobile: string;
-  // OLD FIELDS (mapped for backward compatibility)
   current_broker: string;
   execution_issues: string;
   tools_satisfaction: string;
   support_experience: string;
   charges_concern: string;
-  // NEW COMPLETE QUIZ DATA FIELDS
-  has_account?: string;
-  broker_info?: unknown; // JSONB
-  user_type?: unknown; // JSONB
-  main_challenge?: unknown; // JSONB
-  trading_frequency?: string;
-  what_matters_most?: unknown; // JSONB
-  investment_amount?: string;
-  experience_level?: string;
-  // TRACKING FIELDS
   session_id: string;
   recommended_broker: string;
   user_agent: string;
@@ -69,9 +58,7 @@ export interface UserSubmission {
   utm_medium?: string;
   utm_campaign?: string;
   created_at?: string;
-  // CLICK TRACKING
-  cta_clicked?: boolean;
-  cta_clicked_at?: string;
+
   // Conversion tracking fields
   broker_client_id?: string;
   conversion_status?: 'pending' | 'converted' | 'rejected';
@@ -150,25 +137,13 @@ export async function saveUserSubmission(data: UserSubmission) {
     const { data: result, error } = await supabaseAdmin
       .from('user_submissions')
       .insert([{
-        // Basic info
         name: data.name,
         mobile: data.mobile,
-        // OLD mapped fields
         current_broker: data.current_broker,
         execution_issues: data.execution_issues,
         tools_satisfaction: data.tools_satisfaction,
         support_experience: data.support_experience,
         charges_concern: data.charges_concern,
-        // NEW complete quiz data
-        has_account: data.has_account,
-        broker_info: data.broker_info,
-        user_type: data.user_type,
-        main_challenge: data.main_challenge,
-        trading_frequency: data.trading_frequency,
-        what_matters_most: data.what_matters_most,
-        investment_amount: data.investment_amount,
-        experience_level: data.experience_level,
-        // Tracking
         session_id: data.session_id,
         recommended_broker: data.recommended_broker,
         user_agent: data.user_agent,
@@ -298,7 +273,7 @@ export async function markBrokerAsUploaded(brokerId: string) {
 export async function getAnalyticsSummary() {
   try {
     // Total submissions
-    const { count: totalSubmissions, error: countError } = await supabase
+    const { count: totalSubmissions, error: countError } = await supabaseAdmin
       .from('user_submissions')
       .select('*', { count: 'exact', head: true });
 
@@ -344,7 +319,7 @@ export async function getAnalyticsSummary() {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
 
-    const { count: recentSubmissions, error: recentError } = await supabase
+    const { count: recentSubmissions, error: recentError } = await supabaseAdmin
       .from('user_submissions')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', yesterday.toISOString());
@@ -354,7 +329,7 @@ export async function getAnalyticsSummary() {
     }
 
     // Broker recommendations stats
-    const { data: brokerStats } = await supabase
+    const { data: brokerStats } = await supabaseAdmin
       .from('user_submissions')
       .select('recommended_broker')
       .then(result => {
@@ -385,7 +360,7 @@ export async function getAnalyticsSummary() {
       return acc;
     }, {});
 
-    const { data: brokerClicksData } = await supabase
+    const { data: brokerClicksData } = await supabaseAdmin
       .from('tracking_events')
       .select('broker_id, event_name, created_at')
       .in('event_name', ['cta_clicked', 'alternative_broker_clicked'])
@@ -426,7 +401,7 @@ export async function getAnalyticsSummary() {
       });
 
     // Top current brokers
-    const { data: currentBrokerStats } = await supabase
+    const { data: currentBrokerStats } = await supabaseAdmin
       .from('user_submissions')
       .select('current_broker')
       .then(result => {
@@ -464,6 +439,117 @@ export async function getAnalyticsSummary() {
     };
   } catch (error) {
     console.error('Error fetching analytics:', error);
+    return { success: false, error };
+  }
+}
+
+// 🎯 GET QUIZ ANALYTICS - Track partial and completed quiz attempts
+export async function getQuizAnalytics(limit: number = 50) {
+  try {
+    // Get all sessions that started
+    const { data: sessionsStarted } = await supabaseAdmin
+      .from('tracking_events')
+      .select('session_id, created_at, event_data, user_agent, ip_address')
+      .eq('event_name', 'tool_started')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    // Get all completed sessions
+    const { data: sessionsCompleted } = await supabaseAdmin
+      .from('tracking_events')
+      .select('session_id')
+      .eq('event_name', 'recommendation_viewed');
+
+    const completedSessionIds = new Set(sessionsCompleted?.map(s => s.session_id) || []);
+
+    // Get all question progress events
+    const { data: questionEvents } = await supabaseAdmin
+      .from('tracking_events')
+      .select('session_id, event_data, created_at')
+      .eq('event_name', 'question_progressed')
+      .order('created_at', { ascending: false });
+
+    // Group questions by session
+    const sessionQuestions: Record<string, number> = {};
+    questionEvents?.forEach(event => {
+      if (!sessionQuestions[event.session_id]) {
+        sessionQuestions[event.session_id] = 0;
+      }
+      sessionQuestions[event.session_id]++;
+    });
+
+    // Calculate drop-off funnel
+    const funnelData = {
+      started: sessionsStarted?.length || 0,
+      q1: 0,
+      q2: 0,
+      q3: 0,
+      q4: 0,
+      completed: completedSessionIds.size
+    };
+
+    Object.values(sessionQuestions).forEach(count => {
+      if (count >= 1) funnelData.q1++;
+      if (count >= 2) funnelData.q2++;
+      if (count >= 3) funnelData.q3++;
+      if (count >= 4) funnelData.q4++;
+    });
+
+    // Build recent sessions with details
+    const recentSessions = (sessionsStarted || []).map(session => {
+      const isCompleted = completedSessionIds.has(session.session_id);
+      const questionsAnswered = sessionQuestions[session.session_id] || 0;
+      const utmData = session.event_data as Record<string, unknown> || {};
+
+      return {
+        sessionId: session.session_id.substring(0, 12) + '...',
+        fullSessionId: session.session_id,
+        status: isCompleted ? 'completed' : questionsAnswered > 0 ? `dropped_q${questionsAnswered}` : 'started',
+        questionsAnswered,
+        totalQuestions: 5,
+        createdAt: session.created_at,
+        utmSource: utmData.utm_source as string || 'Direct',
+        utmMedium: utmData.utm_medium as string || '-',
+        utmCampaign: utmData.utm_campaign as string || '-',
+      };
+    });
+
+    // Traffic sources breakdown
+    const trafficSources: Record<string, number> = {};
+    recentSessions.forEach(session => {
+      const source = session.utmSource;
+      trafficSources[source] = (trafficSources[source] || 0) + 1;
+    });
+
+    const completionRate = funnelData.started > 0
+      ? ((funnelData.completed / funnelData.started) * 100).toFixed(1)
+      : 0;
+
+    const dropOffRate = funnelData.started > 0
+      ? (((funnelData.started - funnelData.completed) / funnelData.started) * 100).toFixed(1)
+      : 0;
+
+    return {
+      success: true,
+      data: {
+        summary: {
+          totalSessions: funnelData.started,
+          completed: funnelData.completed,
+          droppedOff: funnelData.started - funnelData.completed,
+          completionRate: parseFloat(completionRate as string),
+          dropOffRate: parseFloat(dropOffRate as string),
+        },
+        funnel: funnelData,
+        recentSessions,
+        trafficSources: Object.entries(trafficSources).map(([source, count]) => ({
+          source,
+          count,
+          percentage: ((count / funnelData.started) * 100).toFixed(1)
+        })).sort((a, b) => b.count - a.count)
+      }
+    };
+  } catch (error) {
+    console.error('Error fetching quiz analytics:', error);
     return { success: false, error };
   }
 }

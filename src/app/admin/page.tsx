@@ -32,6 +32,40 @@ interface Analytics {
   syncedToFacebook?: number;
 }
 
+interface QuizAnalytics {
+  summary: {
+    totalSessions: number;
+    completed: number;
+    droppedOff: number;
+    completionRate: number;
+    dropOffRate: number;
+  };
+  funnel: {
+    started: number;
+    q1: number;
+    q2: number;
+    q3: number;
+    q4: number;
+    completed: number;
+  };
+  recentSessions: Array<{
+    sessionId: string;
+    fullSessionId: string;
+    status: string;
+    questionsAnswered: number;
+    totalQuestions: number;
+    createdAt: string;
+    utmSource: string;
+    utmMedium: string;
+    utmCampaign: string;
+  }>;
+  trafficSources: Array<{
+    source: string;
+    count: number;
+    percentage: string;
+  }>;
+}
+
 interface ReviewItem {
   id: number;
   broker_name: string;
@@ -61,9 +95,10 @@ interface UploadResult {
 export default function AdminDashboard() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
+  const [quizAnalytics, setQuizAnalytics] = useState<QuizAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedBroker, setSelectedBroker] = useState<string>('');
-  const [view, setView] = useState<'analytics' | 'submissions' | 'upload' | 'review'>('analytics');
+  const [view, setView] = useState<'analytics' | 'submissions' | 'upload' | 'review' | 'traffic'>('analytics');
 
   // CSV Upload state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -92,6 +127,18 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       console.error('Error fetching analytics:', error);
+    }
+  };
+
+  const fetchQuizAnalytics = async () => {
+    try {
+      const response = await fetch('/api/admin/quiz-analytics');
+      const data = await response.json();
+      if (data.success) {
+        setQuizAnalytics(data.analytics);
+      }
+    } catch (error) {
+      console.error('Error fetching quiz analytics:', error);
     }
   };
 
@@ -276,6 +323,7 @@ export default function AdminDashboard() {
     fetchAnalytics();
     fetchSubmissions();
     loadReviewQueue();
+    fetchQuizAnalytics();
   }, [selectedBroker, fetchSubmissions]);
 
   const formatDate = (dateString: string) => {
@@ -309,6 +357,16 @@ export default function AdminDashboard() {
             >
               <TrendingUp className="w-4 h-4" />
               Analytics
+            </button>
+            <button
+              onClick={() => setView('traffic')}
+              className={`px-4 py-2 rounded ${
+                view === 'traffic'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 border'
+              }`}
+            >
+              📊 Traffic & Drop-offs
             </button>
             <button
               onClick={() => setView('upload')}
@@ -544,6 +602,188 @@ export default function AdminDashboard() {
                 })}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Traffic & Drop-offs Section */}
+        {view === 'traffic' && quizAnalytics && (
+          <div className="space-y-6">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-sm font-medium text-gray-600 mb-1">Total Sessions</h3>
+                <p className="text-3xl font-bold text-blue-600">{quizAnalytics.summary.totalSessions}</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-sm font-medium text-gray-600 mb-1">Completed</h3>
+                <p className="text-3xl font-bold text-green-600">{quizAnalytics.summary.completed}</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-sm font-medium text-gray-600 mb-1">Dropped Off</h3>
+                <p className="text-3xl font-bold text-red-600">{quizAnalytics.summary.droppedOff}</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-sm font-medium text-gray-600 mb-1">Completion Rate</h3>
+                <p className="text-3xl font-bold text-purple-600">{quizAnalytics.summary.completionRate}%</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-sm font-medium text-gray-600 mb-1">Drop-off Rate</h3>
+                <p className="text-3xl font-bold text-orange-600">{quizAnalytics.summary.dropOffRate}%</p>
+              </div>
+            </div>
+
+            {/* Funnel Visualization */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quiz Completion Funnel</h3>
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-gray-700 w-24">Started</span>
+                  <div className="flex-1 bg-gray-200 rounded-full h-8 relative">
+                    <div
+                      className="bg-blue-500 h-8 rounded-full flex items-center justify-end pr-3 text-white text-sm font-semibold"
+                      style={{ width: '100%' }}
+                    >
+                      {quizAnalytics.funnel.started}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-gray-700 w-24">Question 1</span>
+                  <div className="flex-1 bg-gray-200 rounded-full h-8 relative">
+                    <div
+                      className="bg-green-500 h-8 rounded-full flex items-center justify-end pr-3 text-white text-sm font-semibold"
+                      style={{ width: `${(quizAnalytics.funnel.q1 / quizAnalytics.funnel.started) * 100}%` }}
+                    >
+                      {quizAnalytics.funnel.q1}
+                    </div>
+                  </div>
+                  <span className="text-xs text-gray-500 w-12">
+                    {((quizAnalytics.funnel.q1 / quizAnalytics.funnel.started) * 100).toFixed(0)}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-gray-700 w-24">Question 2</span>
+                  <div className="flex-1 bg-gray-200 rounded-full h-8 relative">
+                    <div
+                      className="bg-green-500 h-8 rounded-full flex items-center justify-end pr-3 text-white text-sm font-semibold"
+                      style={{ width: `${(quizAnalytics.funnel.q2 / quizAnalytics.funnel.started) * 100}%` }}
+                    >
+                      {quizAnalytics.funnel.q2}
+                    </div>
+                  </div>
+                  <span className="text-xs text-gray-500 w-12">
+                    {((quizAnalytics.funnel.q2 / quizAnalytics.funnel.started) * 100).toFixed(0)}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-gray-700 w-24">Question 3</span>
+                  <div className="flex-1 bg-gray-200 rounded-full h-8 relative">
+                    <div
+                      className="bg-green-500 h-8 rounded-full flex items-center justify-end pr-3 text-white text-sm font-semibold"
+                      style={{ width: `${(quizAnalytics.funnel.q3 / quizAnalytics.funnel.started) * 100}%` }}
+                    >
+                      {quizAnalytics.funnel.q3}
+                    </div>
+                  </div>
+                  <span className="text-xs text-gray-500 w-12">
+                    {((quizAnalytics.funnel.q3 / quizAnalytics.funnel.started) * 100).toFixed(0)}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-gray-700 w-24">Question 4</span>
+                  <div className="flex-1 bg-gray-200 rounded-full h-8 relative">
+                    <div
+                      className="bg-green-500 h-8 rounded-full flex items-center justify-end pr-3 text-white text-sm font-semibold"
+                      style={{ width: `${(quizAnalytics.funnel.q4 / quizAnalytics.funnel.started) * 100}%` }}
+                    >
+                      {quizAnalytics.funnel.q4}
+                    </div>
+                  </div>
+                  <span className="text-xs text-gray-500 w-12">
+                    {((quizAnalytics.funnel.q4 / quizAnalytics.funnel.started) * 100).toFixed(0)}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-gray-700 w-24">Completed</span>
+                  <div className="flex-1 bg-gray-200 rounded-full h-8 relative">
+                    <div
+                      className="bg-purple-500 h-8 rounded-full flex items-center justify-end pr-3 text-white text-sm font-semibold"
+                      style={{ width: `${(quizAnalytics.funnel.completed / quizAnalytics.funnel.started) * 100}%` }}
+                    >
+                      {quizAnalytics.funnel.completed}
+                    </div>
+                  </div>
+                  <span className="text-xs text-gray-500 w-12">
+                    {((quizAnalytics.funnel.completed / quizAnalytics.funnel.started) * 100).toFixed(0)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Traffic Sources */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Traffic Sources</h3>
+              <div className="space-y-2">
+                {quizAnalytics.trafficSources.map((source, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span className="font-medium text-gray-900">{source.source}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-gray-600">{source.count} sessions</span>
+                      <span className="text-sm text-gray-500">({source.percentage}%)</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Recent Sessions */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Sessions</h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Session ID</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Progress</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Source</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Campaign</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {quizAnalytics.recentSessions.slice(0, 20).map((session, index) => (
+                      <tr key={index} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm font-mono text-gray-900">{session.sessionId}</td>
+                        <td className="px-4 py-3 text-sm">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            session.status === 'completed'
+                              ? 'bg-green-100 text-green-800'
+                              : session.status.startsWith('dropped')
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {session.status === 'completed'
+                              ? 'Completed'
+                              : session.status.startsWith('dropped')
+                              ? `Dropped at Q${session.questionsAnswered}`
+                              : 'Started'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {session.questionsAnswered}/{session.totalQuestions}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{session.utmSource}</td>
+                        <td className="px-4 py-3 text-sm text-gray-600">{session.utmCampaign}</td>
+                        <td className="px-4 py-3 text-sm text-gray-500">
+                          {new Date(session.createdAt).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
 
