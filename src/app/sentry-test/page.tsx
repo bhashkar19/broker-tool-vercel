@@ -1,14 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import * as Sentry from '@sentry/nextjs';
 
 export default function SentryTestPage() {
   const [testResult, setTestResult] = useState<string>('');
+  const [sentryStatus, setSentryStatus] = useState<string>('Checking...');
+
+  useEffect(() => {
+    // Check if Sentry is initialized
+    const client = Sentry.getClient();
+    if (client) {
+      const dsn = client.getDsn();
+      setSentryStatus(`✅ Sentry initialized with DSN: ${dsn ? 'Yes' : 'No'}`);
+    } else {
+      setSentryStatus('❌ Sentry client not initialized');
+    }
+  }, []);
 
   const triggerClientError = () => {
     setTestResult('Triggering client-side error...');
-    // This will be caught by Sentry
-    throw new Error('🧪 Sentry Test Error - Client Side');
+    // Send to Sentry manually
+    Sentry.captureException(new Error('🧪 Sentry Test Error - Client Side (Manual)'));
+    // Also throw to trigger automatic capture
+    setTimeout(() => {
+      throw new Error('🧪 Sentry Test Error - Client Side (Thrown)');
+    }, 100);
   };
 
   const triggerServerError = async () => {
@@ -29,9 +46,15 @@ export default function SentryTestPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             🔍 Sentry Test Page
           </h1>
-          <p className="text-gray-600 mb-8">
+          <p className="text-gray-600 mb-4">
             Test if Sentry error monitoring is working correctly
           </p>
+
+          {/* Sentry Status */}
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+            <h3 className="font-semibold text-purple-900 mb-2">Sentry Status</h3>
+            <p className="text-sm text-purple-800">{sentryStatus}</p>
+          </div>
 
           <div className="space-y-4">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
