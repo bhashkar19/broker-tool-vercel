@@ -145,16 +145,6 @@ const ModularBrokerTool = () => {
       ...prev,
       [currentQuestion.field_name]: processedValue
     }));
-
-    // Track Google Analytics event
-    if (typeof window !== 'undefined' && 'gtag' in window) {
-      const gtag = (window as Window & { gtag: (...args: unknown[]) => void }).gtag;
-      gtag('event', 'question_answered', {
-        question_id: currentQuestion.id,
-        question_number: currentQuestionIndex + 1,
-        session_id: userData.sessionId
-      });
-    }
   };
 
   // Handle contact info update
@@ -235,6 +225,16 @@ const ModularBrokerTool = () => {
 
   // Move to next question
   const nextQuestion = async () => {
+    // Track Google Analytics event for question completion
+    if (typeof window !== 'undefined' && 'gtag' in window) {
+      const gtag = (window as Window & { gtag: (...args: unknown[]) => void }).gtag;
+      gtag('event', 'question_answered', {
+        question_id: currentQuestion.id,
+        question_number: currentQuestionIndex + 1,
+        session_id: userData.sessionId
+      });
+    }
+
     if (currentQuestionIndex === 0) {
       // 🔒 CHECK IF MOBILE NUMBER ALREADY COMPLETED QUIZ (Database check)
       try {
