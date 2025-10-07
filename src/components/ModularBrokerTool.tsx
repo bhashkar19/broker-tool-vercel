@@ -1180,6 +1180,7 @@ const RecommendationSection = ({
   const [showStickyButton, setShowStickyButton] = useState(false); // Sticky CTA visibility
   const [showWhatNextModal, setShowWhatNextModal] = useState(false); // Preview modal
   const [redirectCountdown, setRedirectCountdown] = useState(2); // Countdown timer
+  const [isConverting, setIsConverting] = useState<boolean>(false); // Prevent duplicate clicks
 
   // Scroll listener for sticky CTA button
   useEffect(() => {
