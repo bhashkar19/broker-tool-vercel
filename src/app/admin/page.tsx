@@ -25,6 +25,7 @@ interface Analytics {
   totalSubmissions: number;
   recentSubmissions: number;
   brokerRecommendations: { recommended_broker: string; count: number }[];
+  brokerClicks: { broker_id: string; clicks: number; new_clicks: number; last_upload_date: string | null }[];
   topCurrentBrokers: { current_broker: string; count: number }[];
   totalConversions?: number;
   pendingReview?: number;
@@ -78,6 +79,9 @@ export default function AdminDashboard() {
   // Facebook sync state
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<{ success: boolean; message: string; synced?: number; failed?: number } | null>(null);
+
+  // Mark as uploaded state
+  const [markingUploaded, setMarkingUploaded] = useState<string | null>(null);
 
   const fetchAnalytics = async () => {
     try {
@@ -245,6 +249,26 @@ export default function AdminDashboard() {
     const files = e.dataTransfer.files;
     if (files.length > 0) {
       setSelectedFile(files[0]);
+    }
+  };
+
+  const handleMarkAsUploaded = async (brokerId: string) => {
+    setMarkingUploaded(brokerId);
+    try {
+      const response = await fetch('/api/admin/mark-uploaded', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ brokerId }),
+      });
+
+      if (response.ok) {
+        // Refresh analytics to show updated data
+        await fetchAnalytics();
+      }
+    } catch (error) {
+      console.error('Failed to mark as uploaded:', error);
+    } finally {
+      setMarkingUploaded(null);
     }
   };
 
@@ -561,6 +585,59 @@ export default function AdminDashboard() {
                   {analytics.pendingReview || 0}
                 </p>
               </div>
+
+            <div className="bg-white rounded-lg shadow p-6 md:col-span-2 lg:col-span-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                🎯 Broker Clicks - CSV Upload Tracker
+              </h3>
+              <p className="text-xs text-gray-500 mb-4">
+                Track which brokers are getting clicks. <strong>NEW clicks</strong> since last upload tell you when to upload fresh CSV data.
+              </p>
+              <div className="space-y-3">
+                {analytics.brokerClicks && analytics.brokerClicks.length > 0 ? (
+                  analytics.brokerClicks.slice(0, 10).map((broker, index) => (
+                    <div key={index} className={`flex justify-between items-center p-3 rounded-lg border-2 ${
+                      broker.new_clicks > 0 ? 'bg-orange-50 border-orange-300' : 'bg-gray-50 border-gray-200'
+                    }`}>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="capitalize font-semibold text-gray-900">
+                            {broker.broker_id.replace(/_/g, ' ')}
+                          </span>
+                          {broker.new_clicks > 0 && (
+                            <span className="bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">
+                              {broker.new_clicks} NEW
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1">
+                          Total: {broker.clicks} clicks
+                          {broker.last_upload_date && (
+                            <span className="ml-2">
+                              • Last uploaded: {new Date(broker.last_upload_date).toLocaleDateString()}
+                            </span>
+                          )}
+                          {!broker.last_upload_date && (
+                            <span className="ml-2 text-orange-600 font-medium">
+                              • Never uploaded
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleMarkAsUploaded(broker.broker_id)}
+                        disabled={markingUploaded === broker.broker_id}
+                        className="ml-4 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {markingUploaded === broker.broker_id ? 'Marking...' : 'Mark as Uploaded'}
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500">No clicks yet</p>
+                )}
+              </div>
+            </div>
 
             <div className="bg-white rounded-lg shadow p-6 md:col-span-2">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">

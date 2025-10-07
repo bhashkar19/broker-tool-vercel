@@ -33,6 +33,13 @@ const ModularBrokerTool = () => {
   const [showRecommendation, setShowRecommendation] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [apiSuccess, setApiSuccess] = useState<boolean>(false);
+  const [showAlreadyCompleted, setShowAlreadyCompleted] = useState(false);
+  const [completedData, setCompletedData] = useState<{
+    broker: string;
+    completedAt: string;
+    name?: string;
+    mobile?: string;
+  } | null>(null);
   const [userData, setUserData] = useState<UserProfile>({
     name: '',
     mobile: '',
@@ -82,6 +89,31 @@ const ModularBrokerTool = () => {
       })
     }).catch(err => console.error('Tracking error:', err));
   }, [userData.sessionId, questionConfig.name]);
+
+  // 🔒 CHECK IF USER ALREADY COMPLETED QUIZ (localStorage)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const stored = localStorage.getItem('brokerQuizCompleted');
+    if (stored) {
+      try {
+        const data = JSON.parse(stored);
+        setShowAlreadyCompleted(true);
+        setCompletedData(data);
+
+        // Track retake attempt
+        trackCustomEvent('RetakeAttemptBlocked', {
+          session_id: userData.sessionId,
+          original_broker: data.broker,
+          completed_at: data.completedAt
+        });
+      } catch (error) {
+        console.error('Error parsing completion data:', error);
+        // If data is corrupted, remove it
+        localStorage.removeItem('brokerQuizCompleted');
+      }
+    }
+  }, []);
 
   // Handle answer selection
   const handleAnswerSelect = (value: string) => {
@@ -1643,7 +1675,25 @@ const RecommendationSection = ({
                   </div>
                   <p className="text-sm text-gray-600 mb-3">{altBroker?.real_insights.perfect_for}</p>
                   <button
-                    onClick={() => window.open(alt.affiliate_url, '_blank')}
+                    onClick={() => {
+                      // Track alternative broker click
+                      fetch('/api/track', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          event_name: 'alternative_broker_clicked',
+                          session_id: userData.sessionId,
+                          broker_id: alt.brokerId,
+                          event_data: {
+                            match_percentage: alt.matchPercentage,
+                            affiliate_url: alt.affiliate_url,
+                            recommended_broker: recommendation.primary.brokerId
+                          }
+                        })
+                      }).catch(err => console.error('Tracking error:', err));
+
+                      window.open(alt.affiliate_url, '_blank');
+                    }}
                     className="w-full py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors"
                   >
                     Open {alt.brokerName} Account →

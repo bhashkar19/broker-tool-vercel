@@ -216,6 +216,33 @@ export async function trackEvent(eventData: TrackingEvent) {
   }
 }
 
+// Mark broker CSV as uploaded
+export async function markBrokerAsUploaded(brokerId: string) {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('broker_upload_tracking')
+      .upsert({
+        broker_id: brokerId,
+        last_upload_date: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'broker_id'
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error marking broker as uploaded:', error);
+      return { success: false, error };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error marking broker as uploaded:', error);
+    return { success: false, error };
+  }
+}
+
 // Get analytics summary
 export async function getAnalyticsSummary() {
   try {
@@ -296,6 +323,57 @@ export async function getAnalyticsSummary() {
         return { data: brokerRecommendations, error: null };
       });
 
+    // Broker clicks stats (from tracking_events)
+    // Get broker upload tracking first
+    const { data: brokerUploads } = await supabaseAdmin
+      .from('broker_upload_tracking')
+      .select('broker_id, last_upload_date');
+
+    const uploadDates = (brokerUploads || []).reduce((acc: Record<string, string>, item) => {
+      acc[item.broker_id] = item.last_upload_date;
+      return acc;
+    }, {});
+
+    const { data: brokerClicksData } = await supabase
+      .from('tracking_events')
+      .select('broker_id, event_name, created_at')
+      .in('event_name', ['cta_clicked', 'alternative_broker_clicked'])
+      .then(result => {
+        if (result.error) return result;
+
+        // Group by broker and count total + new clicks
+        const grouped = result.data?.reduce((acc: Record<string, { total: number; newClicks: number; lastUpload: string | null }>, item: { broker_id: string; created_at: string }) => {
+          if (item.broker_id) {
+            if (!acc[item.broker_id]) {
+              acc[item.broker_id] = { total: 0, newClicks: 0, lastUpload: uploadDates[item.broker_id] || null };
+            }
+            acc[item.broker_id].total += 1;
+
+            // Count new clicks (after last upload)
+            if (uploadDates[item.broker_id]) {
+              const clickDate = new Date(item.created_at);
+              const uploadDate = new Date(uploadDates[item.broker_id]);
+              if (clickDate > uploadDate) {
+                acc[item.broker_id].newClicks += 1;
+              }
+            } else {
+              // No upload yet, all clicks are new
+              acc[item.broker_id].newClicks += 1;
+            }
+          }
+          return acc;
+        }, {});
+
+        const brokerClicks = Object.entries(grouped || {}).map(([broker, data]) => ({
+          broker_id: broker,
+          clicks: data.total,
+          new_clicks: data.newClicks,
+          last_upload_date: data.lastUpload
+        })).sort((a: { clicks: number }, b: { clicks: number }) => b.clicks - a.clicks);
+
+        return { data: brokerClicks, error: null };
+      });
+
     // Top current brokers
     const { data: currentBrokerStats } = await supabase
       .from('user_submissions')
@@ -323,6 +401,7 @@ export async function getAnalyticsSummary() {
         totalSubmissions: totalSubmissions || 0,
         recentSubmissions: recentSubmissions || 0,
         brokerRecommendations: brokerStats || [],
+        brokerClicks: brokerClicksData || [],
         topCurrentBrokers: currentBrokerStats || [],
         // Conversion tracking stats
         totalConversions: totalConversions || 0,
