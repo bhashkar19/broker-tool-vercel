@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Target, CheckCircle, TrendingUp, Star, ChevronLeft } from 'lucide-react';
@@ -119,8 +119,8 @@ const ModularBrokerTool = () => {
     }
   }, []);
 
-  // Handle answer selection
-  const handleAnswerSelect = (value: string) => {
+  // Handle answer selection (memoized to prevent unnecessary re-renders)
+  const handleAnswerSelect = useCallback((value: string) => {
     let processedValue: unknown = value;
 
     // Handle checkbox data (stored as JSON string)
@@ -145,15 +145,15 @@ const ModularBrokerTool = () => {
       ...prev,
       [currentQuestion.field_name]: processedValue
     }));
-  };
+  }, [currentQuestion.type, currentQuestion.id, currentQuestion.field_name]);
 
-  // Handle contact info update
-  const handleContactUpdate = (field: string, value: string) => {
+  // Handle contact info update (memoized to prevent unnecessary re-renders)
+  const handleContactUpdate = useCallback((field: string, value: string) => {
     setUserData(prev => ({
       ...prev,
       [field]: value
     }));
-  };
+  }, []);
 
   // Validate current question
   const isCurrentQuestionValid = () => {
