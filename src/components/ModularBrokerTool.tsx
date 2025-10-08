@@ -308,6 +308,14 @@ const ModularBrokerTool = () => {
     }
 
     if (isLastQuestion) {
+      // 🔒 FIX: Don't auto-show recommendation when landing on contact_info
+      // Wait for user to fill form and click "Show My Perfect Match" button
+      if (currentQuestion?.id === 'contact_info') {
+        // User is on contact form - don't show recommendation yet
+        // The button validates form is filled before calling nextQuestion()
+        return; // Stop here - wait for form submission
+      }
+
       setShowRecommendation(true);
 
       // Generate recommendation

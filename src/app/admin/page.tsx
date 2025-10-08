@@ -937,8 +937,8 @@ export default function AdminDashboard() {
               <div className="space-y-2">
                 {analytics.brokerRecommendations.slice(0, 5).map((broker, index) => (
                   <div key={index} className="flex justify-between">
-                    <span className="capitalize">{broker.recommended_broker}</span>
-                    <span className="font-semibold">{broker.count}</span>
+                    <span className="capitalize text-gray-900">{broker.recommended_broker}</span>
+                    <span className="font-semibold text-gray-900">{broker.count}</span>
                   </div>
                 ))}
               </div>
@@ -951,8 +951,8 @@ export default function AdminDashboard() {
               <div className="space-y-2">
                 {analytics.topCurrentBrokers.map((broker, index) => (
                   <div key={index} className="flex justify-between">
-                    <span className="capitalize">{broker.current_broker}</span>
-                    <span className="font-semibold">{broker.count}</span>
+                    <span className="capitalize text-gray-900">{broker.current_broker}</span>
+                    <span className="font-semibold text-gray-900">{broker.count}</span>
                   </div>
                 ))}
               </div>
