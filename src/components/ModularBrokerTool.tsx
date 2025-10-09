@@ -53,6 +53,19 @@ const ModularBrokerTool = () => {
   const currentQuestion = visibleQuestions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex >= visibleQuestions.length - 1;
 
+  // 🐛 DEBUG: Log if questions fail to load
+  useEffect(() => {
+    if (!currentQuestion && !showRecommendation) {
+      console.error('❌ CRITICAL: No question to display!', {
+        currentQuestionIndex,
+        visibleQuestionsCount: visibleQuestions.length,
+        totalConfigQuestions: questionConfig.questions.length,
+        userData,
+        abTestVersion
+      });
+    }
+  }, [currentQuestion, showRecommendation, currentQuestionIndex, visibleQuestions.length, questionConfig.questions.length, userData, abTestVersion]);
+
   // Calculate total questions based on user's first answer to avoid counter jumping
   const totalQuestionsToShow = React.useMemo(() => {
     // If user hasn't answered the first question yet, show the config's total
@@ -408,6 +421,24 @@ const ModularBrokerTool = () => {
       {/* Questions Container */}
       <div className="px-6 py-6 min-h-[380px] flex flex-col justify-center pb-20">
         <AnimatePresence mode="wait">
+          {/* 🐛 FALLBACK: Show error if no question loads */}
+          {!showRecommendation && !currentQuestion && (
+            <div className="text-center py-12">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+                <p className="text-red-600 font-semibold mb-2">⚠️ Loading Error</p>
+                <p className="text-sm text-gray-600 mb-4">
+                  Questions failed to load. Please refresh the page.
+                </p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Refresh Page
+                </button>
+              </div>
+            </div>
+          )}
+
           {!showRecommendation && currentQuestion && (
             <motion.div
               key={currentQuestion.id}
@@ -425,12 +456,14 @@ const ModularBrokerTool = () => {
                 </p>
               )}
 
-              <QuestionRenderer
-                question={currentQuestion}
-                userData={userData}
-                onAnswerSelect={handleAnswerSelect}
-                onContactUpdate={handleContactUpdate}
-              />
+              <ErrorBoundary questionId={currentQuestion.id}>
+                <QuestionRenderer
+                  question={currentQuestion}
+                  userData={userData}
+                  onAnswerSelect={handleAnswerSelect}
+                  onContactUpdate={handleContactUpdate}
+                />
+              </ErrorBoundary>
 
               {/* Back Button */}
               {canGoBack && (
@@ -2130,5 +2163,50 @@ const RecommendationSection = ({
     </motion.div>
   );
 };
+
+// 🛡️ ERROR BOUNDARY for Question Rendering
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode; questionId: string },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: { children: React.ReactNode; questionId: string }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('❌ Question Render Error:', {
+      questionId: this.props.questionId,
+      error: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack
+    });
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <p className="text-red-600 font-semibold mb-2">⚠️ Question Failed to Load</p>
+          <p className="text-sm text-gray-600 mb-3">
+            Error: {this.state.error?.message || 'Unknown error'}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+          >
+            Refresh Page
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 export default ModularBrokerTool;
