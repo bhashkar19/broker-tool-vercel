@@ -95,13 +95,6 @@ const ModularBrokerTool = () => {
 
         // Load their previous data and show recommendation directly
         setUserData(prev => {
-          // Track retake attempt
-          trackCustomEvent('RetakeAttemptBlocked', {
-            session_id: prev.sessionId,
-            original_broker: data.broker,
-            completed_at: data.completedAt
-          });
-
           // 🐛 FIX: Restore FULL userData to ensure recommendation matches original
           return {
             ...prev,
@@ -252,15 +245,6 @@ const ModularBrokerTool = () => {
         if (result.completed) {
           // User already completed - show their original recommendation
           setShowRecommendation(true);
-
-          // Track database-blocked retake attempt
-          trackCustomEvent('RetakeAttemptBlockedByDatabase', {
-            session_id: userData.sessionId,
-            mobile: userData.mobile,
-            original_broker: result.broker,
-            completed_at: result.completedAt
-          });
-
           return; // Stop quiz progression
         }
       } catch (error) {
@@ -511,14 +495,8 @@ const ModularBrokerTool = () => {
 
               {/* Consent Text - Only show on contact form question */}
               {currentQuestion?.id === 'contact_info' && (
-                <p className="text-xs text-gray-500 text-center mt-3 leading-relaxed">
-                  By clicking above, you agree to our{' '}
-                  <a
-                    href="/privacy-policy"
-                    className="text-blue-600 hover:underline"
-                  >
-                    Privacy Policy
-                  </a>
+                <p className="text-[10px] text-gray-400 text-center mt-3 leading-relaxed">
+                  By submitting, you agree to our Privacy Policy
                 </p>
               )}
             </div>
