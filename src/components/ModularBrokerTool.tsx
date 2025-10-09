@@ -376,7 +376,7 @@ const ModularBrokerTool = () => {
   return (
     <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
       {/* Header - Clean & Professional */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-6">
+      <div className={`bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 ${currentQuestionIndex === 0 ? 'py-6' : 'py-4'}`}>
         {/* Logo & Brand - Centered, Clean */}
         <div className="flex flex-col items-center gap-4">
           {/* Logo with Name - Single Row */}

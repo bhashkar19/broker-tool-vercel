@@ -39,12 +39,9 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
       {/* Question Counter & Progress Dots */}
       {!showRecommendation && (
         <div className="px-6 pt-4 pb-1">
-          <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center justify-center mb-1.5">
             <p className="text-xs font-semibold text-gray-700">
-              Question {currentQuestionIndex + 1} of {totalQuestions}
-            </p>
-            <p className="text-xs font-medium text-blue-600">
-              {Math.round(progressPercentage)}% Complete
+              Question {currentQuestionIndex + 1} of {totalQuestions} <span className="text-blue-600">• {Math.round(progressPercentage)}%</span>
             </p>
           </div>
 
