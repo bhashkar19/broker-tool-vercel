@@ -396,16 +396,18 @@ const ModularBrokerTool = () => {
             </div>
           </div>
 
-          {/* Main Heading - Below Logo */}
-          <div className="text-center border-t border-white/20 pt-4 w-full">
-            <h1 className="text-lg font-semibold mb-1 flex items-center justify-center gap-2">
-              <Target className="w-5 h-5" />
-              Find Your Perfect Broker
-            </h1>
-            <p className="text-blue-100 text-sm">
-              {questionConfig.description}
-            </p>
-          </div>
+          {/* Main Heading - Below Logo (Only show on Question 1) */}
+          {currentQuestionIndex === 0 && (
+            <div className="text-center border-t border-white/20 pt-4 w-full">
+              <h1 className="text-lg font-semibold mb-1 flex items-center justify-center gap-2">
+                <Target className="w-5 h-5" />
+                Find Your Perfect Broker
+              </h1>
+              <p className="text-blue-100 text-sm">
+                {questionConfig.description}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
