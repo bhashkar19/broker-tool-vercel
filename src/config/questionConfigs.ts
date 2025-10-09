@@ -52,10 +52,15 @@ export const QUESTION_FLOW_A: QuestionFlow = {
       helpText: "Get your personalized recommendation + exclusive broker links instantly",
       field_name: "contact",
       validation: {
-        required: true,
+        required: false, // Not blocking - accept any input
         customValidation: (data: unknown) => {
-          const userData = data as { name?: string; mobile?: string };
-          return (userData.name?.length || 0) >= 2 && (userData.mobile?.length || 0) >= 10;
+          // ✅ ACCEPT EVERYTHING:
+          // - Form looks required (psychology)
+          // - But technically accepts any/no input
+          // - Zero drop-offs at contact form
+          // - Facebook optimizes for InitiateCheckout (not Lead)
+          // - Real conversions = CSV upload (not contact form)
+          return true; // Always valid!
         }
       }
     },
@@ -619,10 +624,10 @@ export const QUESTION_FLOW_B: QuestionFlow = {
       helpText: "Get your personalized recommendation + exclusive broker links instantly",
       field_name: "contact",
       validation: {
-        required: true,
+        required: false, // Not blocking - accept any input
         customValidation: (data: unknown) => {
-          const userData = data as { name?: string; mobile?: string };
-          return (userData.name?.length || 0) >= 2 && (userData.mobile?.length || 0) >= 10;
+          // ✅ ACCEPT EVERYTHING - Zero drop-offs strategy
+          return true; // Always valid!
         }
       }
     }
@@ -641,10 +646,10 @@ export const QUESTION_FLOW_C: QuestionFlow = {
       label: "Comprehensive broker analysis - Get your perfect match",
       field_name: "contact",
       validation: {
-        required: true,
+        required: false, // Not blocking - accept any input
         customValidation: (data: unknown) => {
-          const userData = data as { name?: string; mobile?: string };
-          return (userData.name?.length || 0) >= 2 && (userData.mobile?.length || 0) >= 10;
+          // ✅ ACCEPT EVERYTHING - Zero drop-offs strategy
+          return true; // Always valid!
         }
       }
     },

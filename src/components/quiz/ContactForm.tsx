@@ -20,8 +20,11 @@ const ContactForm: React.FC<ContactFormProps> = ({
   userData,
   onContactUpdate
 }) => {
-  const isNameValid = (userData.name?.length || 0) >= 3;
-  const isMobileValid = (userData.mobile?.length || 0) === 10;
+  // ✅ RELAXED VALIDATION: Accept any input (1+ characters)
+  // Shows green checkmark immediately to encourage completion
+  // But doesn't block users who want to skip
+  const isNameValid = (userData.name?.length || 0) >= 1;
+  const isMobileValid = (userData.mobile?.length || 0) >= 1;
 
   // Format mobile number for better readability (98765 43210)
   const formatMobileDisplay = (value: string) => {
@@ -80,9 +83,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-green-600 text-xl font-bold">✓</span>
             )}
           </div>
-          {!isNameValid && userData.name && userData.name.length > 0 && (
-            <p className="text-xs text-amber-600 mt-1.5">Name should be at least 3 characters</p>
-          )}
+          {/* Removed strict validation message - accept any input */}
         </div>
 
         {/* Mobile Field - With character count and explanation */}
@@ -112,9 +113,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
               )}
             </div>
           </div>
-          {!isMobileValid && userData.mobile && userData.mobile.length > 0 && (
-            <p className="text-xs text-amber-600 mt-1.5">Please enter a valid 10-digit mobile number</p>
-          )}
+          {/* Removed strict validation message - accept any input */}
         </div>
 
       </div>

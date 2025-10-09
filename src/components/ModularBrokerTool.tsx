@@ -168,15 +168,8 @@ const ModularBrokerTool = () => {
   const isCurrentQuestionValid = () => {
     if (currentQuestion.type === 'custom') {
       if (currentQuestion.id === 'contact_info') {
-        const isValid = validateQuestion(currentQuestion, userData, userData);
-        console.log('Contact validation:', {
-          name: userData.name,
-          mobile: userData.mobile,
-          nameLength: userData.name?.length,
-          mobileLength: userData.mobile?.length,
-          isValid
-        });
-        return isValid;
+        // Always valid - accept any/no input (zero drop-offs strategy)
+        return validateQuestion(currentQuestion, userData, userData);
       }
       if (currentQuestion.id === 'current_brokers_smart') {
         const expectedCount = parseInt(userData.brokerCount || '1');
@@ -265,33 +258,55 @@ const ModularBrokerTool = () => {
         // Continue with quiz if API fails (fail open)
       }
 
-      // Track lead capture (FB Standard + Custom + Supabase)
-      // Detect if user is new or existing
+      // Track lead capture - CONDITIONAL on data quality
+      // Strategy: Accept any input to show recommendation (zero drop-offs)
+      // BUT only fire Lead event for quality data (good CAPI matching)
+      const hasQualityData =
+        (userData.name?.length || 0) >= 3 &&
+        (userData.mobile?.length || 0) === 10;
+
       const isNewUser = userData.hasAccount === 'no';
 
-      // Standard Lead event (helps Facebook optimize for lead generation)
-      trackEvent('Lead', {
-        content_name: 'broker_finder_lead',
-        content_category: isNewUser ? 'new_user_lead' : 'existing_user_lead',
-        value: isNewUser ? 70 : 45, // Higher value for new users
-        currency: 'INR'
-      });
+      if (hasQualityData) {
+        // Fire Lead event ONLY for real/quality data
+        trackEvent('Lead', {
+          content_name: 'broker_finder_lead',
+          content_category: isNewUser ? 'new_user_lead' : 'existing_user_lead',
+          value: isNewUser ? 70 : 45,
+          currency: 'INR'
+        });
 
-      // Google Analytics Lead event
-      if (typeof window !== 'undefined' && 'gtag' in window) {
-        const gtag = (window as Window & { gtag: (...args: unknown[]) => void }).gtag;
-        gtag('event', 'generate_lead', {
-          currency: 'INR',
-          value: 100
+        // Google Analytics Lead event
+        if (typeof window !== 'undefined' && 'gtag' in window) {
+          const gtag = (window as Window & { gtag: (...args: unknown[]) => void }).gtag;
+          gtag('event', 'generate_lead', {
+            currency: 'INR',
+            value: 100
+          });
+        }
+
+        // Custom event for detailed tracking
+        trackCustomEvent('LeadCaptured', {
+          session_id: userData.sessionId,
+          name_length: userData.name?.length || 0,
+          has_mobile: !!userData.mobile,
+          data_quality: 'high'
+        });
+      } else {
+        // Skip Lead event for low-quality/empty data
+        console.log('ℹ️ Skipped Lead event - data quality insufficient', {
+          name_length: userData.name?.length || 0,
+          mobile_length: userData.mobile?.length || 0
+        });
+
+        // Still track session for analytics
+        trackCustomEvent('LeadCaptured', {
+          session_id: userData.sessionId,
+          name_length: userData.name?.length || 0,
+          has_mobile: !!userData.mobile,
+          data_quality: 'low'
         });
       }
-
-      // Custom event for detailed tracking
-      trackCustomEvent('LeadCaptured', {
-        session_id: userData.sessionId,
-        name_length: userData.name?.length || 0,
-        has_mobile: !!userData.mobile
-      });
 
       fetch('/api/track', {
         method: 'POST',
