@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Check, TrendingDown, Sparkles, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { getBrokerById } from '@/lib/broker-repository';
@@ -146,11 +145,7 @@ const BrokerComparisonWidget: React.FC<BrokerComparisonWidgetProps> = ({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-2xl p-8 mb-6 border-2 border-blue-200"
-    >
+    <div className="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-2xl p-8 mb-6 border-2 border-blue-200 animate-slide-up">
       {/* Header */}
       <div className="text-center mb-6">
         <div className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-semibold mb-3">
@@ -201,11 +196,7 @@ const BrokerComparisonWidget: React.FC<BrokerComparisonWidgetProps> = ({
 
       {/* Cost Savings Highlight */}
       {savings && savings.isCheaper && (
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl p-6 mb-6 shadow-xl"
-        >
+        <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl p-6 mb-6 shadow-xl animate-fade-in">
           <div className="flex items-center justify-center gap-3 mb-2">
             <TrendingDown className="w-6 h-6" />
             <h4 className="text-xl font-bold">Save Money Every Month!</h4>
@@ -216,7 +207,7 @@ const BrokerComparisonWidget: React.FC<BrokerComparisonWidgetProps> = ({
               That&apos;s ₹{savings.yearlySavings.toLocaleString()}/year in your pocket! ({savings.percentageSavings}% savings)
             </p>
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* Comparison Table */}
@@ -261,12 +252,10 @@ const BrokerComparisonWidget: React.FC<BrokerComparisonWidgetProps> = ({
 
       {/* CTA Buttons */}
       <div className="space-y-3">
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+        <button
           onClick={() => handleChoice('switch')}
           disabled={selectedChoice !== null}
-          className={`w-full py-5 rounded-xl font-bold text-lg shadow-xl transition-all ${
+          className={`w-full py-5 rounded-xl font-bold text-lg shadow-xl btn-interactive ${
             selectedChoice === 'switch'
               ? 'bg-green-600 text-white scale-105'
               : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-2xl'
@@ -282,14 +271,12 @@ const BrokerComparisonWidget: React.FC<BrokerComparisonWidgetProps> = ({
               <ChevronRight className="w-6 h-6" />
             </span>
           )}
-        </motion.button>
+        </button>
 
-        <motion.button
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
+        <button
           onClick={() => handleChoice('alternatives')}
           disabled={selectedChoice !== null}
-          className={`w-full py-4 rounded-xl font-semibold border-2 transition-all ${
+          className={`w-full py-4 rounded-xl font-semibold border-2 btn-interactive ${
             selectedChoice === 'alternatives'
               ? 'border-blue-600 bg-blue-50 text-blue-700'
               : 'border-gray-300 bg-white text-gray-700 hover:border-blue-500 hover:bg-blue-50'
@@ -300,14 +287,14 @@ const BrokerComparisonWidget: React.FC<BrokerComparisonWidgetProps> = ({
           ) : (
             'Show me other options'
           )}
-        </motion.button>
+        </button>
       </div>
 
       {/* Trust Badge */}
       <div className="text-center mt-4 text-xs text-gray-500">
         <p>✅ Trusted by 1,000+ traders • 🔒 SEBI registered</p>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

@@ -60,7 +60,7 @@ const VisualCardQuestion: React.FC<VisualCardQuestionProps> = ({
         {question.label}
       </h2>
       {question.helpText && (
-        <p className="text-sm text-blue-600 mb-5 text-center font-medium">{question.helpText}</p>
+        <p className="text-sm text-blue-600 mb-3 text-center font-medium">{question.helpText}</p>
       )}
 
       <div className={`grid gap-2 ${question.options && question.options.length <= 2 ? 'grid-cols-2' : question.options && question.options.length >= 4 ? 'grid-cols-2' : 'grid-cols-1'}`}>

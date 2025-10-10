@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import type { Question } from '@/config/questionConfigs';
 
 interface ProgressIndicatorProps {
@@ -28,11 +27,9 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
     <>
       {/* Progress Bar */}
       <div className="h-1 bg-blue-200">
-        <motion.div
-          className="h-full bg-white"
-          initial={{ width: 0 }}
-          animate={{ width: `${progressPercentage}%` }}
-          transition={{ duration: 0.5 }}
+        <div
+          className="h-full bg-white transition-width"
+          style={{ width: `${progressPercentage}%` }}
         />
       </div>
 

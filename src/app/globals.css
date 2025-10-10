@@ -24,3 +24,114 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* 🎨 CSS Animation System - Replaces Framer Motion (saves 3MB) */
+
+/* Fade In Animation - Used for questions appearing */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* Slide Up Animation - Used for recommendations */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Height Expand Animation - Used for collapsible sections */
+@keyframes expandHeight {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+  }
+}
+
+/* Utility Classes */
+.animate-fade-in {
+  animation: fadeIn 0.15s ease-out forwards;
+}
+
+.animate-fade-out {
+  animation: fadeOut 0.15s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+.animate-expand-height {
+  animation: expandHeight 0.3s ease-out forwards;
+  overflow: hidden;
+}
+
+/* Smooth Transitions */
+.transition-smooth {
+  transition: all 0.15s ease-out;
+}
+
+.transition-width {
+  transition: width 0.5s ease-out;
+}
+
+/* Hover Effects - Replaces whileHover */
+.hover-scale:hover {
+  transform: scale(1.02);
+  transition: transform 0.15s ease-out;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  transition: transform 0.15s ease-out;
+}
+
+.hover-slide-left:hover {
+  transform: translateX(-3px);
+  transition: transform 0.15s ease-out;
+}
+
+/* Active/Tap Effects - Replaces whileTap */
+.active-scale:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease-out;
+}
+
+/* Combined hover + active for buttons */
+.btn-interactive {
+  transition: all 0.15s ease-out;
+}
+
+.btn-interactive:hover:not(:disabled) {
+  transform: scale(1.02);
+}
+
+.btn-interactive:active:not(:disabled) {
+  transform: scale(0.98);
+}

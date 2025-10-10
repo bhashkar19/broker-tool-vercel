@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Target, CheckCircle, TrendingUp, Star, ChevronLeft } from 'lucide-react';
 import { trackEvent, trackCustomEvent } from '@/lib/facebook-pixel';
 import * as Sentry from '@sentry/nextjs';
@@ -502,124 +501,111 @@ const ModularBrokerTool = () => {
       />
 
       {/* Questions Container */}
-      <div className="px-6 py-6 min-h-[380px] flex flex-col justify-center pb-20">
-        <AnimatePresence mode="wait">
-          {/* 🐛 FALLBACK: Show error if no question loads */}
-          {!showRecommendation && !currentQuestion && (
-            <div className="text-center py-12">
-              <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
-                <p className="text-red-600 font-semibold mb-2">⚠️ Loading Error</p>
-                <p className="text-sm text-gray-600 mb-4">
-                  Questions failed to load. Please refresh the page.
-                </p>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Refresh Page
-                </button>
-              </div>
+      <div className="px-6 py-6 min-h-[380px] flex flex-col justify-center pb-8">
+        {/* 🐛 FALLBACK: Show error if no question loads */}
+        {!showRecommendation && !currentQuestion && (
+          <div className="text-center py-12">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+              <p className="text-red-600 font-semibold mb-2">⚠️ Loading Error</p>
+              <p className="text-sm text-gray-600 mb-4">
+                Questions failed to load. Please refresh the page.
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Refresh Page
+              </button>
             </div>
-          )}
+          </div>
+        )}
 
-          {!showRecommendation && currentQuestion && (
-            <motion.div
-              key={currentQuestion.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.15 }}
-            >
-              {/* Motivational message */}
-              {currentQuestionIndex > 0 && currentQuestionIndex < visibleQuestions.length - 1 && (
-                <p className="text-center text-xs text-green-600 font-medium mb-3">
-                  {currentQuestionIndex === 1 ? "Great! We're learning about you..." :
-                   currentQuestionIndex >= visibleQuestions.length - 2 ? "Almost there! Just one more..." :
-                   "You're doing great! Keep going..."}
-                </p>
-              )}
+        {!showRecommendation && currentQuestion && (
+          <div key={currentQuestion.id} className="animate-fade-in">
+            {/* Motivational message */}
+            {currentQuestionIndex > 0 && currentQuestionIndex < visibleQuestions.length - 1 && (
+              <p className="text-center text-xs text-green-600 font-medium mb-3">
+                {currentQuestionIndex === 1 ? "Great! We're learning about you..." :
+                 currentQuestionIndex >= visibleQuestions.length - 2 ? "Almost there! Just one more..." :
+                 "You're doing great! Keep going..."}
+              </p>
+            )}
 
-              {isQuestionLoading ? (
-                <div className="animate-pulse space-y-3">
-                  <div className="h-6 bg-gray-200 rounded w-3/4 mx-auto"></div>
-                  <div className="h-4 bg-gray-100 rounded w-1/2 mx-auto mb-4"></div>
-                  <div className="space-y-2">
-                    <div className="h-16 bg-gray-100 rounded-xl"></div>
-                    <div className="h-16 bg-gray-100 rounded-xl"></div>
-                    <div className="h-16 bg-gray-100 rounded-xl"></div>
-                  </div>
+            {isQuestionLoading ? (
+              <div className="animate-pulse space-y-3">
+                <div className="h-6 bg-gray-200 rounded w-3/4 mx-auto"></div>
+                <div className="h-4 bg-gray-100 rounded w-1/2 mx-auto mb-4"></div>
+                <div className="space-y-2">
+                  <div className="h-16 bg-gray-100 rounded-xl"></div>
+                  <div className="h-16 bg-gray-100 rounded-xl"></div>
+                  <div className="h-16 bg-gray-100 rounded-xl"></div>
                 </div>
-              ) : (
-                <ErrorBoundary questionId={currentQuestion.id}>
-                  <QuestionRenderer
-                    question={currentQuestion}
-                    userData={userData}
-                    onAnswerSelect={handleAnswerSelect}
-                    onContactUpdate={handleContactUpdate}
-                  />
-                </ErrorBoundary>
-              )}
+              </div>
+            ) : (
+              <ErrorBoundary questionId={currentQuestion.id}>
+                <QuestionRenderer
+                  question={currentQuestion}
+                  userData={userData}
+                  onAnswerSelect={handleAnswerSelect}
+                  onContactUpdate={handleContactUpdate}
+                />
+              </ErrorBoundary>
+            )}
 
-              {/* Back Button */}
-              {canGoBack && (
-                <motion.button
-                  onClick={goBack}
-                  className="flex items-center gap-2 text-gray-600 hover:text-gray-800 text-sm font-medium mt-3 transition-colors"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  whileHover={{ x: -3 }}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Back
-                </motion.button>
-              )}
+            {/* Back Button */}
+            {canGoBack && (
+              <button
+                onClick={goBack}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-800 text-sm font-medium mt-3 transition-colors hover-slide-left"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Back
+              </button>
+            )}
 
-              {/* Helper text */}
-              {!isCurrentQuestionValid() && currentQuestion.type === 'custom' && currentQuestion.id === 'contact_info' && (
-                <p className="text-center text-xs text-gray-500 mt-3">
-                  ↑ Fill both fields above to continue
-                </p>
-              )}
-              {!isLastQuestion && currentQuestion.type !== 'custom' && !isCurrentQuestionValid() && (
-                <p className="text-center text-xs text-gray-400 mt-3">
-                  Tap an option to continue →
-                </p>
-              )}
-            </motion.div>
-          )}
+            {/* Helper text */}
+            {!isCurrentQuestionValid() && currentQuestion.type === 'custom' && currentQuestion.id === 'contact_info' && (
+              <p className="text-center text-xs text-gray-500 mt-3">
+                ↑ Fill both fields above to continue
+              </p>
+            )}
+            {!isLastQuestion && currentQuestion.type !== 'custom' && !isCurrentQuestionValid() && (
+              <p className="text-center text-xs text-gray-400 mt-3">
+                Tap an option to continue →
+              </p>
+            )}
+          </div>
+        )}
 
-          {showRecommendation && (
-            <RecommendationSection
-              userData={userData}
-              apiError={apiError}
-              apiSuccess={apiSuccess}
-              setApiError={setApiError}
-              setApiSuccess={setApiSuccess}
-            />
-          )}
-        </AnimatePresence>
+        {showRecommendation && (
+          <RecommendationSection
+            userData={userData}
+            apiError={apiError}
+            apiSuccess={apiSuccess}
+            setApiError={setApiError}
+            setApiSuccess={setApiSuccess}
+          />
+        )}
 
         {/* Floating Next Button */}
         {!showRecommendation && (
           <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-transparent pt-6 pb-4 px-4">
             <div className="max-w-md mx-auto">
-              <motion.button
+              <button
                 onClick={nextQuestion}
                 disabled={!isCurrentQuestionValid()}
-                className={`w-full py-3.5 rounded-xl font-bold text-base transition-all shadow-lg ${
+                className={`w-full py-3.5 rounded-xl font-bold text-base shadow-lg ${
                   !isCurrentQuestionValid()
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : isLastQuestion
-                    ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700'
-                    : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:-translate-y-1'
+                    ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 btn-interactive'
+                    : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:-translate-y-1 btn-interactive'
                 }`}
-                whileHover={isCurrentQuestionValid() ? { scale: 1.02 } : {}}
-                whileTap={isCurrentQuestionValid() ? { scale: 0.98 } : {}}
               >
                 {isLastQuestion ? '🎯 Show My Perfect Match' :
                  currentQuestionIndex >= visibleQuestions.length - 2 ? 'Almost There! Continue →' :
                  'Next Question →'}
-              </motion.button>
+              </button>
 
               {/* Consent Text - Only show on contact form question */}
               {currentQuestion?.id === 'contact_info' && (
@@ -1142,13 +1128,7 @@ const CombinedBrokerSelection = ({
 
       {/* Step 2: Broker Selection (Auto-appears when count is selected) */}
       {showBrokerSelection && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.3 }}
-          className="space-y-3"
-        >
+        <div className="space-y-3 animate-expand-height">
           {/* Inline heading with count - COMPACT */}
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-gray-700">Select your brokers:</h3>
@@ -1256,7 +1236,7 @@ const CombinedBrokerSelection = ({
               })}
             </div>
           )}
-        </motion.div>
+        </div>
       )}
     </div>
   );
@@ -1487,12 +1467,7 @@ const RecommendationSection = ({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="text-center"
-    >
+    <div className="text-center animate-slide-up">
       {/* Merged: Personalized Header + Primary Recommendation - Entire section is clickable */}
       <button
         onClick={handleConversion}
@@ -1595,18 +1570,13 @@ const RecommendationSection = ({
 
       {/* MAIN CTA - Primary action button with clear instruction */}
       {!showComparison && (
-        <motion.button
+        <button
           onClick={handleConversion}
           disabled={isConverting}
-          className={`w-full py-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-xl shadow-lg transition-all hover:shadow-2xl mb-2 hover:from-green-600 hover:to-green-700 ${isConverting ? 'opacity-50 cursor-not-allowed' : ''}`}
-          whileHover={isConverting ? undefined : { scale: 1.03, y: -2 }}
-          whileTap={isConverting ? undefined : { scale: 0.98 }}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          className={`w-full py-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-xl shadow-lg mb-2 hover:shadow-2xl hover:from-green-600 hover:to-green-700 animate-fade-in hover-lift btn-interactive ${isConverting ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           Click For {primaryBroker?.name} Free A/C →
-        </motion.button>
+        </button>
       )}
 
 
@@ -1626,15 +1596,9 @@ const RecommendationSection = ({
             </button>
           </div>
 
-          <AnimatePresence>
-            {showBeginnerGuide && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <p className="text-gray-800 text-sm mb-4 leading-relaxed">
+          {showBeginnerGuide && (
+            <div className="animate-expand-height">
+              <p className="text-gray-800 text-sm mb-4 leading-relaxed">
                   Since this is your <strong>first trading account</strong>, we recommend <strong>Zerodha</strong> - India&apos;s most trusted broker for beginners. Here&apos;s why:
                 </p>
 
@@ -1716,9 +1680,8 @@ const RecommendationSection = ({
               Over a year with just 2 trades/month: Save ₹720-1200 by choosing Zerodha over traditional banks
             </p>
           </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+            </div>
+          )}
         </div>
       )}
 
@@ -1913,15 +1876,13 @@ const RecommendationSection = ({
 
       {/* Secondary CTA Button - Different text to avoid confusion */}
       {!showComparison && (
-        <motion.button
+        <button
           onClick={handleConversion}
           disabled={isConverting}
-          className={`w-full py-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-lg shadow-lg transition-all hover:shadow-2xl mb-3 hover:from-green-600 hover:to-green-700 ${isConverting ? 'opacity-50 cursor-not-allowed' : ''}`}
-          whileHover={isConverting ? undefined : { scale: 1.03, y: -2 }}
-          whileTap={isConverting ? undefined : { scale: 0.98 }}
+          className={`w-full py-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-lg shadow-lg mb-3 hover:shadow-2xl hover:from-green-600 hover:to-green-700 hover-lift btn-interactive ${isConverting ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           Start Your FREE {primaryBroker?.name} Account Now →
-        </motion.button>
+        </button>
       )}
 
       {/* Trust Badges - Below CTA */}
@@ -2112,47 +2073,30 @@ const RecommendationSection = ({
       )}
 
       {/* STICKY CTA BUTTON - Shows after scrolling past hero */}
-      <AnimatePresence>
-        {showStickyButton && !showComparison && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-gray-200 shadow-2xl p-4"
-          >
-            <div className="max-w-4xl mx-auto">
-              <motion.button
-                onClick={handleConversion}
-                disabled={isConverting}
-                className={`w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-lg shadow-lg transition-all hover:shadow-2xl hover:from-green-600 hover:to-green-700 ${isConverting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                whileHover={isConverting ? undefined : { scale: 1.02 }}
-                whileTap={isConverting ? undefined : { scale: 0.98 }}
-              >
-                Click For {primaryBroker?.name} Free A/C →
-              </motion.button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {showStickyButton && !showComparison && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-gray-200 shadow-2xl p-4 animate-slide-up">
+          <div className="max-w-4xl mx-auto">
+            <button
+              onClick={handleConversion}
+              disabled={isConverting}
+              className={`w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl hover:from-green-600 hover:to-green-700 btn-interactive ${isConverting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              Click For {primaryBroker?.name} Free A/C →
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* WHAT HAPPENS NEXT MODAL - Shows before redirect */}
-      <AnimatePresence>
-        {showWhatNextModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
-            onClick={() => setShowWhatNextModal(false)}
+      {showWhatNextModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 animate-fade-in"
+          onClick={() => setShowWhatNextModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl animate-slide-up"
+            onClick={(e) => e.stopPropagation()}
           >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
               <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center justify-between">
                 <span className="flex items-center gap-2">
                   <span className="text-3xl">🚀</span>
@@ -2233,11 +2177,10 @@ const RecommendationSection = ({
                   I&apos;m Ready, Continue to {primaryBroker?.name} →
                 </button>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         )}
-      </AnimatePresence>
-    </motion.div>
+    </div>
   );
 };
 
