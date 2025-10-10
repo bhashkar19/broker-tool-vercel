@@ -12,8 +12,8 @@ Sentry.init({
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
 
-  // Temporarily enabled in development for testing
-  enabled: true,
+  // Only send errors in production
+  enabled: process.env.NODE_ENV === 'production',
 
   // Configure integrations
   integrations: [
@@ -38,6 +38,11 @@ Sentry.init({
 
   // Add useful context
   beforeSend(event, hint) {
+    // Don't send errors in development
+    if (process.env.NODE_ENV !== 'production') {
+      return null;
+    }
+
     // Log to console for debugging
     console.error('Sentry capturing error:', hint.originalException || hint.syntheticException);
 
