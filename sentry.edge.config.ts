@@ -6,6 +6,6 @@ Sentry.init({
   // Set tracesSampleRate to 1.0 to capture 100% of transactions for tracing.
   tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
 
-  // Don't send errors in development
-  enabled: process.env.NODE_ENV === 'production',
+  // Temporarily enabled in development for testing
+  enabled: true,
 });

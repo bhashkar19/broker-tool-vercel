@@ -7,16 +7,11 @@ Sentry.init({
   // Adjust this in production to reduce costs
   tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
 
-  // Don't send errors in development
-  enabled: process.env.NODE_ENV === 'production',
+  // Temporarily enabled in development for testing
+  enabled: true,
 
   // Add useful context
   beforeSend(event, hint) {
-    // Don't send errors in development
-    if (process.env.NODE_ENV !== 'production') {
-      return null;
-    }
-
     // Log to console for debugging
     console.error('Sentry capturing error:', hint.originalException || hint.syntheticException);
 

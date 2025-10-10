@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Target, CheckCircle, TrendingUp, Star, ChevronLeft } from 'lucide-react';
 import { trackEvent, trackCustomEvent } from '@/lib/facebook-pixel';
+import * as Sentry from '@sentry/nextjs';
 
 // Import our modular configurations
 import {
@@ -34,6 +35,7 @@ const ModularBrokerTool = () => {
   const [showRecommendation, setShowRecommendation] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [apiSuccess, setApiSuccess] = useState<boolean>(false);
+  const [isQuestionLoading, setIsQuestionLoading] = useState(true);
   const [userData, setUserData] = useState<UserProfile>({
     name: '',
     mobile: '',
@@ -64,6 +66,26 @@ const ModularBrokerTool = () => {
         userData,
         abTestVersion
       });
+
+      // Send to Sentry
+      Sentry.captureMessage('No question to display', {
+        level: 'error',
+        tags: {
+          questionIndex: currentQuestionIndex.toString(),
+          abTestVersion: abTestVersion || 'none'
+        },
+        extra: {
+          visibleQuestionsCount: visibleQuestions.length,
+          totalConfigQuestions: questionConfig.questions.length,
+          userData
+        }
+      });
+    }
+
+    // Mark question as loaded after brief delay to show content is ready
+    if (currentQuestion) {
+      const timer = setTimeout(() => setIsQuestionLoading(false), 50);
+      return () => clearTimeout(timer);
     }
   }, [currentQuestion, showRecommendation, currentQuestionIndex, visibleQuestions.length, questionConfig.questions.length, userData, abTestVersion]);
 
@@ -275,6 +297,9 @@ const ModularBrokerTool = () => {
 
   // Move to next question
   const nextQuestion = async () => {
+    // Show loading state when transitioning
+    setIsQuestionLoading(true);
+
     // Track Google Analytics event for question completion
     if (typeof window !== 'undefined' && 'gtag' in window) {
       const gtag = (window as Window & { gtag: (...args: unknown[]) => void }).gtag;
@@ -514,14 +539,26 @@ const ModularBrokerTool = () => {
                 </p>
               )}
 
-              <ErrorBoundary questionId={currentQuestion.id}>
-                <QuestionRenderer
-                  question={currentQuestion}
-                  userData={userData}
-                  onAnswerSelect={handleAnswerSelect}
-                  onContactUpdate={handleContactUpdate}
-                />
-              </ErrorBoundary>
+              {isQuestionLoading ? (
+                <div className="animate-pulse space-y-3">
+                  <div className="h-6 bg-gray-200 rounded w-3/4 mx-auto"></div>
+                  <div className="h-4 bg-gray-100 rounded w-1/2 mx-auto mb-4"></div>
+                  <div className="space-y-2">
+                    <div className="h-16 bg-gray-100 rounded-xl"></div>
+                    <div className="h-16 bg-gray-100 rounded-xl"></div>
+                    <div className="h-16 bg-gray-100 rounded-xl"></div>
+                  </div>
+                </div>
+              ) : (
+                <ErrorBoundary questionId={currentQuestion.id}>
+                  <QuestionRenderer
+                    question={currentQuestion}
+                    userData={userData}
+                    onAnswerSelect={handleAnswerSelect}
+                    onContactUpdate={handleContactUpdate}
+                  />
+                </ErrorBoundary>
+              )}
 
               {/* Back Button */}
               {canGoBack && (
@@ -2224,6 +2261,19 @@ class ErrorBoundary extends React.Component<
       error: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack
+    });
+
+    // Send to Sentry for tracking
+    Sentry.captureException(error, {
+      tags: {
+        component: 'QuestionRenderer',
+        questionId: this.props.questionId
+      },
+      contexts: {
+        react: {
+          componentStack: errorInfo.componentStack
+        }
+      }
     });
   }
 
