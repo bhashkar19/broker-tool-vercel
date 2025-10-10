@@ -83,20 +83,20 @@ const GridCheckboxQuestion: React.FC<GridCheckboxQuestionProps> = ({
 
   return (
     <div>
-      <h2 className="text-lg font-bold text-gray-900 mb-2 text-center leading-tight">
+      <h2 className="text-xl font-bold text-gray-900 mb-3 text-center leading-tight">
         {question.label}
       </h2>
       {question.helpText && (
-        <p className="text-xs text-blue-600 mb-3 text-center font-medium">{question.helpText}</p>
+        <p className="text-sm text-blue-600 mb-4 text-center font-medium">{question.helpText}</p>
       )}
 
-      <div className={`grid ${gridClass} mb-2.5`}>
+      <div className={`grid ${gridClass} mb-3`}>
         {question.options?.map((option) => (
           <button
             key={option.value}
             onClick={() => toggleOption(option.value)}
             className={`
-              relative px-3 py-4 border-2 rounded-xl text-center font-semibold transition-all
+              relative px-4 py-4.5 border-2 rounded-xl text-center font-semibold transition-all
               ${isSelected(option.value)
                 ? 'border-blue-600 bg-blue-50 text-blue-900 shadow-md'
                 : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50 text-gray-900'
@@ -117,7 +117,7 @@ const GridCheckboxQuestion: React.FC<GridCheckboxQuestionProps> = ({
             </div>
 
             {/* Option label */}
-            <span className="text-xs leading-tight block pr-6">
+            <span className="text-sm leading-tight block pr-6">
               {option.label}
             </span>
           </button>
@@ -128,7 +128,7 @@ const GridCheckboxQuestion: React.FC<GridCheckboxQuestionProps> = ({
           <button
             onClick={() => toggleOption('custom')}
             className={`
-              relative px-3 py-4 border-2 rounded-xl text-center font-semibold transition-all
+              relative px-4 py-4.5 border-2 rounded-xl text-center font-semibold transition-all
               ${showCustomInput || hasCustomValue
                 ? 'border-blue-600 bg-blue-50 text-blue-900 shadow-md'
                 : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50 text-gray-900'
@@ -148,7 +148,7 @@ const GridCheckboxQuestion: React.FC<GridCheckboxQuestionProps> = ({
               )}
             </div>
 
-            <span className="text-xs leading-tight block pr-6">
+            <span className="text-sm leading-tight block pr-6">
               💬 Other
             </span>
           </button>

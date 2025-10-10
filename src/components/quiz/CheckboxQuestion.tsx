@@ -54,18 +54,18 @@ const CheckboxQuestion: React.FC<CheckboxQuestionProps> = ({
 
   return (
     <div>
-      <h2 className="text-lg font-bold text-gray-900 mb-2 text-center leading-tight">
+      <h2 className="text-xl font-bold text-gray-900 mb-3 text-center leading-tight">
         {question.label}
       </h2>
       {question.helpText && (
-        <p className="text-xs text-blue-600 mb-3 text-center font-medium">{question.helpText}</p>
+        <p className="text-sm text-blue-600 mb-4 text-center font-medium">{question.helpText}</p>
       )}
-      <div className="space-y-2.5">
+      <div className="space-y-3">
         {question.options?.map((option) => (
           <button
             key={option.value}
             onClick={() => handleCheckboxChange(option.value)}
-            className={`w-full p-3 border-2 rounded-xl text-left text-sm font-medium transition-all ${
+            className={`w-full p-3.5 border-2 rounded-xl text-left text-sm font-medium transition-all ${
               selectedValues.includes(option.value)
                 ? 'border-blue-600 bg-blue-50 text-blue-900'
                 : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50 text-gray-900'
@@ -81,7 +81,7 @@ const CheckboxQuestion: React.FC<CheckboxQuestionProps> = ({
         ))}
       </div>
       {selectedValues.length > 0 && (
-        <p className="text-xs text-center text-blue-600 mt-2 font-medium">
+        <p className="text-sm text-center text-blue-600 mt-3 font-medium">
           ✓ {selectedValues.length} selected
         </p>
       )}

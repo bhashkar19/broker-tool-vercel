@@ -47,14 +47,14 @@ const VisualCardQuestion: React.FC<VisualCardQuestionProps> = ({
 
   return (
     <div>
-      <h2 className="text-lg font-bold text-gray-900 mb-2 text-center leading-tight">
+      <h2 className="text-xl font-bold text-gray-900 mb-2.5 text-center leading-tight">
         {question.label}
       </h2>
       {question.helpText && (
-        <p className="text-sm text-blue-600 mb-4 text-center font-medium">{question.helpText}</p>
+        <p className="text-sm text-blue-600 mb-5 text-center font-medium">{question.helpText}</p>
       )}
 
-      <div className={`grid gap-2.5 ${question.options && question.options.length === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+      <div className={`grid gap-3 ${question.options && question.options.length === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
         {question.options?.map((option) => (
           <button
             key={option.value}
