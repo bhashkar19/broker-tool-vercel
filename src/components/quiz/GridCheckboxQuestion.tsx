@@ -20,7 +20,27 @@ const GridCheckboxQuestion: React.FC<GridCheckboxQuestionProps> = ({
   userData,
   onAnswerSelect
 }) => {
-  const selectedValues = (userData[question.field_name as keyof UserProfile] as string[]) || [];
+  // 🐛 FIX: Safely parse selectedValues - handle JSON strings, arrays, null, undefined
+  const selectedValues = (() => {
+    const raw = userData[question.field_name as keyof UserProfile];
+
+    // If already an array, return it
+    if (Array.isArray(raw)) return raw;
+
+    // If it's a string, try parsing as JSON
+    if (typeof raw === 'string') {
+      try {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        // If parsing fails, return empty array
+        return [];
+      }
+    }
+
+    // Default: empty array
+    return [];
+  })();
   const [customValue, setCustomValue] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
 
@@ -57,8 +77,9 @@ const GridCheckboxQuestion: React.FC<GridCheckboxQuestionProps> = ({
     '3x2': 'grid-cols-3 gap-2.5'
   }[question.gridLayout || '2x2'];
 
-  const isSelected = (value: string) => selectedValues.includes(value);
-  const hasCustomValue = selectedValues.some(v => v.startsWith('custom:'));
+  // 🐛 FIX: Add safety checks for array methods
+  const isSelected = (value: string) => Array.isArray(selectedValues) && selectedValues.includes(value);
+  const hasCustomValue = Array.isArray(selectedValues) && selectedValues.some(v => v.startsWith('custom:'));
 
   return (
     <div>

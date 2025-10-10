@@ -21,7 +21,27 @@ const CheckboxQuestion: React.FC<CheckboxQuestionProps> = ({
   userData,
   onAnswerSelect
 }) => {
-  const selectedValues = (userData[question.field_name as keyof UserProfile] as string[]) || [];
+  // 🐛 FIX: Safely parse selectedValues - handle JSON strings, arrays, null, undefined
+  const selectedValues = (() => {
+    const raw = userData[question.field_name as keyof UserProfile];
+
+    // If already an array, return it
+    if (Array.isArray(raw)) return raw;
+
+    // If it's a string, try parsing as JSON
+    if (typeof raw === 'string') {
+      try {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        // If parsing fails, return empty array
+        return [];
+      }
+    }
+
+    // Default: empty array
+    return [];
+  })();
 
   const handleCheckboxChange = (value: string) => {
     const currentValues = selectedValues || [];

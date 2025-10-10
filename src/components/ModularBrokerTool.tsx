@@ -26,6 +26,7 @@ import RadioQuestion from './quiz/RadioQuestion';
 import CheckboxQuestion from './quiz/CheckboxQuestion';
 import VisualCardQuestion from './quiz/VisualCardQuestion';
 import GridCheckboxQuestion from './quiz/GridCheckboxQuestion';
+import PriorityQuestion from './quiz/PriorityQuestion';
 
 // 🎯 MAIN COMPONENT
 const ModularBrokerTool = () => {
@@ -138,6 +139,15 @@ const ModularBrokerTool = () => {
         processedValue = JSON.parse(value);
       } catch {
         processedValue = [value];
+      }
+    }
+
+    // Handle priority data (stored as JSON string with rank)
+    if (currentQuestion.type === 'priority') {
+      try {
+        processedValue = JSON.parse(value);
+      } catch {
+        processedValue = [];
       }
     }
 
@@ -320,14 +330,7 @@ const ModularBrokerTool = () => {
     }
 
     if (isLastQuestion) {
-      // 🔒 FIX: Don't auto-show recommendation when landing on contact_info
-      // Wait for user to fill form and click "Show My Perfect Match" button
-      if (currentQuestion?.id === 'contact_info') {
-        // User is on contact form - don't show recommendation yet
-        // The button validates form is filled before calling nextQuestion()
-        return; // Stop here - wait for form submission
-      }
-
+      // ✅ Show recommendation when user clicks button on last question
       setShowRecommendation(true);
 
       // Generate recommendation
@@ -626,6 +629,15 @@ const QuestionRenderer = ({
     }
     // Use regular CheckboxQuestion for vertical list
     return <CheckboxQuestion question={question} userData={userData} onAnswerSelect={onAnswerSelect} />;
+  }
+
+  if (question.type === 'priority') {
+    // Use PriorityQuestion for TOP 3 priority selection with ranking
+    return <PriorityQuestion
+      question={question}
+      userData={userData}
+      onAnswerSelect={(values: { rank: number; value: string }[]) => onAnswerSelect(JSON.stringify(values))}
+    />;
   }
 
   return null;
