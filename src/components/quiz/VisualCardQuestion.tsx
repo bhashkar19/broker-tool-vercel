@@ -40,7 +40,16 @@ const VisualCardQuestion: React.FC<VisualCardQuestionProps> = ({
       // "Knowledge level" question
       'beginner': '🌱',
       'intermediate': '📊',
-      'advanced': '🚀'
+      'advanced': '🚀',
+      // Trading style question
+      'day_trader': '📊',
+      'swing_trader': '⚡',
+      'long_term_investor': '📈',
+      'hybrid': '🎯',
+      // Investment capital question
+      'growing': '📊',
+      'established': '💼',
+      'serious': '🏆'
     };
     return iconMap[option.value] || '⭐';
   };
