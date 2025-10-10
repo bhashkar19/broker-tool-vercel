@@ -102,10 +102,11 @@ const ModularBrokerTool = () => {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const stored = localStorage.getItem('brokerQuizCompleted');
-    if (stored) {
+    // Priority 1: Check if quiz is already completed
+    const completed = localStorage.getItem('brokerQuizCompleted');
+    if (completed) {
       try {
-        const data = JSON.parse(stored);
+        const data = JSON.parse(completed);
 
         // Load their previous data and show recommendation directly
         setUserData(prev => {
@@ -121,10 +122,36 @@ const ModularBrokerTool = () => {
         });
 
         setShowRecommendation(true); // Jump straight to recommendation
+        return; // Don't check for in-progress if already completed
       } catch (error) {
         console.error('Error parsing completion data:', error);
         // If data is corrupted, remove it
         localStorage.removeItem('brokerQuizCompleted');
+      }
+    }
+
+    // Priority 2: Check if there's an in-progress quiz to restore
+    const inProgress = localStorage.getItem('brokerQuizInProgress');
+    if (inProgress) {
+      try {
+        const data = JSON.parse(inProgress);
+
+        // Restore user data and question index
+        setUserData(prev => ({
+          ...prev,
+          ...data.userData,
+          sessionId: prev.sessionId // Keep new session ID for tracking
+        }));
+
+        setCurrentQuestionIndex(data.currentQuestionIndex || 0);
+
+        console.log('📥 Restored in-progress quiz:', {
+          questionIndex: data.currentQuestionIndex,
+          hasAccount: data.userData?.hasAccount
+        });
+      } catch (error) {
+        console.error('Error parsing in-progress data:', error);
+        localStorage.removeItem('brokerQuizInProgress');
       }
     }
   }, []);
@@ -160,11 +187,22 @@ const ModularBrokerTool = () => {
       }
     }
 
-    setUserData(prev => ({
-      ...prev,
+    const updatedData = {
+      ...userData,
       [currentQuestion.field_name]: processedValue
-    }));
-  }, [currentQuestion.type, currentQuestion.id, currentQuestion.field_name]);
+    };
+
+    setUserData(updatedData);
+
+    // 💾 AUTO-SAVE: Save in-progress quiz after each answer
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('brokerQuizInProgress', JSON.stringify({
+        userData: updatedData,
+        currentQuestionIndex: currentQuestionIndex,
+        savedAt: new Date().toISOString()
+      }));
+    }
+  }, [currentQuestion.type, currentQuestion.id, currentQuestion.field_name, userData, currentQuestionIndex]);
 
   // Handle contact info update (memoized to prevent unnecessary re-renders)
   const handleContactUpdate = useCallback((field: string, value: string) => {
@@ -1326,6 +1364,8 @@ const RecommendationSection = ({
                 mainChallenge: userData.mainChallenge,
                 tradingFrequency: userData.tradingFrequency,
                 whatMattersMost: userData.whatMattersMost,
+                tradingStyle: userData.tradingStyle,
+                investmentCapital: userData.investmentCapital,
                 // Legacy fields for compatibility
                 investmentPurpose: userData.investmentPurpose,
                 currentBroker: userData.currentBroker,
@@ -1334,6 +1374,9 @@ const RecommendationSection = ({
                 tradingPriority: userData.tradingPriority
               }
             }));
+
+            // 🧹 CLEAR IN-PROGRESS DATA (quiz is now complete)
+            localStorage.removeItem('brokerQuizInProgress');
           }
         } else {
           throw new Error(`API returned ${response.status}`);
