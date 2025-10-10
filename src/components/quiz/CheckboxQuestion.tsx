@@ -34,18 +34,18 @@ const CheckboxQuestion: React.FC<CheckboxQuestionProps> = ({
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center">
+      <h2 className="text-lg font-bold text-gray-900 mb-2 text-center leading-tight">
         {question.label}
       </h2>
       {question.helpText && (
-        <p className="text-sm text-gray-600 mb-4 text-center">{question.helpText}</p>
+        <p className="text-xs text-blue-600 mb-3 text-center font-medium">{question.helpText}</p>
       )}
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {question.options?.map((option) => (
           <button
             key={option.value}
             onClick={() => handleCheckboxChange(option.value)}
-            className={`w-full p-4 border-2 rounded-xl text-left font-medium transition-all ${
+            className={`w-full p-3 border-2 rounded-xl text-left text-sm font-medium transition-all ${
               selectedValues.includes(option.value)
                 ? 'border-blue-600 bg-blue-50 text-blue-900'
                 : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50 text-gray-900'
@@ -54,18 +54,16 @@ const CheckboxQuestion: React.FC<CheckboxQuestionProps> = ({
             <div className="flex items-center justify-between">
               <span>{option.label}</span>
               {selectedValues.includes(option.value) && (
-                <CheckCircle className="w-5 h-5 text-blue-600" />
+                <CheckCircle className="w-4 h-4 text-blue-600" />
               )}
             </div>
           </button>
         ))}
       </div>
       {selectedValues.length > 0 && (
-        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-          <p className="text-sm text-blue-700">
-            Selected: {selectedValues.length} broker{selectedValues.length > 1 ? 's' : ''}
-          </p>
-        </div>
+        <p className="text-xs text-center text-blue-600 mt-2 font-medium">
+          ✓ {selectedValues.length} selected
+        </p>
       )}
     </div>
   );
