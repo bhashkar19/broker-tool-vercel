@@ -47,21 +47,21 @@ const VisualCardQuestion: React.FC<VisualCardQuestionProps> = ({
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-gray-900 mb-2.5 text-center leading-tight">
+      <h2 className="text-lg font-bold text-gray-900 mb-2 text-center leading-tight">
         {question.label}
       </h2>
       {question.helpText && (
-        <p className="text-sm text-blue-600 mb-5 text-center font-medium">{question.helpText}</p>
+        <p className="text-sm text-blue-600 mb-4 text-center font-medium">{question.helpText}</p>
       )}
 
-      <div className={`grid gap-3 ${question.options && question.options.length === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+      <div className={`grid gap-2.5 ${question.options && question.options.length === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
         {question.options?.map((option) => (
           <button
             key={option.value}
             onClick={() => onAnswerSelect(option.value)}
             className={`
               relative overflow-hidden rounded-xl border-2 transition-all flex flex-col items-center justify-center
-              ${option.description ? 'py-6 px-5' : 'py-6 px-5'}
+              ${option.description ? 'py-5 px-4' : 'py-5 px-4'}
               ${question.options && question.options.length === 2 ? '' : ''}
               ${selectedValue === option.value
                 ? 'border-blue-600 bg-blue-50 shadow-md'
@@ -70,22 +70,22 @@ const VisualCardQuestion: React.FC<VisualCardQuestionProps> = ({
             `}
           >
             {/* Icon - Centered on top */}
-            <div className="flex-shrink-0 text-5xl mb-3 text-center">
+            <div className="flex-shrink-0 text-5xl mb-2.5 text-center">
               {getIcon(option)}
             </div>
 
             {/* Text content */}
             <div className="flex-1 text-center w-full">
               {/* Label */}
-              <p className={`font-bold leading-snug ${
-                option.description ? 'text-lg mb-2' : 'text-lg'
+              <p className={`font-bold leading-tight ${
+                option.description ? 'text-base mb-1.5' : 'text-base'
               } ${selectedValue === option.value ? 'text-blue-900' : 'text-gray-900'}`}>
                 {option.label.replace(/^[✓✗📊💰📚🎯🌱📈🚀⚡🎓]\s*/, '')}
               </p>
 
               {/* Description (if provided) */}
               {option.description && (
-                <p className={`text-sm leading-relaxed ${
+                <p className={`text-sm leading-snug ${
                   selectedValue === option.value ? 'text-blue-700' : 'text-gray-700'
                 }`}>
                   {option.description}

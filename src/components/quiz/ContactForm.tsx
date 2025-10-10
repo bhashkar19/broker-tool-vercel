@@ -37,35 +37,16 @@ const ContactForm: React.FC<ContactFormProps> = ({
   return (
     <div>
       {/* Heading - More helpful, less salesy */}
-      <h2 className="text-xl font-bold text-gray-900 mb-2 text-center leading-tight">
+      <h2 className="text-lg font-bold text-gray-900 mb-2 text-center leading-tight">
         {question.label}
       </h2>
 
-      {/* Subtext - Clear value proposition */}
-      {question.helpText && (
-        <p className="text-sm text-gray-600 mb-4 text-center">{question.helpText}</p>
-      )}
+      {/* Compact value proposition - single line */}
+      <p className="text-sm text-blue-600 mb-4 text-center font-medium">
+        Get your personalized match + exclusive broker links instantly 🎯
+      </p>
 
-      {/* What You'll Receive - Clear benefits */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5">
-        <p className="text-xs font-semibold text-blue-900 mb-2">🎯 What you&apos;ll get:</p>
-        <ul className="space-y-1.5 text-xs text-blue-800">
-          <li className="flex items-start gap-2">
-            <span className="text-green-600 font-bold mt-0.5">✓</span>
-            <span>Your personalized broker recommendation</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-green-600 font-bold mt-0.5">✓</span>
-            <span>Exclusive account opening links (save on fees)</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-green-600 font-bold mt-0.5">✓</span>
-            <span>Step-by-step setup guide (under 10 minutes)</span>
-          </li>
-        </ul>
-      </div>
-
-      <div className="space-y-4">
+      <div className="space-y-3.5">
         {/* Name Field - With explanation */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -116,6 +97,24 @@ const ContactForm: React.FC<ContactFormProps> = ({
           {/* Removed strict validation message - accept any input */}
         </div>
 
+      </div>
+
+      {/* Trust signals - compact footer */}
+      <div className="mt-3 flex items-center justify-center gap-3 text-xs text-gray-500">
+        <span className="flex items-center gap-1">
+          <span className="text-green-600 font-bold">✓</span>
+          <span>100% Free</span>
+        </span>
+        <span className="text-gray-300">•</span>
+        <span className="flex items-center gap-1">
+          <span className="text-green-600 font-bold">✓</span>
+          <span>No Spam</span>
+        </span>
+        <span className="text-gray-300">•</span>
+        <span className="flex items-center gap-1">
+          <span className="text-green-600 font-bold">✓</span>
+          <span>Instant Results</span>
+        </span>
       </div>
     </div>
   );

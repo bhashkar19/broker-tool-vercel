@@ -1029,25 +1029,25 @@ const CombinedBrokerSelection = ({
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center">
-        Tell us about your current brokers
+      {/* 🎯 COMPACT HEADER - Combine question + count selection */}
+      <h2 className="text-lg font-bold text-gray-900 mb-3 text-center leading-tight">
+        How many brokers do you currently use?
       </h2>
 
-      {/* Step 1: Broker Count Selection */}
-      <div className="mb-6">
-        <h3 className="text-lg font-medium text-gray-700 mb-4">How many brokers do you currently use?</h3>
-        <div className="grid grid-cols-2 gap-3">
+      {/* Step 1: Broker Count Selection - COMPACT */}
+      <div className="mb-4">
+        <div className="grid grid-cols-4 gap-2">
           {countOptions.map((option) => (
             <button
               key={option.value}
               onClick={() => handleCountChange(option.value)}
-              className={`p-4 border-2 rounded-xl text-center font-medium transition-all ${
+              className={`p-3 border-2 rounded-xl text-center font-bold text-sm transition-all ${
                 brokerData.count === option.value
                   ? 'border-blue-600 bg-blue-50 text-blue-900'
                   : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50 text-gray-900'
               }`}
             >
-              {option.label}
+              {option.value}
             </button>
           ))}
         </div>
@@ -1060,34 +1060,25 @@ const CombinedBrokerSelection = ({
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
           transition={{ duration: 0.3 }}
-          className="space-y-4"
+          className="space-y-3"
         >
-          <h3 className="text-lg font-medium text-gray-700">Which brokers do you use?</h3>
+          {/* Inline heading with count - COMPACT */}
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-700">Select your brokers:</h3>
+            {selectedBrokers.length > 0 && (
+              <span className="text-xs font-medium text-blue-600">
+                {selectedBrokers.length}/{brokerData.count}
+              </span>
+            )}
+          </div>
 
-
-          {/* Progress indicator */}
-          {selectedBrokers.length > 0 && (
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <div className="flex justify-between text-sm text-blue-700 mb-2">
-                <span>{selectedBrokers.length} selected</span>
-                <span>{brokerData.count} total</span>
-              </div>
-              <div className="w-full bg-blue-200 rounded-full h-2">
-                <div
-                  className="h-2 rounded-full bg-blue-500 transition-all"
-                  style={{ width: `${Math.min((selectedBrokers.length / parseInt(brokerData.count || '1')) * 100, 100)}%` }}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Broker selection grid */}
-          <div className="grid grid-cols-2 gap-3 mb-4">
+          {/* Broker selection grid - COMPACT */}
+          <div className="grid grid-cols-2 gap-2.5">
             {displayedBrokers.map((broker) => (
               <button
                 key={broker.value}
                 onClick={() => handleBrokerToggle(broker.value)}
-                className={`p-4 border-2 rounded-xl font-medium transition-all flex items-center gap-3 ${
+                className={`p-3 border-2 rounded-xl font-medium transition-all flex items-center gap-2 ${
                   selectedBrokers.includes(broker.value)
                     ? 'border-blue-600 bg-blue-50 text-blue-900'
                     : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50 text-gray-900'
@@ -1097,93 +1088,85 @@ const CombinedBrokerSelection = ({
                   <Image
                     src={broker.logo}
                     alt={broker.label}
-                    width={40}
-                    height={40}
-                    className="w-10 h-10 object-contain flex-shrink-0"
+                    width={32}
+                    height={32}
+                    className="w-8 h-8 object-contain flex-shrink-0"
                     onError={(e) => {
                       console.error(`Failed to load logo for ${broker.label}:`, broker.logo);
                       e.currentTarget.style.display = 'none';
                       const fallback = document.createElement('span');
                       fallback.textContent = broker.fallback || '📊';
-                      fallback.className = 'text-3xl';
+                      fallback.className = 'text-2xl';
                       e.currentTarget.parentElement?.appendChild(fallback);
                     }}
                     loading="lazy"
                     unoptimized
                   />
                 ) : (
-                  <span className="text-3xl">{broker.fallback || broker.logo}</span>
+                  <span className="text-2xl">{broker.fallback || broker.logo}</span>
                 )}
-                <span className="text-sm">{broker.label}</span>
+                <span className="text-xs flex-1 text-left">{broker.label}</span>
                 {selectedBrokers.includes(broker.value) && (
-                  <CheckCircle className="w-4 h-4 text-blue-600 ml-auto" />
+                  <CheckCircle className="w-4 h-4 text-blue-600" />
                 )}
               </button>
             ))}
           </div>
 
-          {/* Show More / Show Less Button */}
+          {/* Show More / Show Less Button - COMPACT */}
           {moreBrokers.length > 0 && (
             <button
               onClick={() => setShowAllBrokers(!showAllBrokers)}
-              className="w-full mb-4 py-3 border-2 border-blue-400 text-blue-600 rounded-xl font-medium text-sm hover:bg-blue-50 transition-colors"
+              className="w-full py-2.5 border-2 border-blue-400 text-blue-600 rounded-xl font-medium text-xs hover:bg-blue-50 transition-colors"
             >
-              {showAllBrokers ? `↑ Show Less` : `↓ Show ${moreBrokers.length} More Brokers`}
+              {showAllBrokers ? `↑ Show Less` : `↓ Show ${moreBrokers.length} More`}
             </button>
           )}
 
-          {/* Others option */}
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-2">
-              Other broker:
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={otherBroker}
-                onChange={(e) => setOtherBroker(e.target.value)}
-                placeholder="Enter broker name"
-                className="flex-1 p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-sm text-gray-900 bg-white placeholder-gray-400"
-              />
-              <button
-                onClick={handleOtherBrokerAdd}
-                disabled={!otherBroker.trim()}
-                className="px-4 py-3 bg-gray-600 text-white rounded-xl text-sm font-medium disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
-              >
-                Add
-              </button>
-            </div>
+          {/* Others option - COMPACT */}
+          <div className="flex gap-2 items-center">
+            <input
+              type="text"
+              value={otherBroker}
+              onChange={(e) => setOtherBroker(e.target.value)}
+              placeholder="Other broker?"
+              className="flex-1 p-2.5 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-xs text-gray-900 bg-white placeholder-gray-400"
+            />
+            <button
+              onClick={handleOtherBrokerAdd}
+              disabled={!otherBroker.trim()}
+              className="px-3 py-2.5 bg-gray-600 text-white rounded-xl text-xs font-medium disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
+            >
+              Add
+            </button>
           </div>
 
-          {/* Selected brokers list */}
+          {/* Selected brokers list - COMPACT */}
           {selectedBrokers.length > 0 && (
-            <div className="p-3 bg-green-50 rounded-lg">
-              <p className="text-sm text-green-700 font-medium mb-2">Selected:</p>
-              <div className="flex flex-wrap gap-2">
-                {selectedBrokers.map((brokerId) => {
-                  const broker = brokerOptions.find(b => b.value === brokerId);
-                  const isOther = brokerId.startsWith('other_');
-                  return (
-                    <span
-                      key={brokerId}
-                      className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium"
+            <div className="flex flex-wrap gap-1.5">
+              {selectedBrokers.map((brokerId) => {
+                const broker = brokerOptions.find(b => b.value === brokerId);
+                const isOther = brokerId.startsWith('other_');
+                return (
+                  <span
+                    key={brokerId}
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
+                  >
+                    {broker?.logo?.startsWith('http') ? (
+                      <Image src={broker.logo} alt={broker.label} width={16} height={16} className="w-4 h-4 object-contain inline" unoptimized />
+                    ) : (
+                      <span className="text-sm">{broker?.fallback || '📊'}</span>
+                    )}
+                    {broker?.label || (isOther ? brokerId.replace('other_', '').replace(/_/g, ' ') : brokerId)}
+                    <button
+                      onClick={() => handleBrokerToggle(brokerId)}
+                      className="ml-1 text-blue-600 hover:text-blue-800"
                     >
-                      {broker?.logo?.startsWith('http') ? (
-                    <Image src={broker.logo} alt={broker.label} width={20} height={20} className="w-5 h-5 object-contain inline" unoptimized />
-                  ) : (
-                    <span className="text-base">{broker?.fallback || '📊'}</span>
-                  )}
-                      {broker?.label || (isOther ? brokerId.replace('other_', '').replace(/_/g, ' ') : brokerId)}
-                      <button
-                        onClick={() => handleBrokerToggle(brokerId)}
-                        className="ml-1 text-green-600 hover:text-green-800"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  );
-                })}
-              </div>
+                      ×
+                    </button>
+                  </span>
+                );
+              })}
             </div>
           )}
         </motion.div>
