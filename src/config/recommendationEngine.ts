@@ -49,8 +49,9 @@ export interface UserProfile extends Record<string, unknown> {
   brokerCount?: string; // Legacy: How many brokers user has
   currentBrokers?: string[]; // Legacy: Handle multiple brokers selection
   userType?: string[] | string; // NEW: investor/trader/learner/professional (now multi-select)
+  investmentCapital?: string; // NEW: beginner/growing/established/serious (capital amount range)
   mainChallenge?: string[] | string; // NEW: Challenges with current broker (now multi-select)
-  tradingFrequency?: string; // NEW: Enhanced trading frequency (kept single)
+  tradingFrequency?: string; // LEGACY: Enhanced trading frequency (replaced by tradingStyle)
   whatMattersMost?: string[] | string; // NEW: Important factors (now multi-select)
 
   // Legacy fields (keep for compatibility)
@@ -66,7 +67,7 @@ export interface UserProfile extends Record<string, unknown> {
 
   // Detailed flow questions (legacy)
   accountStatus?: string;
-  tradingStyle?: string;
+  tradingStyle?: string; // NOW ALSO USED: day_trader/swing_trader/long_term_investor/hybrid (merged userType + frequency)
   monthlyVolume?: string;
   topPriority?: string;
   satisfaction?: string;
@@ -265,7 +266,18 @@ const selectBestBrokerFromAvailable = (availableBrokers: string[]): string => {
 
 
 const getUserType = (profile: UserProfile): string => {
-  // Handle new multi-select userType field
+  // NEW: Handle tradingStyle field (merged user type + frequency)
+  if (profile.tradingStyle) {
+    switch(profile.tradingStyle) {
+      case 'day_trader': return 'Day Trader';
+      case 'swing_trader': return 'Swing Trader';
+      case 'long_term_investor': return 'Long-term Investor';
+      case 'hybrid': return 'Hybrid Trader';
+      default: return 'Active Trader';
+    }
+  }
+
+  // Handle new multi-select userType field (legacy)
   if (profile.userType) {
     let userTypes: string[] = [];
 

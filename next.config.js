@@ -15,6 +15,13 @@ const nextConfig = {
   // Image optimization
   images: {
     formats: ['image/webp', 'image/avif'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'dqmpityshhywzayjysru.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
   }
 };
 

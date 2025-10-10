@@ -462,10 +462,10 @@ const ModularBrokerTool = () => {
           {!showRecommendation && currentQuestion && (
             <motion.div
               key={currentQuestion.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.15 }}
             >
               {/* Motivational message */}
               {currentQuestionIndex > 0 && currentQuestionIndex < visibleQuestions.length - 1 && (
@@ -1494,12 +1494,12 @@ const RecommendationSection = ({
       )}
       {primaryBroker?.id === 'angel_one' && (
         <p className="text-center text-xs text-gray-600 mb-4 px-4 leading-relaxed">
-          📝 All trades: ₹20 or 0.1% per trade (whichever lower) • Delivery NO LONGER FREE since Nov 2024
+          📝 Intraday/F&O: ₹20 per trade or 0.03% (whichever lower)
         </p>
       )}
       {primaryBroker?.id === 'upstox' && (
         <p className="text-center text-xs text-gray-600 mb-4 px-4 leading-relaxed">
-          📝 Delivery: ₹20 or 2.5% per trade (whichever lower) • Intraday/F&O: ₹20 or 0.05% (whichever lower)
+          📝 Intraday/F&O: ₹20 per trade or 0.05% (whichever lower)
         </p>
       )}
       {primaryBroker?.id === 'fyers' && (
@@ -1509,7 +1509,7 @@ const RecommendationSection = ({
       )}
       {primaryBroker?.id === '5paisa' && (
         <p className="text-center text-xs text-gray-600 mb-4 px-4 leading-relaxed">
-          📝 All segments: ₹20 per trade (standard) or ₹10 per trade (premium plan ₹599-1199/month)
+          📝 Intraday/F&O: ₹20 per trade (standard) or ₹10 (premium plan)
         </p>
       )}
 
@@ -1589,7 +1589,7 @@ const RecommendationSection = ({
             <div className="space-y-2 text-xs text-gray-700">
               <p><strong>Delivery Trading:</strong> Buy stocks and hold them (like buying property to keep) - This is how most people invest</p>
               <p><strong>Intraday Trading:</strong> Buy and sell same stock on same day (risky, not recommended for beginners)</p>
-              <p><strong>Brokerage:</strong> Fee charged per trade - FREE at Zerodha for delivery</p>
+              <p><strong>Brokerage:</strong> Fee charged per trade - varies by broker and trade type</p>
               <p><strong>AMC (Annual Charges):</strong> Yearly account maintenance - ₹300/year at Zerodha (₹25/month)</p>
             </div>
           </div>
@@ -1858,54 +1858,39 @@ const RecommendationSection = ({
       {recommendation.validation && recommendation.validation.brokerData.length > 0 && (
         <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-5 mb-6 mt-8 text-left">
           <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-            <span className="text-xl">📋</span>
+            <span className="text-xl">⚠️</span>
             {recommendation.validation.multipleBrokers
-              ? "Important Things to Know About Your Current Brokers"
-              : `Important Things to Know About ${recommendation.validation.brokerData[0].brokerName}`
+              ? `Why We Recommend Switching from ${recommendation.validation.brokerData.map(b => b.brokerName).join(' & ')}`
+              : `Why We Recommend Switching from ${recommendation.validation.brokerData[0].brokerName}`
             }
           </h3>
 
-          {/* Brief Summary (Always Visible) - Group by challenge type to avoid duplicates */}
-          <div className="mb-3">
-            {(() => {
-              // Group issues by challenge type (not by broker)
-              const issuesByChallenge: Record<string, Array<{broker: string, issue: string}>> = {};
-
-              recommendation.validation.brokerData.forEach((broker) => {
-                broker.issues.forEach((issueData) => {
-                  if (!issuesByChallenge[issueData.label]) {
-                    issuesByChallenge[issueData.label] = [];
-                  }
-                  issuesByChallenge[issueData.label].push({
-                    broker: broker.brokerName,
-                    issue: issueData.issues[0].split('.')[0]
-                  });
-                });
-              });
-
-              return Object.entries(issuesByChallenge).map(([label, brokerIssues]) => (
-                <div key={label} className="mb-2 last:mb-0">
-                  <div className="flex items-start gap-2">
-                    <span className="text-red-500 font-bold text-sm mt-0.5">⚠️</span>
-                    <div className="text-gray-800 text-sm font-medium">
-                      <span className="font-semibold">{label}:</span>
-                      {recommendation.validation?.multipleBrokers ? (
-                        <span className="ml-1">
-                          {brokerIssues.map((item, idx) => (
-                            <span key={idx}>
-                              {item.broker}: {item.issue}
-                              {idx < brokerIssues.length - 1 ? '; ' : ''}
-                            </span>
-                          ))}...
-                        </span>
-                      ) : (
-                        <span className="ml-1">{brokerIssues[0].issue}...</span>
-                      )}
-                    </div>
+          {/* Brief Summary (Always Visible) - Group by BROKER for clarity */}
+          <div className="mb-3 space-y-3">
+            {recommendation.validation.brokerData.map((broker) => (
+              <div key={broker.brokerId} className="last:mb-0">
+                {/* Show broker name clearly if multiple brokers */}
+                {recommendation.validation?.multipleBrokers && (
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-lg">📊</span>
+                    <span className="font-bold text-gray-900 text-sm">{broker.brokerName}:</span>
                   </div>
+                )}
+
+                {/* Show top 2-3 issues per broker */}
+                <div className="space-y-1.5 ml-7">
+                  {broker.issues.slice(0, 3).map((issueData, idx) => (
+                    <div key={idx} className="flex items-start gap-2">
+                      <span className="text-red-500 font-bold text-xs mt-0.5">•</span>
+                      <div className="text-gray-800 text-sm">
+                        <span className="font-medium">{issueData.label}:</span>
+                        <span className="ml-1">{issueData.issues[0].split('.')[0]}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ));
-            })()}
+              </div>
+            ))}
           </div>
 
           {/* Read More Button */}
