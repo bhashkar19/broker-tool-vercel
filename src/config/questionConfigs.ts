@@ -114,7 +114,7 @@ export const QUESTION_FLOW_A: QuestionFlow = {
         equals: "yes"
       },
       validation: { required: true },
-      visualCard: true // 4 options - use visual cards for clarity
+      visualCard: true
     },
     {
       id: "investment_capital",
@@ -133,7 +133,7 @@ export const QUESTION_FLOW_A: QuestionFlow = {
         equals: "yes"
       },
       validation: { required: true },
-      visualCard: true // 4 options - use visual cards for clarity
+      visualCard: true
     },
     {
       id: "main_challenge",
@@ -437,7 +437,7 @@ export const QUESTION_FLOW_B: QuestionFlow = {
         equals: "yes"
       },
       validation: { required: true },
-      visualCard: true // 4 options - use visual cards for clarity
+      visualCard: true
     },
     {
       id: "investment_capital",
@@ -456,7 +456,7 @@ export const QUESTION_FLOW_B: QuestionFlow = {
         equals: "yes"
       },
       validation: { required: true },
-      visualCard: true // 4 options - use visual cards for clarity
+      visualCard: true
     },
     {
       id: "main_challenge",
