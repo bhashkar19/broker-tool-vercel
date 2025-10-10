@@ -94,7 +94,7 @@ const VisualCardQuestion: React.FC<VisualCardQuestionProps> = ({
 
               {/* Description (if provided) */}
               {option.description && (
-                <p className={`text-xs leading-snug ${
+                <p className={`text-sm font-semibold leading-snug ${
                   selectedValue === option.value ? 'text-blue-700' : 'text-gray-700'
                 }`}>
                   {option.description}

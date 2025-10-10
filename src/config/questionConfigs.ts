@@ -104,10 +104,10 @@ export const QUESTION_FLOW_A: QuestionFlow = {
       helpText: "Choose the one that best describes you",
       field_name: "tradingStyle",
       options: [
-        { label: "📊 Active day trader", value: "day_trader", description: "Multiple trades daily" },
-        { label: "⚡ Swing trader", value: "swing_trader", description: "Hold for days/weeks" },
-        { label: "📈 Long-term investor", value: "long_term_investor", description: "Buy & hold strategy" },
-        { label: "🎯 Mix of trading + investing", value: "hybrid", description: "Both short & long term" }
+        { label: "Active day trader", value: "day_trader", description: "Multiple trades daily", icon: "📊" },
+        { label: "Swing trader", value: "swing_trader", description: "Hold for days/weeks", icon: "⚡" },
+        { label: "Long-term investor", value: "long_term_investor", description: "Buy & hold strategy", icon: "📈" },
+        { label: "Mix of trading + investing", value: "hybrid", description: "Both short & long term", icon: "🎯" }
       ],
       conditional: {
         showIf: "hasAccount",
@@ -123,10 +123,10 @@ export const QUESTION_FLOW_A: QuestionFlow = {
       helpText: "This helps us recommend the right broker for your needs",
       field_name: "investmentCapital",
       options: [
-        { label: "🌱 Just starting", value: "beginner", description: "₹10K - ₹50K" },
-        { label: "📊 Growing portfolio", value: "growing", description: "₹50K - ₹5L" },
-        { label: "💼 Established investor", value: "established", description: "₹5L - ₹25L" },
-        { label: "🏆 Serious capital", value: "serious", description: "₹25L+" }
+        { label: "Just starting", value: "beginner", description: "₹10,000 - ₹50,000", icon: "🌱" },
+        { label: "Growing portfolio", value: "growing", description: "₹50,000 - ₹5 lakh", icon: "📊" },
+        { label: "Established investor", value: "established", description: "₹5 lakh - ₹25 lakh", icon: "💼" },
+        { label: "Serious capital", value: "serious", description: "₹25 lakh+", icon: "🏆" }
       ],
       conditional: {
         showIf: "hasAccount",
@@ -427,10 +427,10 @@ export const QUESTION_FLOW_B: QuestionFlow = {
       helpText: "Choose the one that best describes you",
       field_name: "tradingStyle",
       options: [
-        { label: "📊 Active day trader", value: "day_trader", description: "Multiple trades daily" },
-        { label: "⚡ Swing trader", value: "swing_trader", description: "Hold for days/weeks" },
-        { label: "📈 Long-term investor", value: "long_term_investor", description: "Buy & hold strategy" },
-        { label: "🎯 Mix of trading + investing", value: "hybrid", description: "Both short & long term" }
+        { label: "Active day trader", value: "day_trader", description: "Multiple trades daily", icon: "📊" },
+        { label: "Swing trader", value: "swing_trader", description: "Hold for days/weeks", icon: "⚡" },
+        { label: "Long-term investor", value: "long_term_investor", description: "Buy & hold strategy", icon: "📈" },
+        { label: "Mix of trading + investing", value: "hybrid", description: "Both short & long term", icon: "🎯" }
       ],
       conditional: {
         showIf: "hasAccount",
@@ -446,10 +446,10 @@ export const QUESTION_FLOW_B: QuestionFlow = {
       helpText: "This helps us recommend the right broker for your needs",
       field_name: "investmentCapital",
       options: [
-        { label: "🌱 Just starting", value: "beginner", description: "₹10K - ₹50K" },
-        { label: "📊 Growing portfolio", value: "growing", description: "₹50K - ₹5L" },
-        { label: "💼 Established investor", value: "established", description: "₹5L - ₹25L" },
-        { label: "🏆 Serious capital", value: "serious", description: "₹25L+" }
+        { label: "Just starting", value: "beginner", description: "₹10,000 - ₹50,000", icon: "🌱" },
+        { label: "Growing portfolio", value: "growing", description: "₹50,000 - ₹5 lakh", icon: "📊" },
+        { label: "Established investor", value: "established", description: "₹5 lakh - ₹25 lakh", icon: "💼" },
+        { label: "Serious capital", value: "serious", description: "₹25 lakh+", icon: "🏆" }
       ],
       conditional: {
         showIf: "hasAccount",
