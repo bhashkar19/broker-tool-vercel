@@ -377,7 +377,7 @@ export const QUESTION_FLOW_A: QuestionFlow = {
 export const QUESTION_FLOW_B: QuestionFlow = {
   name: "Contact Last Flow",
   description: "Find your perfect broker in 60 seconds",
-  totalQuestions: 7,
+  totalQuestions: 6,
   questions: [
     {
       id: "demat_account_check",
@@ -421,23 +421,42 @@ export const QUESTION_FLOW_B: QuestionFlow = {
       }
     },
     {
-      id: "user_type",
-      type: "checkbox",
-      label: "What best describes you?",
-      helpText: "👆 Click all that apply",
-      field_name: "userType",
+      id: "trading_style",
+      type: "radio",
+      label: "What's your trading style?",
+      helpText: "Choose the one that best describes you",
+      field_name: "tradingStyle",
       options: [
-        { label: "📊 Long-term investor", value: "investor" },
-        { label: "💰 Active trader", value: "trader" },
-        { label: "📚 Still learning", value: "learner" },
-        { label: "🎯 Expert trader", value: "professional" }
+        { label: "📊 Active day trader", value: "day_trader", description: "Multiple trades daily" },
+        { label: "⚡ Swing trader", value: "swing_trader", description: "Hold for days/weeks" },
+        { label: "📈 Long-term investor", value: "long_term_investor", description: "Buy & hold strategy" },
+        { label: "🎯 Mix of trading + investing", value: "hybrid", description: "Both short & long term" }
       ],
       conditional: {
         showIf: "hasAccount",
         equals: "yes"
       },
       validation: { required: true },
-      gridLayout: "2x2" // Display in 2x2 grid for better space usage
+      visualCard: true // 4 options - use visual cards for clarity
+    },
+    {
+      id: "investment_capital",
+      type: "radio",
+      label: "What's your typical investment amount?",
+      helpText: "This helps us recommend the right broker for your needs",
+      field_name: "investmentCapital",
+      options: [
+        { label: "🌱 Just starting", value: "beginner", description: "₹10K - ₹50K" },
+        { label: "📊 Growing portfolio", value: "growing", description: "₹50K - ₹5L" },
+        { label: "💼 Established investor", value: "established", description: "₹5L - ₹25L" },
+        { label: "🏆 Serious capital", value: "serious", description: "₹25L+" }
+      ],
+      conditional: {
+        showIf: "hasAccount",
+        equals: "yes"
+      },
+      validation: { required: true },
+      visualCard: true // 4 options - use visual cards for clarity
     },
     {
       id: "main_challenge",
@@ -450,8 +469,7 @@ export const QUESTION_FLOW_B: QuestionFlow = {
         { label: "📉 Platform crashes", value: "reliability" },
         { label: "😤 Poor support", value: "support" },
         { label: "🔍 Limited research", value: "research" },
-        { label: "🛠️ Basic tools", value: "tools" },
-        { label: "✅ I'm happy", value: "satisfied" }
+        { label: "🛠️ Basic tools", value: "tools" }
       ],
       conditional: {
         showIf: "hasAccount",
@@ -460,23 +478,6 @@ export const QUESTION_FLOW_B: QuestionFlow = {
       validation: { required: true },
       gridLayout: "2x3", // Display in 2x3 grid (2 columns, 3 rows)
       allowCustom: true // Allow "Other (specify)" option
-    },
-    {
-      id: "trading_frequency",
-      type: "radio",
-      label: "How often do you trade?",
-      field_name: "tradingFrequency",
-      options: [
-        { label: "Very rarely - long-term holdings", value: "rarely" },
-        { label: "Few times a month", value: "monthly" },
-        { label: "Weekly - active trading", value: "weekly" },
-        { label: "Daily - day trading", value: "daily" }
-      ],
-      conditional: {
-        showIf: "hasAccount",
-        equals: "yes"
-      },
-      validation: { required: true }
     },
     {
       id: "most_important",
