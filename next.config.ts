@@ -46,13 +46,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-// Wrap with Sentry config - Temporarily disabled for deployment
-// export default withSentryConfig(nextConfig, {
-//   org: process.env.SENTRY_ORG,
-//   project: process.env.SENTRY_PROJECT,
-//   silent: process.env.NODE_ENV !== 'production',
-//   widenClientFileUpload: true,
-//   telemetry: false,
-// });
-
-export default nextConfig;
+// Wrap with Sentry config
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  silent: process.env.NODE_ENV !== 'production',
+  widenClientFileUpload: true,
+  telemetry: false,
+});
