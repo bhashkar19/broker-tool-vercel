@@ -46,18 +46,13 @@ const nextConfig: NextConfig = {
   },
 };
 
-// Wrap with Sentry config
-export default withSentryConfig(nextConfig, {
-  // Sentry Webpack plugin options
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
+// Wrap with Sentry config - Temporarily disabled for deployment
+// export default withSentryConfig(nextConfig, {
+//   org: process.env.SENTRY_ORG,
+//   project: process.env.SENTRY_PROJECT,
+//   silent: process.env.NODE_ENV !== 'production',
+//   widenClientFileUpload: true,
+//   telemetry: false,
+// });
 
-  // Only upload source maps in production
-  silent: process.env.NODE_ENV !== 'production',
-
-  // Upload source maps during build
-  widenClientFileUpload: true,
-
-  // Disable Sentry CLI telemetry
-  telemetry: false,
-});
+export default nextConfig;
